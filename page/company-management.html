@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Management — CCTV AMC Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#F3EEEA', surface: '#F6F1F1', surface2: '#FFFFFF', surface3: '#ede4d4',
+                        borderc: '#B0A695', bordersoft: '#e0d5c4', textdim: '#6b5a48', textfaint: '#8a7a68',
+                        accent: '#2d6a2d', accentdim: '#e8f0e8', accenttext: '#2d6a2d',
+                        amber: '#c47a1a', amberdim: '#f5e8cc', ambertext: '#c47a1a',
+                        redc: '#b53b3b', reddim: '#f0e0e0', redtext: '#b53b3b',
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+
+        html, body { background-color: #F3EEEA; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .sidebar {
+            background: #f0e1ca;
+            transition: width 0.25s ease, transform 0.25s ease;
+            width: 260px;
+            overflow-x: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed { width: 72px; }
+
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .sidebar-nav-text,
+        .sidebar.collapsed .sidebar-user-text,
+        .sidebar.collapsed .sidebar-company-count { display: none; }
+
+        .sidebar.collapsed .sidebar-nav-item { justify-content: center; padding: 0.625rem; }
+        .sidebar.collapsed .sidebar-nav-item svg { margin: 0 auto; }
+        .sidebar.collapsed .sidebar-logo { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .sidebar-toggle-btn { transform: rotate(180deg); }
+        .sidebar.collapsed .sidebar-user-section { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .sidebar-user-avatar { margin: 0 auto; }
+
+        .sidebar .text-textdim,
+        .sidebar .text-faint,
+        .sidebar .text-textfaint { color: #5a4a3a; }
+
+        .sidebar .text-accenttext { color: #2d5a2d; }
+        .sidebar .bg-accentdim { background: rgba(45, 90, 45, 0.12); }
+
+        .sidebar a:hover { background: rgba(0, 0, 0, 0.06); color: #1a1a1a; }
+
+        .sidebar a.active {
+            background-color: #5a4a3a !important;
+            color: white !important;
+            width: 90%;
+            margin-left: 10px;
+            border-radius: 8px;
+        }
+
+        .sidebar a.active svg { stroke: white !important; }
+        .sidebar { border-right-color: #d4c4b0; }
+
+        .bg-surface2 { background: #f5efdd; }
+        .bg-surface3 { background: #ede4d4; }
+        .border-bordersoft, .border-borderc { border-color: #e0d5c4; }
+        .text-textdim { color: #6b5a48; }
+        .text-textfaint { color: #463d34; }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; display: none; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c0b5a4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a89884; }
+        ::selection { background: #2d5a2d; color: #F7F1DE; }
+
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11.5px; font-weight: 600; padding: 4px 10px;
+            border-radius: 999px; font-family: 'JetBrains Mono', monospace; letter-spacing: .02em;
+        }
+        .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .chip-active { background: #e8f0e8; color: #2d6a2d; }
+        .chip-expired { background: #f0e0e0; color: #b53b3b; }
+        .chip-soon { background: #f5e8cc; color: #c47a1a; }
+        .chip-neutral { background: #e8e0d8; color: #6b5a48; }
+
+        .modal-backdrop { display: none; }
+        .modal-backdrop.open { display: flex; }
+
+        .dropdown-menu { opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s ease; }
+        .dropdown-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+
+        main { transition: margin-left 0.25s ease; }
+
+        /* Button styles matching dashboard & monthly inspection */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #5a4a3a;
+            color: white;
+            border: none;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary:hover { background: #776B5D; }
+        .btn-primary:active { transform: scale(0.99); }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #e8e0d8;
+            color: #3a332b;
+            border: 1px solid #c0b5a4;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-secondary:hover { background: #ddd5cb; }
+        .btn-secondary:active { transform: scale(0.99); }
+
+        .btn-reset {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #8a7a68;
+            color: white;
+            border: none;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-reset:hover { background: #6b5a48; }
+        .btn-reset:active { transform: scale(0.99); }
+
+        .stat-card {
+            background: #F6F1F1;
+            border: 1px solid #B0A695;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .stat-card .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: #5a4a3a;
+        }
+        .stat-card .stat-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #8a7a68;
+            margin-bottom: 6px;
+        }
+
+        .card {
+            background: #F6F1F1;
+            border: 1px solid #B0A695;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: #1c252b;
+            border: 1px solid #2a363e;
+            border-left: 3px solid #2d6a2d;
+            color: #e7edf0;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .5);
+            z-index: 100;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all .25s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.toast-danger {
+            border-left-color: #b53b3b;
+        }
+
+        /* Modal styles */
+        .modal {
+            animation: modalIn .18s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(8px) scale(.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        input, select, textarea {
+            background-color: white;
+            border-color: #e0d5c4;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #5a4a3a;
+            outline: none;
+            ring: 2px solid #5a4a3a;
+        }
+
+        /* Table styles */
+        .data-table thead th {
+            background-color: #ede4d4;
+            color: #564e45;
+        }
+
+        .company-row:hover {
+            background-color: white;
+        }
+
+        .expand-arrow {
+            transition: transform .2s ease;
+        }
+
+        .company-row.expanded .expand-arrow {
+            transform: rotate(90deg);
+            color: #2d6a2d;
+        }
+
+        .data-table td {
+            border-bottom: 1px solid #e0d5c4;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed; left: 0; top: 0; height: 100vh;
+                transform: translateX(-100%); z-index: 40;
+                box-shadow: 0 16px 48px -12px rgba(0, 0, 0, .15);
+                background: #EEE0CC; width: 260px;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar.collapsed { width: 260px; }
+            .sidebar.collapsed .sidebar-logo-text,
+            .sidebar.collapsed .sidebar-nav-text,
+            .sidebar.collapsed .sidebar-user-text,
+            .sidebar.collapsed .sidebar-company-count { display: inline-block; }
+            .sidebar.collapsed .sidebar-nav-item { justify-content: flex-start; padding: 0.625rem 0.75rem; }
+            .sidebar.collapsed .sidebar-toggle-btn { transform: none; }
+            .overlay.open { display: block; }
+        }
+
+        @media (max-width: 640px) {
+            .data-table thead { display: none; }
+            .data-table, .data-table tbody, .data-table tr, .data-table td { display: block; width: 100%; }
+            .company-row { border: 1px solid #e0d5c4; border-radius: 10px; margin: 8px 0; padding: 4px; background: white; }
+            .data-table td { padding: 6px 14px; border-bottom: none; }
+            .data-table td.col-expand { display: none; }
+            .data-table td[data-label]::before {
+                content: attr(data-label);
+                display: block;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 10px;
+                text-transform: uppercase;
+                letter-spacing: .1em;
+                color: #45403b;
+                margin-bottom: 4px;
+            }
+            .row-actions { justify-content: flex-start !important; padding-bottom: 12px; }
+        }
+    </style>
+</head>
+
+<body class="text-[#3a332b]">
+
+    <!-- ===== HEADER ===== -->
+    <header class="bg-[#F3EEEA] border-b border-[#B0A695] sticky top-0 z-30">
+        <div class="flex items-center justify-between px-4 md:px-6 py-3">
+            <div class="flex items-center gap-3">
+                <button id="sidebarCollapseBtn"
+                    class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition">
+                    <svg id="collapseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <img src="/page/image/kunash-logo.png" alt="CCTV AMC Manager Logo" class="w-15 h-8">
+                </div>
+            </div>
+
+            <div class="relative">
+                <button id="profileBtn" class="flex items-center gap-2.5 p-1.5 rounded-md border border-[#B0A695] transition group hover:bg-[#776B5D]">
+                    <div class="w-[34px] h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[12px] font-semibold">AD</div>
+                    <div class="hidden sm:block text-left">
+                        <div class="text-[13px] font-semibold text-[#5a4a3a] group-hover:text-white">Admin User</div>
+                        <div class="text-[11px] text-[#8a7a68] group-hover:text-white">Administrator</div>
+                    </div>
+                    <svg class="w-4 h-4 text-[#5a4a3a] group-hover:text-white transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+
+                <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#B0A695] rounded-lg shadow-lg overflow-hidden z-50">
+                    <div class="px-4 py-3 border-b border-[#e0d5c4]">
+                        <div class="text-[13px] font-semibold text-[#5a4a3a]">Admin User</div>
+                        <div class="text-[11px] text-[#8a7a68]">admin@cctvmanager.com</div>
+                    </div>
+                    <div class="py-1">
+                        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[#5a4a3a] hover:bg-[#F3EEEA] transition">
+                            <i class="fa-regular fa-user"></i>
+                            My Profile
+                        </a>
+                    </div>
+                    <div class="border-t border-[#e0d5c4] py-1">
+                        <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex min-h-screen" style="background-color: #F3EEEA;">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside id="sidebar" class="sidebar border-r border-[#d4c4b0] flex flex-col h-screen sticky top-0 overflow-y-auto">
+            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
+                <a href="/page/dashboard.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="dashboard">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
+                    <span class="sidebar-nav-text">Dashboard</span>
+                </a>
+                <a href="/page/company-management.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active" data-nav="companies">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
+                    <span class="sidebar-nav-text">Companies</span>
+                    <span id="navCompanyCount" class="ml-auto font-mono text-[11px] bg-white/20 text-white rounded-full px-2 py-0.5 min-w-[22px] text-center sidebar-company-count">0</span>
+                </a>
+                <a href="/page/monthly-inspection.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="monthly-inspection">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                    <span class="sidebar-nav-text">Monthly Visits</span>
+                </a>
+                <a href="/page/reports.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="reports">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
+                    <span class="sidebar-nav-text">Reports</span>
+                </a>
+                <a href="/page/excel-import-export.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="import">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    <span class="sidebar-nav-text">Excel Import / Export</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div id="overlay" class="overlay hidden fixed inset-0 bg-black/50 z-[35]"></div>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="flex-1 px-4 md:px-9 pt-5 md:pt-8 pb-16 max-w-[1400px]">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-5 mb-7">
+                <div>
+                    <h1 class="font-display font-semibold text-lg md:text-lg tracking-tight m-0 mb-1.5 text-[#5a4a3a]">Company Management</h1>
+                </div>
+                <button id="addCompanyBtn" class="btn-primary">
+                    <i class="fa-solid fa-plus"></i>
+                    Add Company
+                </button>
+            </div>
+
+            <!-- ===== STAT CARDS ===== -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2.5 md:gap-3.5 mb-7">
+                <div class="stat-card">
+                    <div class="stat-label">Total Companies</div>
+                    <div id="statTotal" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Cameras</div>
+                    <div id="statCameras" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">AMC Active</div>
+                    <div id="statAmcActive" class="stat-value text-[#2d6a2d]">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">AMC Expired</div>
+                    <div id="statAmcExpired" class="stat-value text-[#b53b3b]">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Warranty Expiring</div>
+                    <div id="statWarrantySoon" class="stat-value text-[#c47a1a]">0</div>
+                </div>
+            </div>
+
+            <!-- ===== FILTERS WITH RESET BUTTON ===== -->
+            <div class="flex flex-col md:flex-row gap-3 mb-4.5 mb-[18px]">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#8a7a68] text-sm"></i>
+                    <input type="text" id="searchInput" placeholder="Search companies..."
+                        class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none focus:border-[#5a4a3a]">
+                </div>
+                <select id="filterAmc" class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                    <option value="">AMC: All</option>
+                    <option value="Active">Active</option>
+                    <option value="Expired">Expired</option>
+                </select>
+                <select id="filterWarranty" class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                    <option value="">Warranty: All</option>
+                    <option value="Active">Active</option>
+                    <option value="Expiring Soon">Expiring Soon</option>
+                    <option value="Expired">Expired</option>
+                </select>
+                <button id="resetFiltersBtn" class="btn-reset whitespace-nowrap">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    Reset
+                </button>
+            </div>
+
+            <!-- ===== COMPANY TABLE ===== -->
+            <div class="border border-[#B0A695] rounded-[10px] overflow-hidden bg-white">
+                <table class="data-table w-full border-collapse text-[13.5px] text-[#5a4a3a]">
+                    <thead>
+                        <tr>
+                            <th class="col-expand w-9 px-4 py-3.5"></th>
+                            <th class="px-4 py-3.5 text-left">Company</th>
+                            <th class="px-4 py-3.5 text-left">Contact</th>
+                            <th class="px-4 py-3.5 text-left">AMC</th>
+                            <th class="px-4 py-3.5 text-left">Warranty</th>
+                            <th class="text-right px-4 py-3.5">Cameras</th>
+                            <th class="text-right px-4 py-3.5">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companyTableBody"></tbody>
+                </table>
+                <div id="emptyState" class="text-center py-16 px-6 hidden">
+                    <div class="text-4xl text-[#B0A695] mb-3"><i class="fa-regular fa-building"></i></div>
+                    <p class="font-semibold text-[#5a4a3a]">No companies found</p>
+                    <button id="emptyAddBtn" class="btn-primary mt-4">Add Company</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast" class="toast"></div>
+
+    <!-- ===== ADD/EDIT MODAL ===== -->
+    <div id="modalBackdrop" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm z-50 items-center justify-center p-5">
+        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[680px] max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-[#e0d5c4]">
+                <h2 id="modalTitle" class="font-display font-semibold text-base m-0 text-[#5a4a3a]">Add Company</h2>
+                <button id="closeModal" class="w-8 h-8 flex items-center justify-center rounded-full border border-[#B0A695] text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition">✕</button>
+            </div>
+            <form id="companyForm" class="px-6 py-4 overflow-y-auto">
+                <input type="hidden" id="companyId">
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Company Name *</label><input type="text" id="companyName" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Contact Person</label><input type="text" id="contactPerson" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Mobile</label><input type="tel" id="mobileNumber" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div class="col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Email</label><input type="email" id="email" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div class="col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Address</label><textarea id="address" rows="1" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></textarea></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">AMC Start</label><input type="date" id="amcStart" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">AMC End</label><input type="date" id="amcEnd" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">AMC Amount (₹)</label><input type="number" id="amcAmount" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Warranty Start</label><input type="date" id="warrantyStart" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Warranty End</label><input type="date" id="warrantyEnd" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Vendor</label><input type="text" id="vendorName" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-medium text-[#6b5a48]">Camera Locations</label>
+                        <span id="totalCamerasDisplay" class="border border-[#e0d5c4] px-3 py-0.5 rounded-full text-sm text-[#5a4a3a]">0</span>
+                    </div>
+                    <div id="locationRows" class="flex flex-col gap-2"></div>
+                    <button type="button" id="addLocationRow" class="w-full mt-2 py-2 border border-dashed border-[#B0A695] rounded-lg text-sm text-[#5a4a3a] hover:bg-[#F3EEEA] transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Location
+                    </button>
+                </div>
+
+                <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Notes</label><textarea id="notes" rows="2" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></textarea></div>
+            </form>
+            <div class="flex justify-end gap-3 px-6 py-4 border-t border-[#e0d5c4]">
+                <button id="cancelBtn" class="btn-secondary px-6 py-2">Cancel</button>
+                <button type="submit" form="companyForm" id="saveBtn" class="btn-primary px-6 py-2">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DELETE CONFIRMATION MODAL ===== -->
+    <div id="deleteBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
+        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[500px] shadow-2xl p-6 text-center">
+            <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 text-3xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-regular fa-trash-can"></i>
+            </div>
+            <h3 class="font-display text-xl font-bold text-[#5a4a3a] mb-2">Delete Company?</h3>
+            <p class="text-[#8a7a68] text-sm mb-1">This action cannot be undone.</p>
+            <p class="text-[#8a7a68] text-xs">All company data, camera locations, and associated records will be permanently removed.</p>
+            <div class="flex justify-center gap-3 mt-6">
+                <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
+                <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== VIEW DETAILS MODAL ===== -->
+    <div id="viewModalBackdrop" class="modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-sm z-50 items-center justify-center p-5">
+        <div class="modal bg-[#FDF9F2] border border-[#B0A695] rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div class="sticky top-0 bg-[#FDF9F2] border-b border-[#e0d5c4] px-6 py-4 flex justify-between items-center">
+                <h2 class="font-display font-bold text-xl text-[#5a4a3a] flex items-center gap-2">
+                    <i class="fa-regular fa-eye"></i> Company Details
+                </h2>
+                <button id="closeViewModal" class="w-8 h-8 flex items-center justify-center rounded-full border border-[#B0A695] text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition">✕</button>
+            </div>
+            <div id="viewModalContent" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- ===== LOGOUT CONFIRMATION MODAL ===== -->
+    <div id="logoutBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
+        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
+            <div class="w-11 h-11 rounded-full bg-red-500 text-white text-xl mx-auto flex items-center justify-center">!</div>
+            <h3 class="font-display text-[16px] text-[#5a4a3a] mb-1 mt-3">Confirm Logout</h3>
+            <p class="text-[#8a7a68] text-[13px]">Are you sure you want to logout?</p>
+            <div class="flex justify-center gap-2.5 mt-6">
+                <button id="cancelLogout" class="btn-secondary px-6 py-2">Cancel</button>
+                <button id="confirmLogout" class="btn-primary px-6 py-2 bg-red-500 hover:bg-red-600">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            // ===== MOCK DATA =====
+            let companies = [
+                { company_id: 101, company_name: "Shree Balaji Enterprises", contact_person: "Rajesh Sharma", mobile_number: "9876543210", email: "rajesh@shreebalaji.com", address: "Shop No. 12, MG Road, Pune", amc_start_date: "2026-01-01", amc_end_date: "2026-12-31", amc_amount: 24000, warranty_start_date: "2026-01-01", warranty_end_date: "2028-01-01", vendor_name: "CP Plus Distributor", notes: "", camera_locations: [{ id: 1, location_name: "Reception", camera_count: 2 }, { id: 2, location_name: "Parking", camera_count: 4 }] },
+                { company_id: 102, company_name: "Patil Traders", contact_person: "Sunil Patil", mobile_number: "9823456712", email: "sunil@patiltraders.in", address: "Plot 45, MIDC, Bhosari", amc_start_date: "2025-03-15", amc_end_date: "2026-03-15", amc_amount: 36000, warranty_start_date: "2025-06-20", warranty_end_date: "2026-06-20", vendor_name: "Hikvision", notes: "", camera_locations: [{ id: 5, location_name: "Cabin", camera_count: 6 }, { id: 6, location_name: "Reception", camera_count: 2 }] },
+                { company_id: 103, company_name: "Greenfield Apartments", contact_person: "Mrs. Anita Deshmukh", mobile_number: "9765432109", email: "secretary@greenfieldapts.com", address: "Greenfield Society, Baner", amc_start_date: "2026-02-01", amc_end_date: "2027-02-01", amc_amount: 48000, warranty_start_date: "2026-02-01", warranty_end_date: "2027-08-01", vendor_name: "Local Vendor", notes: "", camera_locations: [{ id: 8, location_name: "Main Gate", camera_count: 2 }, { id: 9, location_name: "Parking", camera_count: 8 }] }
+            ];
+
+            let nextCompanyId = 104, nextLocationId = 14, expandedRowId = null, pendingDeleteId = null;
+
+            const todayStr = () => new Date().toISOString().split('T')[0];
+            const amcStatus = c => !c.amc_end_date ? { label: 'No AMC', cls: 'chip-neutral' } : c.amc_end_date >= todayStr() ? { label: 'Active', cls: 'chip-active' } : { label: 'Expired', cls: 'chip-expired' };
+            const warrantyStatus = c => { if (!c.warranty_end_date) return { label: 'N/A', cls: 'chip-neutral' }; const d = Math.ceil((new Date(c.warranty_end_date) - new Date()) / 86400000); return d < 0 ? { label: 'Expired', cls: 'chip-expired' } : d <= 30 ? { label: 'Expiring Soon', cls: 'chip-soon' } : { label: 'Active', cls: 'chip-active' }; };
+            const totalCameras = c => (c.camera_locations || []).reduce((s, l) => s + (Number(l.camera_count) || 0), 0);
+            const escapeHtml = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+            // ===== DOM REFS =====
+            const $ = id => document.getElementById(id);
+            const tbody = $('companyTableBody'), emptyState = $('emptyState'), searchInput = $('searchInput');
+            const filterAmc = $('filterAmc'), filterWarranty = $('filterWarranty');
+            const statTotal = $('statTotal'), statCameras = $('statCameras'), statAmcActive = $('statAmcActive');
+            const statAmcExpired = $('statAmcExpired'), statWarrantySoon = $('statWarrantySoon'), navCompanyCount = $('navCompanyCount');
+            const modalBackdrop = $('modalBackdrop'), locationRows = $('locationRows'), totalCamerasDisplay = $('totalCamerasDisplay');
+            const deleteBackdrop = $('deleteBackdrop'), toast = $('toast'), viewModalBackdrop = $('viewModalBackdrop');
+            const viewModalContent = $('viewModalContent'), logoutBackdrop = $('logoutBackdrop');
+            const resetFiltersBtn = $('resetFiltersBtn');
+
+            // ===== TOAST =====
+            function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' toast-danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2600); }
+
+            // ===== RESET FILTERS =====
+            resetFiltersBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                filterAmc.value = '';
+                filterWarranty.value = '';
+                renderTable();
+                showToast('Filters reset ✓');
+            });
+
+            // ===== LOCATION ROWS =====
+            const createLocationRow = (loc = { location_name: '', camera_count: '' }) => {
+                const row = document.createElement('div');
+                row.className = 'location-row grid gap-2 items-center';
+                row.style.gridTemplateColumns = '1fr 80px 32px';
+                row.innerHTML = `
+                    <input type="text" class="loc-name bg-white border border-[#e0d5c4] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#5a4a3a]" placeholder="Location name" value="${escapeHtml(loc.location_name)}">
+                    <input type="number" class="loc-count bg-white border border-[#e0d5c4] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#5a4a3a]" min="0" value="${loc.camera_count || ''}" placeholder="Count">
+                    <button type="button" class="remove-row-btn bg-white border border-[#e0d5c4] rounded-lg px-2 py-1.5 text-[#b53b3b] hover:bg-red-50 transition">✕</button>
+                `;
+                row.querySelector('.remove-row-btn').onclick = () => { row.remove(); updateTotal(); if (!locationRows.children.length) addLocationRow(); };
+                row.querySelector('.loc-count').oninput = updateTotal;
+                return row;
+            };
+            const addLocationRow = (loc) => locationRows.appendChild(createLocationRow(loc));
+            const updateTotal = () => { let t = 0; locationRows.querySelectorAll('.loc-count').forEach(i => t += Number(i.value) || 0); totalCamerasDisplay.textContent = t; };
+            $('addLocationRow').onclick = () => addLocationRow();
+
+            // ===== FILTER & RENDER =====
+            const getFiltered = () => companies.filter(c => {
+                const q = searchInput.value.trim().toLowerCase();
+                if (q && !`${c.company_name} ${c.contact_person} ${c.mobile_number}`.toLowerCase().includes(q)) return false;
+                if (filterAmc.value && amcStatus(c).label !== filterAmc.value) return false;
+                if (filterWarranty.value && warrantyStatus(c).label !== filterWarranty.value) return false;
+                return true;
+            });
+
+            const renderStats = () => {
+                statTotal.textContent = companies.length;
+                statCameras.textContent = companies.reduce((s, c) => s + totalCameras(c), 0);
+                statAmcActive.textContent = companies.filter(c => amcStatus(c).label === 'Active').length;
+                statAmcExpired.textContent = companies.filter(c => amcStatus(c).label === 'Expired').length;
+                statWarrantySoon.textContent = companies.filter(c => warrantyStatus(c).label === 'Expiring Soon').length;
+                navCompanyCount.textContent = companies.length;
+            };
+
+            const renderTable = () => {
+                const list = getFiltered();
+                tbody.innerHTML = '';
+                if (!list.length) { emptyState.classList.remove('hidden'); renderStats(); return; }
+                emptyState.classList.add('hidden');
+                list.forEach(c => {
+                    const amc = amcStatus(c), war = warrantyStatus(c), total = totalCameras(c);
+                    const isExpanded = expandedRowId === c.company_id;
+                    const row = document.createElement('tr');
+                    row.className = `company-row border-b cursor-pointer ${isExpanded ? 'expanded' : ''}`;
+                    row.dataset.id = c.company_id;
+                    row.innerHTML = `
+                        <td class="col-expand px-4 py-3.5"><span class="expand-arrow text-xs">▶</span></td>
+                        <td class="px-4 py-3.5 font-semibold" data-label="Company">${escapeHtml(c.company_name)}<span class="block text-[10px] text-[#8a7a68]">#${c.company_id}</span></td>
+                        <td class="px-4 py-3.5 text-sm" data-label="Contact">${escapeHtml(c.contact_person || '—')}<span class="block text-[11px] text-[#8a7a68]">${escapeHtml(c.mobile_number)}</span></td>
+                        <td class="px-4 py-3.5" data-label="AMC"><span class="chip ${amc.cls} text-[10px]">${amc.label}</span></td>
+                        <td class="px-4 py-3.5" data-label="Warranty"><span class="chip ${war.cls} text-[10px]">${war.label}</span></td>
+                        <td class="px-4 py-3.5 text-right font-mono font-bold text-sm" data-label="Cameras">${total}</td>
+                        <td class="px-4 py-3.5 text-right row-actions" data-label="Actions">
+                            <div class="flex gap-2 justify-end">
+                                <button class="action-view-btn w-7 h-7 rounded border border-[#B0A695] bg-white text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white flex items-center justify-center transition" data-action="view" data-id="${c.company_id}" title="View Details"><i class="fa-regular fa-eye text-sm"></i></button>
+                                <button class="action-btn w-7 h-7 rounded border border-[#B0A695] bg-white text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white flex items-center justify-center transition" data-action="edit" data-id="${c.company_id}" title="Edit"><i class="fa-regular fa-pen-to-square text-sm"></i></button>
+                                <button class="action-btn w-7 h-7 rounded border border-[#B0A695] bg-white text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition" data-action="delete" data-id="${c.company_id}" title="Delete"><i class="fa-regular fa-trash-can text-sm"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                    if (isExpanded) {
+                        const dr = document.createElement('tr');
+                        dr.innerHTML = `<td colspan="7" class="p-3 bg-[#f5efdd] text-xs">${(c.camera_locations || []).map(l => `<div class="flex justify-between px-2 py-1"><span>${escapeHtml(l.location_name)}</span><span class="font-mono">${l.camera_count} cameras</span></div>`).join('')}</td>`;
+                        tbody.appendChild(dr);
+                    }
+                });
+                renderStats();
+            };
+
+            // ===== VIEW MODAL =====
+            const openViewModal = (company) => {
+                const amc = amcStatus(company), war = warrantyStatus(company);
+                const locationsHtml = (company.camera_locations || []).map(loc => 
+                    `<div class="location-tag bg-[#ede4d4] rounded-lg px-3 py-1.5 text-sm flex items-center gap-2"><span>📍 ${escapeHtml(loc.location_name)}</span><span class="bg-white/70 rounded-full px-2 py-0.5 text-xs font-bold">${loc.camera_count} cams</span></div>`
+                ).join('');
+                viewModalContent.innerHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1">🏢 Company</div><div class="text-lg font-bold text-[#5a4a3a]">${escapeHtml(company.company_name)}</div><div class="text-xs text-[#8a7a68] mt-1">ID: #${company.company_id}</div></div>
+                        <div class="bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1">📞 Contact</div><div class="text-sm font-medium">${escapeHtml(company.contact_person || '—')}</div><div class="text-xs text-[#8a7a68]">${escapeHtml(company.mobile_number)}</div><div class="text-xs text-[#8a7a68]">${escapeHtml(company.email)}</div></div>
+                        <div class="md:col-span-2 bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1">📍 Address</div><div class="text-sm">${escapeHtml(company.address) || 'Not provided'}</div></div>
+                        <div class="bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1">📅 AMC Contract</div><div><span class="chip ${amc.cls}">${amc.label}</span></div><div class="text-sm mt-1">${company.amc_start_date ? `📆 ${company.amc_start_date} → ${company.amc_end_date}` : 'No AMC'}</div><div class="text-xs font-mono">₹${(company.amc_amount || 0).toLocaleString()}</div></div>
+                        <div class="bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1">🛡️ Warranty</div><div><span class="chip ${war.cls}">${war.label}</span></div><div class="text-sm mt-1">${company.warranty_start_date ? `📆 ${company.warranty_start_date} → ${company.warranty_end_date}` : 'No warranty'}</div><div class="text-xs text-[#8a7a68]">Vendor: ${escapeHtml(company.vendor_name) || '—'}</div></div>
+                        <div class="md:col-span-2 bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1 flex justify-between"><span>📷 Camera Locations</span><span class="font-bold text-[#5a4a3a]">${totalCameras(company)} total</span></div><div class="flex flex-wrap gap-2 mt-2">${locationsHtml || '<div class="text-sm text-[#8a7a68] italic">No camera locations added</div>'}</div></div>
+                        ${company.notes ? `<div class="md:col-span-2 bg-[#faf7f2] rounded-xl p-4 border border-[#e0d5c4]"><div class="text-xs uppercase tracking-wider text-[#8a7a68] font-mono mb-1">📝 Notes</div><div class="text-sm">${escapeHtml(company.notes)}</div></div>` : ''}
+                    </div>
+                    <div class="mt-6 flex justify-end"><button id="closeViewModalInner" class="btn-primary px-6 py-2">Close</button></div>
+                `;
+                viewModalBackdrop.classList.add('open');
+                $('closeViewModalInner').onclick = () => viewModalBackdrop.classList.remove('open');
+            };
+
+            // ===== TABLE EVENT HANDLERS =====
+            tbody.addEventListener('click', e => {
+                const btn = e.target.closest('[data-action]');
+                const row = e.target.closest('.company-row');
+                if (!row) return;
+                const id = Number(row.dataset.id);
+                if (btn) {
+                    const action = btn.dataset.action;
+                    const companyId = Number(btn.dataset.id);
+                    if (action === 'view') {
+                        const company = companies.find(c => c.company_id === companyId);
+                        if (company) openViewModal(company);
+                        return;
+                    }
+                    if (action === 'edit') openEditModal(companyId);
+                    if (action === 'delete') { pendingDeleteId = companyId; deleteBackdrop.classList.add('open'); }
+                    return;
+                }
+                expandedRowId = expandedRowId === id ? null : id;
+                renderTable();
+            });
+
+            // ===== SEARCH & FILTER =====
+            searchInput.oninput = renderTable;
+            filterAmc.onchange = renderTable;
+            filterWarranty.onchange = renderTable;
+
+            // ===== ADD/EDIT MODAL =====
+            const openEditModal = (id) => {
+                const c = companies.find(x => x.company_id === id);
+                if (!c) return;
+                $('modalTitle').textContent = 'Edit Company';
+                $('companyId').value = c.company_id;
+                $('companyName').value = c.company_name || '';
+                $('contactPerson').value = c.contact_person || '';
+                $('mobileNumber').value = c.mobile_number || '';
+                $('email').value = c.email || '';
+                $('address').value = c.address || '';
+                $('amcStart').value = c.amc_start_date || '';
+                $('amcEnd').value = c.amc_end_date || '';
+                $('amcAmount').value = c.amc_amount || '';
+                $('warrantyStart').value = c.warranty_start_date || '';
+                $('warrantyEnd').value = c.warranty_end_date || '';
+                $('vendorName').value = c.vendor_name || '';
+                $('notes').value = c.notes || '';
+                locationRows.innerHTML = '';
+                if (c.camera_locations?.length) c.camera_locations.forEach(l => addLocationRow(l));
+                else addLocationRow();
+                updateTotal();
+                modalBackdrop.classList.add('open');
+            };
+
+            const openAddModal = () => {
+                $('modalTitle').textContent = 'Add Company';
+                $('companyForm').reset();
+                $('companyId').value = '';
+                locationRows.innerHTML = '';
+                addLocationRow();
+                updateTotal();
+                modalBackdrop.classList.add('open');
+            };
+
+            $('addCompanyBtn').onclick = openAddModal;
+            $('emptyAddBtn').onclick = openAddModal;
+            $('closeModal').onclick = () => modalBackdrop.classList.remove('open');
+            $('cancelBtn').onclick = () => modalBackdrop.classList.remove('open');
+
+            // ===== FORM SUBMIT =====
+            $('companyForm').onsubmit = e => {
+                e.preventDefault();
+                const id = $('companyId').value;
+                const locs = [];
+                document.querySelectorAll('#locationRows .location-row').forEach(row => {
+                    const name = row.querySelector('.loc-name').value.trim();
+                    const count = Number(row.querySelector('.loc-count').value) || 0;
+                    if (name || count) locs.push({ id: nextLocationId++, location_name: name || 'Unnamed', camera_count: count });
+                });
+                const data = {
+                    company_name: $('companyName').value.trim(),
+                    contact_person: $('contactPerson').value.trim(),
+                    mobile_number: $('mobileNumber').value.trim(),
+                    email: $('email').value.trim(),
+                    address: $('address').value.trim(),
+                    amc_start_date: $('amcStart').value,
+                    amc_end_date: $('amcEnd').value,
+                    amc_amount: Number($('amcAmount').value) || 0,
+                    warranty_start_date: $('warrantyStart').value,
+                    warranty_end_date: $('warrantyEnd').value,
+                    vendor_name: $('vendorName').value.trim(),
+                    notes: $('notes').value.trim(),
+                    camera_locations: locs
+                };
+                if (id) {
+                    const idx = companies.findIndex(c => c.company_id === Number(id));
+                    if (idx !== -1) companies[idx] = { ...companies[idx], ...data, company_id: Number(id) };
+                    showToast('Company updated ✓');
+                } else {
+                    data.company_id = nextCompanyId++;
+                    companies.unshift(data);
+                    showToast('Company added ✓');
+                }
+                modalBackdrop.classList.remove('open');
+                renderTable();
+            };
+
+            // ===== DELETE =====
+            $('confirmDelete').onclick = () => {
+                companies = companies.filter(c => c.company_id !== pendingDeleteId);
+                if (expandedRowId === pendingDeleteId) expandedRowId = null;
+                pendingDeleteId = null;
+                deleteBackdrop.classList.remove('open');
+                showToast('Company deleted', true);
+                renderTable();
+            };
+            $('cancelDelete').onclick = () => deleteBackdrop.classList.remove('open');
+
+            // ===== VIEW MODAL CLOSE =====
+            $('closeViewModal').onclick = () => viewModalBackdrop.classList.remove('open');
+            viewModalBackdrop.addEventListener('click', e => { if (e.target === viewModalBackdrop) viewModalBackdrop.classList.remove('open'); });
+
+            // ===== SIDEBAR =====
+            const sidebar = $('sidebar'), sidebarCollapseBtn = $('sidebarCollapseBtn');
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+            sidebarCollapseBtn.onclick = () => { sidebar.classList.toggle('collapsed'); localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); };
+
+            // ===== PROFILE DROPDOWN =====
+            const profileBtn = $('profileBtn'), profileDropdown = $('profileDropdown');
+            profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
+            document.addEventListener('click', e => { if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('open'); });
+
+            // ===== LOGOUT =====
+            $('logoutBtn').onclick = () => { profileDropdown.classList.remove('open'); logoutBackdrop.classList.add('open'); };
+            $('cancelLogout').onclick = () => logoutBackdrop.classList.remove('open');
+            $('confirmLogout').onclick = () => {
+                sessionStorage.removeItem('amc_session');
+                setTimeout(() => { logoutBackdrop.classList.remove('open'); window.location.href = '/page/login.html'; }, 300);
+            };
+
+            // ===== INIT =====
+            renderTable();
+        })();
+    </script>
+</body>
+</html>

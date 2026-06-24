@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Inspection Hub — CCTV AMC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#F3EEEA', surface: '#F6F1F1', surface2: '#FFFFFF', surface3: '#ede4d4',
+            borderc: '#B0A695', bordersoft: '#e0d5c4', textdim: '#6b5a48', textfaint: '#8a7a68',
+            accent: '#2d6a2d', accentdim: '#e8f0e8', accenttext: '#2d6a2d',
+            amber: '#c47a1a', amberdim: '#f5e8cc', ambertext: '#c47a1a',
+            redc: '#b53b3b', reddim: '#f0e0e0', redtext: '#b53b3b',
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    html,
+    body {
+      background: #F3EEEA;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c0b5a4;
+      border-radius: 10px;
+    }
+
+    ::selection {
+      background: #2d5a2d;
+      color: #F7F1DE;
+    }
+
+    .card-glass {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(2px);
+      border: 1px solid #e0d5c4;
+      border-radius: 16px;
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 40px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-working {
+      background: #e8f0e8;
+      color: #1f4f1f;
+    }
+
+    .badge-faulty {
+      background: #f0e0e0;
+      color: #b53b3b;
+    }
+
+    .badge-open {
+      background: #f5e8cc;
+      color: #b07d1a;
+    }
+
+    .badge-resolved {
+      background: #dce8dc;
+      color: #1f4f1f;
+    }
+
+    .badge-progress {
+      background: #d6e4f0;
+      color: #1a4b6a;
+    }
+
+    .cam-card {
+      transition: all 0.15s;
+      border: 1px solid #e0d5c4;
+      border-radius: 14px;
+      background: white;
+      padding: 12px 14px;
+    }
+
+    .cam-card.selected {
+      border-color: #2d6a2d;
+      background: #f2f8f2;
+      box-shadow: 0 0 0 2px rgba(45, 106, 45, 0.2);
+    }
+
+    .cam-card .checkbox {
+      width: 20px;
+      height: 20px;
+      accent-color: #2d6a2d;
+      flex-shrink: 0;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      background: white;
+      padding: 10px 14px;
+      border-radius: 16px;
+      border: 1px solid #e0d5c4;
+    }
+
+    .filter-bar select,
+    .filter-bar input {
+      background: #f9f7f5;
+      border: 1px solid #d6cdc0;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 13px;
+      min-width: 120px;
+    }
+
+    .filter-bar button {
+      background: #5a4a3a;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 8px 18px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      
+    }
+
+    .filter-bar .bulk-select {
+      background: white;
+      border: 1px solid #d6cdc0;
+      border-radius: 30px;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 96px;
+      right: 16px;
+      left: 16px;
+      max-width: 400px;
+      margin: 0 auto;
+      background: #1c252b;
+      border-left: 4px solid #2d6a2d;
+      color: #e7edf0;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .5);
+      z-index: 100;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all .25s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .toast.danger {
+      border-left-color: #b53b3b;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 60;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: 24px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 24px;
+      box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+    }
+
+    .issue-card {
+      border-left: 4px solid #b0a695;
+      padding: 12px 14px;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid #e0d5c4;
+      transition: all 0.15s;
+    }
+
+    .issue-card.priority-high {
+      border-left-color: #b53b3b;
+    }
+
+    .issue-card.priority-critical {
+      border-left-color: #8b1a1a;
+      background: #fef6f6;
+    }
+
+    .issue-card .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 40px;
+    }
+
+    .issue-card .issue-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .issue-card .issue-actions button {
+      background: transparent;
+      border: none;
+      color: #6b5a48;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+
+    .issue-card .issue-actions button:hover {
+      background: #f0ebe5;
+    }
+
+    .issue-card .issue-actions button.edit-btn {
+      color: #2d6a2d;
+    }
+
+    .issue-card .issue-actions button.delete-btn {
+      color: #b53b3b;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #b0a695;
+      color: #3a332b;
+      border-radius: 30px;
+      padding: 6px 14px;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: #5a4a3a;
+      color: white;
+      border: none;
+      transition: background 0.15s, transform 0.1s;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: #776B5D;
+    }
+
+    .btn-primary:active {
+      transform: scale(0.99);
+    }
+
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: #e8e0d8;
+      color: #3a332b;
+      border: 1px solid #c0b5a4;
+      transition: background 0.15s, transform 0.1s;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .btn-secondary:hover {
+      background: #ddd5cb;
+    }
+
+    .btn-secondary:active {
+      transform: scale(0.99);
+    }
+
+    .profile-field {
+      display: flex;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0ebe5;
+    }
+
+    .profile-field .label {
+      width: 110px;
+      flex-shrink: 0;
+      font-size: 13px;
+      color: #8a7a68;
+      font-weight: 500;
+    }
+
+    .profile-field .value {
+      flex: 1;
+      font-size: 14px;
+      color: #3a332b;
+      font-weight: 500;
+    }
+
+    .simple-submit-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      padding: 14px 24px;
+      border-radius: 8px;
+      background: #5a4a3a;
+      color: white;
+      border: none;
+      transition: background 0.15s, transform 0.1s;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .simple-submit-btn:hover {
+      background: #776B5D;
+    }
+
+    .simple-submit-btn:active {
+      transform: scale(0.99);
+    }
+
+    .issue-edit-form {
+      display: none;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #e0d5c4;
+    }
+
+    .issue-edit-form.active {
+      display: block;
+    }
+
+    .issue-edit-form input,
+    .issue-edit-form select,
+    .issue-edit-form textarea {
+      width: 100%;
+      padding: 6px 10px;
+      border: 1px solid #d6cdc0;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 6px;
+      background: #f9f7f5;
+    }
+
+    .issue-edit-form .edit-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .issue-edit-form .edit-actions button {
+      padding: 4px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+
+    .issue-edit-form .edit-actions .save-edit {
+      background: #2d6a2d;
+      color: white;
+    }
+
+    .issue-edit-form .edit-actions .save-edit:hover {
+      background: #1f4f1f;
+    }
+
+    .issue-edit-form .edit-actions .cancel-edit {
+      background: #e8e0d8;
+      color: #3a332b;
+    }
+
+    .issue-edit-form .edit-actions .cancel-edit:hover {
+      background: #ddd5cb;
+    }
+
+    @media (max-width: 640px) {
+      .filter-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .filter-bar select,
+      .filter-bar input {
+        min-width: unset;
+        width: 100%;
+      }
+
+      .filter-bar button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .profile-field {
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .profile-field .label {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header
+    class="flex items-center justify-between px-4 py-2.5 bg-white/80 backdrop-blur-sm border-b border-bordersoft sticky top-0 z-30">
+    <div class="flex items-center gap-2.5">
+      <img src="/page/image/kunash-logo.png" alt="CCTV AMC" class="h-8 w-auto">
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <button id="userMenuBtn" class="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface3 transition">
+          <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=2d6a2d&color=fff&size=32" alt="User"
+            class="w-8 h-8 rounded-full border border-borderc">
+          <span class="hidden sm:inline text-sm font-medium text-textdim">Vikram</span>
+          <i class="fa-solid fa-chevron-down text-xs text-textfaint"></i>
+        </button>
+        <div id="userDropdown"
+          class="hidden absolute right-0 mt-2 w-48 bg-white border border-bordersoft rounded-xl shadow-lg py-1.5 z-40">
+          <a href="#" id="profileMenuItem" class="block px-4 py-2 text-sm hover:bg-surface3"><i
+              class="fa-regular fa-user mr-2"></i>Profile</a>
+          <a href="#" id="logoutMenuItem" class="block px-4 py-2 text-sm hover:bg-surface3 text-redc"><i
+              class="fa-solid fa-right-from-bracket mr-2"></i>Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-4">
+
+    <!-- ===== INSPECTION TYPE SELECTOR ===== -->
+    <div class="bg-white/70 backdrop-blur-sm border border-bordersoft rounded-2xl p-4 mb-5">
+      <label class="block text-sm font-semibold text-textdim mb-1.5">Inspection Type</label>
+      <select id="inspectionType"
+        class="w-full bg-surface2 border border-borderc rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-accent">
+        <option value="monthly"><i class="fa-regular fa-calendar"></i> Monthly Inspection</option>
+        <option value="complaint"><i class="fa-regular fa-circle-exclamation"></i> Complaint Issue</option>
+        <option value="other"><i class="fa-regular fa-pen-to-square"></i> Other Issue</option>
+      </select>
+    </div>
+
+    <!-- ===== COMPANY SELECT ===== -->
+    <div class="bg-white/70 backdrop-blur-sm border border-bordersoft rounded-2xl p-4 mb-5">
+      <label class="block text-sm font-semibold text-textdim mb-1.5">Select Company</label>
+      <select id="companySelect"
+        class="w-full bg-surface2 border border-borderc rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-accent">
+        <option value="">— Choose —</option>
+      </select>
+      <div id="companyMeta" class="hidden mt-2 text-xs text-textfaint flex items-center gap-2">
+        <i class="fa-solid fa-location-dot text-accenttext"></i>
+        <span id="companyMetaText"></span>
+      </div>
+    </div>
+
+    <!-- ===== INSPECTION HEADER ===== -->
+    <div id="headerFields"
+      class="hidden bg-white/70 backdrop-blur-sm border border-bordersoft rounded-2xl p-4 mb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div><label class="text-xs font-medium text-textdim">Vendor</label><input type="text" id="vendorField"
+          class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="Vendor name">
+      </div>
+      <div><label class="text-xs font-medium text-textdim">Department</label><input type="text" id="departmentField"
+          class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="Dept"></div>
+      <div><label class="text-xs font-medium text-textdim">Visit Date</label><input type="date" id="visitDateField"
+          class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-medium text-textdim">Checked By</label><input type="text" id="checkedByField"
+          class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
+      <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">BSID PIC</label><input type="text"
+          id="bsidField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"
+          placeholder="Client PIC"></div>
+    </div>
+
+    <!-- ===== CAMERA INSPECTION SECTION ===== -->
+    <section id="cameraSection" class="hidden">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <span class="font-mono text-xs uppercase tracking-wider text-accenttext">
+            <i class="fa-solid fa-video mr-1"></i> Cameras
+          </span>
+          <span id="camCountText" class="text-sm text-textfaint ml-1">0</span>
+        </div>
+        <button id="markAllWorkingBtn"
+          class="bg-[#5a4a3a] text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-[#776B5D] transition">
+          <i class="fa-regular fa-circle-check mr-1"></i> Mark All Working
+        </button>
+      </div>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar mb-4">
+        <input type="text" id="searchCamera" placeholder="Search camera, ID, dept, location..."
+          class="flex-1 min-w-[160px]">
+        <select id="deptFilter">
+          <option value="all">All Depts</option>
+        </select>
+        <select id="locFilter">
+          <option value="all">All Locations</option>
+        </select>
+        <button id="resetFilters" class="hover:bg-[#776B5D]"><i class="fa-solid fa-rotate-right mr-1 hover:bg-[#776B5D] "></i> Reset</button>
+
+        <!-- Bulk Action Dropdown -->
+        <div class="flex items-center gap-2">
+          <select id="bulkActionSelect" class="bulk-select">
+            <option value="">Bulk Action</option>
+            <option value="working"><i class="fa-regular fa-circle-check"></i> Mark Working</option>
+            <option value="faulty"><i class="fa-regular fa-circle-xmark"></i> Mark Faulty</option>
+            <option value="maintenance"><i class="fa-solid fa-wrench"></i> Mark Maintenance</option>
+          </select>
+          <button id="applyBulkAction"
+            class="bg-[#5a4a3a] hover:bg-[#776B5D] text-white px-4 py-1.5 rounded-full text-sm font-semibold transition">
+            <i class="fa-solid fa-check mr-1"></i> Apply
+          </button>
+        </div>
+      </div>
+
+      <!-- camera cards grid -->
+      <div id="cameraCards" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+      <!-- General remarks -->
+      <div class="mt-4 bg-white/70 border border-bordersoft rounded-2xl p-4">
+        <label class="text-sm font-medium text-textdim"><i class="fa-regular fa-comment mr-1"></i> General
+          Remarks</label>
+        <textarea id="generalRemarks" rows="2"
+          class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm resize-y mt-1"
+          placeholder="Overall observations..."></textarea>
+      </div>
+    </section>
+
+    <!-- ===== ISSUE MANAGEMENT (Complaint / Other) ===== -->
+    <section id="issueSection"
+      class="hidden bg-white/70 backdrop-blur-sm border border-bordersoft rounded-2xl p-4 mb-5">
+      <h3 class="font-display font-bold text-lg mb-3" id="issueSectionTitle">
+        <i class="fa-regular fa-pen-to-square mr-2"></i> Report Issue
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label class="text-xs font-medium text-textdim">Issue Type</label><select id="issueType"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm">
+            <option>Hardware</option>
+            <option>Software</option>
+            <option>Network</option>
+            <option>Other</option>
+          </select></div>
+        <div><label class="text-xs font-medium text-textdim">Camera</label><select id="issueCamera"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm">
+            <option value="">— Select —</option>
+          </select></div>
+        <div><label class="text-xs font-medium text-textdim">Department</label><input type="text" id="issueDept"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"></div>
+        <div><label class="text-xs font-medium text-textdim">Location</label><input type="text" id="issueLoc"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"></div>
+        <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Description</label><textarea
+            id="issueDesc" rows="2"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm resize-y"></textarea></div>
+        <div><label class="text-xs font-medium text-textdim">Priority</label><select id="issuePriority"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm">
+            <option>Low</option>
+            <option>Medium</option>
+            <option>High</option>
+            <option>Critical</option>
+          </select></div>
+        <div><label class="text-xs font-medium text-textdim">Status</label><select id="issueStatus"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm">
+            <option>Open</option>
+            <option>In Progress</option>
+            <option>Resolved</option>
+            <option>Closed</option>
+          </select></div>
+        <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Resolution Remark</label><input
+            type="text" id="issueResolution"
+            class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"
+            placeholder="If resolved..."></div>
+      </div>
+      <button id="submitIssueBtn" class="btn-primary mt-4">
+        <i class="fa-regular fa-paper-plane"></i> Submit Issue
+      </button>
+      <div id="issueList" class="mt-5 space-y-2"></div>
+    </section>
+
+    <!-- ===== SIMPLE SUBMIT BUTTON - only visible for Monthly Inspection ===== -->
+    <div id="submitBtnContainer" class="mt-6 mb-4">
+      <button id="simpleSubmitBtn" class="simple-submit-btn">
+        <i class="fa-regular fa-floppy-disk"></i>
+        Submit Inspection
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
+  </main>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ===== PROFILE MODAL ===== -->
+  <div id="profileModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-display font-bold text-xl"><i class="fa-regular fa-user mr-2"></i> Employee Profile</h3>
+        <button id="closeProfileModal" class="p-2 hover:bg-surface3 rounded-full transition">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <div class="flex items-center gap-4 mb-4 pb-4 border-b border-bordersoft">
+        <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=2d6a2d&color=fff&size=64" alt="Profile"
+          class="w-16 h-16 rounded-full border-2 border-accent">
+        <div>
+          <div class="font-display font-bold text-lg">Vikram Joshi</div>
+          <div class="text-sm text-textfaint">ENG-021 · Senior Engineer</div>
+        </div>
+      </div>
+      <div class="profile-field"><span class="label">First Name</span><span class="value">Vikram</span></div>
+      <div class="profile-field"><span class="label">Middle Name</span><span class="value">R.</span></div>
+      <div class="profile-field"><span class="label">Last Name</span><span class="value">Joshi</span></div>
+      <div class="profile-field"><span class="label">Date of Birth</span><span class="value">15 May 1985</span></div>
+      <div class="profile-field"><span class="label">Gender</span><span class="value">Male</span></div>
+      <div class="profile-field"><span class="label">Blood Group</span><span class="value">A+</span></div>
+      <div class="profile-field"><span class="label">Address</span><span class="value">42, Green Park Colony, Pune -
+          411001</span></div>
+      <div class="profile-field"><span class="label">Designation</span><span class="value">Senior CCTV Engineer</span>
+      </div>
+      <div class="profile-field"><span class="label">Joining Date</span><span class="value">1 April 2020</span></div>
+      <div class="mt-4 pt-4 border-t border-bordersoft">
+        <button id="closeProfileModalBtn" class="btn-primary"><i
+            class="fa-regular fa-circle-check mr-2"></i>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CAMERA MODAL ===== -->
+  <div id="camModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div id="camModalContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== SUBMIT CONFIRM MODAL ===== -->
+  <div id="submitConfirmModal" class="modal-backdrop">
+    <div class="modal-card text-center">
+      <h3 class="font-display text-lg"><i class="fa-regular fa-circle-check text-accenttext mr-2"></i>Submit Inspection?
+      </h3>
+      <p id="confirmSummary" class="text-textdim text-sm my-3"></p>
+      <div class="flex gap-3">
+        <button id="cancelSubmit" class="btn-secondary"><i class="fa-regular fa-pen mr-2"></i>Review</button>
+        <button id="confirmSubmitBtn" class="btn-primary"><i class="fa-regular fa-paper-plane mr-2"></i>Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+      (function () {
+        'use strict';
+
+        // ===== MOCK DATA =====
+        const companies = [
+          { id: 101, name: "Shree Balaji Enterprises", vendor: "CP Plus", locations: [{ loc: "Reception", count: 2 }, { loc: "Parking", count: 4 }, { loc: "Server Room", count: 1 }, { loc: "Warehouse", count: 1 }] },
+          { id: 102, name: "Patil Traders", vendor: "Hikvision", locations: [{ loc: "Cabin", count: 6 }, { loc: "Reception", count: 2 }, { loc: "Parking", count: 8 }] },
+          { id: 103, name: "Greenfield Apartments", vendor: "Local AMC", locations: [{ loc: "Main Gate", count: 2 }, { loc: "Parking Lvl1", count: 4 }, { loc: "Parking Lvl2", count: 4 }, { loc: "Garden", count: 2 }, { loc: "Lift Lobby A", count: 1 }, { loc: "Lift Lobby B", count: 1 }] }
+        ];
+        let session = { employee_id: 'ENG-021', name: 'Vikram Joshi' };
+        try { const s = JSON.parse(sessionStorage.getItem('amc_session')); if (s) session = s; } catch (e) { }
+
+        // State
+        let currentCompany = null;
+        let cameras = [];
+        let selectedCameras = new Set();
+        let issues = [];
+        let inspectionHistory = [];
+
+        // DOM refs
+        const $ = id => document.getElementById(id);
+        const companySelect = $('companySelect');
+        const companyMeta = $('companyMeta'), companyMetaText = $('companyMetaText');
+        const headerFields = $('headerFields');
+        const cameraSection = $('cameraSection');
+        const issueSection = $('issueSection');
+        const cameraCards = $('cameraCards');
+        const camCountText = $('camCountText');
+        const inspectionType = $('inspectionType');
+        const toast = $('toast');
+        const simpleSubmitBtn = $('simpleSubmitBtn');
+        const submitBtnContainer = $('submitBtnContainer');
+
+        // ===== HELPERS =====
+        function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2800); }
+
+        function buildCameras(company) {
+          const cams = []; let c = 1;
+          company.locations.forEach(l => { for (let i = 0; i < l.count; i++) { cams.push({ id: `CAM${String(c++).padStart(3, '0')}`, location: l.count > 1 ? `${l.loc} ${i + 1}` : l.loc, dept: 'Security', working: null, status: 'Not Checked', issue: null }); } });
+          return cams;
+        }
+
+        // ===== POPULATE COMPANY DROPDOWN =====
+        companies.forEach(c => { const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.name; companySelect.appendChild(opt); });
+
+        companySelect.addEventListener('change', function () {
+          const id = Number(this.value);
+          if (!id) { currentCompany = null; cameras = []; cameraSection.classList.add('hidden'); issueSection.classList.add('hidden'); headerFields.classList.add('hidden'); companyMeta.classList.add('hidden'); submitBtnContainer.style.display = 'none'; return; }
+          currentCompany = companies.find(c => c.id === id);
+          cameras = buildCameras(currentCompany);
+          selectedCameras.clear();
+          document.getElementById('vendorField').value = currentCompany.vendor || '';
+          document.getElementById('departmentField').value = '';
+          document.getElementById('bsidField').value = '';
+          document.getElementById('visitDateField').value = new Date().toISOString().split('T')[0];
+          document.getElementById('checkedByField').value = session.name;
+          companyMetaText.textContent = `${cameras.length} cameras · ${currentCompany.locations.length} locations`;
+          companyMeta.classList.remove('hidden');
+          headerFields.classList.remove('hidden');
+          cameraSection.classList.remove('hidden');
+          const sel = $('issueCamera'); sel.innerHTML = '<option value="">— Select —</option>'; cameras.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.id} (${c.location})`; sel.appendChild(o); });
+          renderCameraCards();
+          populateFilters();
+          if (inspectionType.value === 'monthly') {
+            submitBtnContainer.style.display = 'block';
+          }
+        });
+
+        // ===== FILTERS =====
+        function populateFilters() {
+          const deptSet = new Set(), locSet = new Set();
+          cameras.forEach(c => { deptSet.add(c.dept || 'Security'); locSet.add(c.location); });
+          const deptFilter = $('deptFilter'); deptFilter.innerHTML = '<option value="all">All Depts</option>'; deptSet.forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; deptFilter.appendChild(o); });
+          const locFilter = $('locFilter'); locFilter.innerHTML = '<option value="all">All Locations</option>'; locSet.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = l; locFilter.appendChild(o); });
+        }
+
+        function getFilteredCameras() {
+          const search = $('searchCamera').value.toLowerCase();
+          const dept = $('deptFilter').value;
+          const loc = $('locFilter').value;
+          return cameras.filter(c => {
+            const matchSearch = c.id.toLowerCase().includes(search) || c.location.toLowerCase().includes(search) || (c.dept || '').toLowerCase().includes(search);
+            const matchDept = dept === 'all' || (c.dept || '') === dept;
+            const matchLoc = loc === 'all' || c.location === loc;
+            return matchSearch && matchDept && matchLoc;
+          });
+        }
+
+        // ===== RENDER CAMERA CARDS =====
+        function renderCameraCards() {
+          const filtered = getFilteredCameras();
+          camCountText.textContent = filtered.length;
+          cameraCards.innerHTML = '';
+          if (!filtered.length) { cameraCards.innerHTML = '<div class="col-span-2 text-center text-textfaint py-6">No cameras match</div>'; return; }
+          filtered.forEach(cam => {
+            const sel = selectedCameras.has(cam.id);
+            const statusClass = cam.working === true ? 'badge-working' : cam.working === false ? 'badge-faulty' : 'bg-gray-100 text-gray-600';
+            const statusLabel = cam.working === true ? 'Working' : cam.working === false ? 'Faulty' : 'Not Checked';
+            const card = document.createElement('div');
+            card.className = `cam-card ${sel ? 'selected' : ''}`;
+            card.innerHTML = `
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox cam-check" data-id="${cam.id}" ${sel ? 'checked' : ''}>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5"><span class="font-mono font-bold text-sm">${cam.id}</span><span class="text-xs text-textfaint">${cam.location}</span><span class="text-xs text-textfaint">${cam.dept || 'Security'}</span></div>
+                <div class="flex items-center gap-2 mt-0.5"><span class="badge-status ${statusClass}">${statusLabel}</span></div>
+              </div>
+              <button class="cam-detail-btn text-textfaint hover:text-accent" data-id="${cam.id}"><i class="fa-regular fa-pen-to-square"></i></button>
+            </div>
+          `;
+            card.querySelector('.cam-check').addEventListener('change', e => { if (e.target.checked) selectedCameras.add(cam.id); else selectedCameras.delete(cam.id); renderCameraCards(); });
+            card.querySelector('.cam-detail-btn').addEventListener('click', (e) => { e.stopPropagation(); openCameraDetail(cam.id); });
+            cameraCards.appendChild(card);
+          });
+        }
+
+        // ===== CAMERA DETAIL MODAL =====
+        function openCameraDetail(camId) {
+          const cam = cameras.find(c => c.id === camId); if (!cam) return;
+          const modal = $('camModal'); const content = $('camModalContent');
+          content.innerHTML = `
+          <h4 class="font-display font-bold text-lg">${cam.id} · ${cam.location}</h4>
+          <div class="mt-3 grid grid-cols-2 gap-2">
+            <div><label class="text-xs text-textdim">Working</label><select id="detailWorking" class="w-full border rounded-xl px-2 py-1 text-sm"><option value="">—</option><option ${cam.working === true ? 'selected' : ''} value="true">Working</option><option ${cam.working === false ? 'selected' : ''} value="false">Faulty</option></select></div>
+            <div><label class="text-xs text-textdim">Department</label><input id="detailDept" value="${cam.dept || 'Security'}" class="w-full border rounded-xl px-2 py-1 text-sm"></div>
+          </div>
+          <div class="mt-2"><label class="text-xs text-textdim">Remarks</label><input id="detailRemark" class="w-full border rounded-xl px-2 py-1 text-sm" placeholder="Issue / note"></div>
+          <button id="detailSaveBtn" class="btn-primary mt-3"><i class="fa-regular fa-floppy-disk mr-2"></i>Save & Close</button>
+        `;
+          modal.classList.add('open');
+          document.getElementById('detailSaveBtn').addEventListener('click', () => {
+            const work = document.getElementById('detailWorking').value;
+            if (work !== '') cam.working = work === 'true';
+            cam.dept = document.getElementById('detailDept').value.trim() || 'Security';
+            const remark = document.getElementById('detailRemark').value.trim();
+            if (remark) cam.issue = remark;
+            renderCameraCards();
+            modal.classList.remove('open');
+          });
+          modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+        }
+
+        // ===== BULK ACTION =====
+        document.getElementById('applyBulkAction').addEventListener('click', function () {
+          const action = document.getElementById('bulkActionSelect').value;
+          if (!action) { showToast('Select a bulk action first', true); return; }
+          if (selectedCameras.size === 0) { showToast('No cameras selected', true); return; }
+          let actionLabel = '';
+          cameras.forEach(c => {
+            if (selectedCameras.has(c.id)) {
+              if (action === 'working') { c.working = true; actionLabel = 'Working'; }
+              else if (action === 'faulty') { c.working = false; actionLabel = 'Faulty'; }
+              else if (action === 'maintenance') { c.working = false; actionLabel = 'Maintenance'; }
+            }
+          });
+          renderCameraCards();
+          showToast(`✅ ${selectedCameras.size} cameras marked as ${actionLabel}`);
+          selectedCameras.clear();
+          document.getElementById('bulkActionSelect').value = '';
+        });
+
+        // ===== MARK ALL WORKING =====
+        document.getElementById('markAllWorkingBtn').addEventListener('click', () => {
+          cameras.forEach(c => c.working = true);
+          renderCameraCards();
+          showToast('All cameras marked working');
+        });
+
+        // ===== FILTER EVENTS =====
+        ['searchCamera', 'deptFilter', 'locFilter'].forEach(id => { document.getElementById(id).addEventListener('input', renderCameraCards); });
+        document.getElementById('resetFilters').addEventListener('click', () => { document.getElementById('searchCamera').value = ''; document.getElementById('deptFilter').value = 'all'; document.getElementById('locFilter').value = 'all'; renderCameraCards(); });
+
+        // ===== INSPECTION TYPE SWITCH =====
+        inspectionType.addEventListener('change', function () {
+          const val = this.value;
+          if (val === 'monthly') {
+            cameraSection.classList.remove('hidden');
+            issueSection.classList.add('hidden');
+            submitBtnContainer.style.display = 'block';
+          } else {
+            cameraSection.classList.add('hidden');
+            issueSection.classList.remove('hidden');
+            submitBtnContainer.style.display = 'none';
+            document.getElementById('issueSectionTitle').innerHTML = val === 'complaint' ? '<i class="fa-regular fa-circle-exclamation mr-2"></i>Complaint Issue' : '<i class="fa-regular fa-pen-to-square mr-2"></i>Other Issue';
+          }
+        });
+
+        // ===== ISSUE SUBMIT =====
+        document.getElementById('submitIssueBtn').addEventListener('click', () => {
+          const camId = document.getElementById('issueCamera').value;
+          const cam = cameras.find(c => c.id === camId);
+          const issue = {
+            id: Date.now(),
+            type: document.getElementById('issueType').value,
+            camera: camId,
+            dept: document.getElementById('issueDept').value || 'Security',
+            location: document.getElementById('issueLoc').value || (cam ? cam.location : ''),
+            desc: document.getElementById('issueDesc').value,
+            priority: document.getElementById('issuePriority').value,
+            status: document.getElementById('issueStatus').value,
+            resolution: document.getElementById('issueResolution').value,
+            created: new Date().toISOString(),
+            resolvedBy: null,
+            resolvedDate: null,
+            updatedAt: new Date().toISOString()
+          };
+          if (issue.status === 'Resolved') { issue.resolvedBy = session.name; issue.resolvedDate = new Date().toISOString(); }
+          issues.push(issue);
+          renderIssueList();
+          showToast('Issue submitted ✓');
+          document.getElementById('issueDesc').value = '';
+          document.getElementById('issueResolution').value = '';
+          document.getElementById('issueStatus').value = 'Open';
+          document.getElementById('issueCamera').value = '';
+          document.getElementById('issueDept').value = '';
+          document.getElementById('issueLoc').value = '';
+        });
+
+        // ===== RENDER ISSUE LIST WITH EDIT/DELETE =====
+        function renderIssueList() {
+          const container = document.getElementById('issueList');
+          container.innerHTML = '';
+          if (issues.length === 0) {
+            container.innerHTML = '<div class="text-center text-textfaint text-sm py-4">No issues reported yet</div>';
+            return;
+          }
+          issues.slice().reverse().forEach(iss => {
+            const priorityClass = iss.priority === 'High' ? 'priority-high' : iss.priority === 'Critical' ? 'priority-critical' : '';
+            const statusClass = iss.status === 'Resolved' ? 'badge-resolved' : iss.status === 'Open' ? 'badge-open' : iss.status === 'In Progress' ? 'badge-progress' : 'bg-gray-100';
+            const createdDate = new Date(iss.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            const div = document.createElement('div');
+            div.className = `issue-card ${priorityClass}`;
+            div.dataset.issueId = iss.id;
+            div.innerHTML = `
+            <div class="flex flex-wrap justify-between items-start gap-1">
+              <div>
+                <span class="font-mono text-sm font-semibold">${iss.camera || 'N/A'}</span>
+                <span class="text-xs text-textfaint ml-2">${iss.type || ''}</span>
+              </div>
+              <span class="status-badge ${statusClass}">${iss.status}</span>
+            </div>
+            <div class="text-sm mt-1">${iss.desc || ''}</div>
+            <div class="flex flex-wrap gap-2 text-xs text-textfaint mt-1">
+              <span><i class="fa-regular fa-flag mr-1"></i>${iss.priority}</span>
+              <span><i class="fa-regular fa-building mr-1"></i>${iss.dept}</span>
+              <span><i class="fa-regular fa-location-dot mr-1"></i>${iss.location}</span>
+              <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
+              ${iss.resolvedDate ? `<span><i class="fa-regular fa-circle-check mr-1 text-accenttext"></i>${new Date(iss.resolvedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>` : ''}
+              ${iss.resolution ? `<span class="text-accenttext">✓ ${iss.resolution}</span>` : ''}
+            </div>
+            <div class="issue-actions">
+              <button class="edit-btn" data-id="${iss.id}"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
+              <button class="delete-btn" data-id="${iss.id}"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+            </div>
+            <div class="issue-edit-form" id="editForm_${iss.id}">
+              <input type="text" class="edit-desc" value="${iss.desc || ''}" placeholder="Description">
+              <div class="grid grid-cols-2 gap-2">
+                <select class="edit-priority">
+                  <option value="Low" ${iss.priority === 'Low' ? 'selected' : ''}>Low</option>
+                  <option value="Medium" ${iss.priority === 'Medium' ? 'selected' : ''}>Medium</option>
+                  <option value="High" ${iss.priority === 'High' ? 'selected' : ''}>High</option>
+                  <option value="Critical" ${iss.priority === 'Critical' ? 'selected' : ''}>Critical</option>
+                </select>
+                <select class="edit-status">
+                  <option value="Open" ${iss.status === 'Open' ? 'selected' : ''}>Open</option>
+                  <option value="In Progress" ${iss.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                  <option value="Resolved" ${iss.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                  <option value="Closed" ${iss.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                </select>
+              </div>
+              <input type="text" class="edit-resolution" value="${iss.resolution || ''}" placeholder="Resolution remark">
+              <div class="edit-actions">
+                <button class="save-edit" data-id="${iss.id}"><i class="fa-regular fa-floppy-disk mr-1"></i>Save</button>
+                <button class="cancel-edit" data-id="${iss.id}">Cancel</button>
+              </div>
+            </div>
+          `;
+            container.appendChild(div);
+
+            div.querySelector('.edit-btn').addEventListener('click', (e) => {
+              e.stopPropagation();
+              const form = div.querySelector('.issue-edit-form');
+              form.classList.toggle('active');
+            });
+
+            div.querySelector('.delete-btn').addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (confirm('Delete this issue?')) {
+                issues = issues.filter(i => i.id !== iss.id);
+                renderIssueList();
+                showToast('Issue deleted');
+              }
+            });
+
+            div.querySelector('.save-edit').addEventListener('click', (e) => {
+              e.stopPropagation();
+              const form = div.querySelector('.issue-edit-form');
+              const newDesc = form.querySelector('.edit-desc').value.trim();
+              const newPriority = form.querySelector('.edit-priority').value;
+              const newStatus = form.querySelector('.edit-status').value;
+              const newResolution = form.querySelector('.edit-resolution').value.trim();
+
+              if (!newDesc) { showToast('Description is required', true); return; }
+
+              const idx = issues.findIndex(i => i.id === iss.id);
+              if (idx !== -1) {
+                issues[idx].desc = newDesc;
+                issues[idx].priority = newPriority;
+                issues[idx].status = newStatus;
+                issues[idx].resolution = newResolution;
+                issues[idx].updatedAt = new Date().toISOString();
+                if (newStatus === 'Resolved' && !issues[idx].resolvedDate) {
+                  issues[idx].resolvedBy = session.name;
+                  issues[idx].resolvedDate = new Date().toISOString();
+                }
+              }
+              form.classList.remove('active');
+              renderIssueList();
+              showToast('Issue updated ✓');
+            });
+
+            div.querySelector('.cancel-edit').addEventListener('click', (e) => {
+              e.stopPropagation();
+              div.querySelector('.issue-edit-form').classList.remove('active');
+            });
+          });
+        }
+
+        // ===== SUBMIT INSPECTION =====
+        simpleSubmitBtn.addEventListener('click', () => {
+          if (!currentCompany) { showToast('Select a company', true); return; }
+          const unchecked = cameras.filter(c => c.working === null).length;
+          if (unchecked > 0) { showToast(`${unchecked} cameras not checked`, true); return; }
+          const total = cameras.length, working = cameras.filter(c => c.working === true).length, faulty = total - working;
+          document.getElementById('confirmSummary').textContent = `${total} cameras · ${working} working · ${faulty} faulty`;
+          document.getElementById('submitConfirmModal').classList.add('open');
+        });
+        document.getElementById('cancelSubmit').addEventListener('click', () => document.getElementById('submitConfirmModal').classList.remove('open'));
+        document.getElementById('confirmSubmitBtn').addEventListener('click', () => {
+          inspectionHistory.push({ company: currentCompany.name, date: new Date().toISOString(), total: cameras.length, working: cameras.filter(c => c.working === true).length, faulty: cameras.filter(c => c.working === false).length });
+          document.getElementById('submitConfirmModal').classList.remove('open');
+          showToast('Inspection submitted ✓');
+          companySelect.value = '';
+          companySelect.dispatchEvent(new Event('change'));
+        });
+
+        // ===== USER DROPDOWN & PROFILE =====
+        const userMenuBtn = document.getElementById('userMenuBtn');
+        const userDropdown = document.getElementById('userDropdown');
+        const profileModal = document.getElementById('profileModal');
+
+        userMenuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', e => { if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden'); });
+
+        // Profile menu item
+        document.getElementById('profileMenuItem').addEventListener('click', (e) => {
+          e.preventDefault();
+          userDropdown.classList.add('hidden');
+          profileModal.classList.add('open');
+        });
+
+        // ===== LOGOUT FUNCTIONALITY =====
+        document.getElementById('logoutMenuItem').addEventListener('click', (e) => {
+          e.preventDefault();
+          // Clear session storage
+          sessionStorage.removeItem('amc_session');
+          // Redirect to login page
+          window.location.href = '/page/login.html';
+        });
+
+        // Close profile modal
+        document.getElementById('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('open'));
+        document.getElementById('closeProfileModalBtn').addEventListener('click', () => profileModal.classList.remove('open'));
+        profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('open'); });
+
+        // ===== INIT =====
+        document.getElementById('checkedByField').value = session.name;
+        document.getElementById('visitDateField').value = new Date().toISOString().split('T')[0];
+        if (companies.length) { companySelect.value = companies[0].id; companySelect.dispatchEvent(new Event('change')); }
+      })();
+  </script>
+</body>
+
+</html>

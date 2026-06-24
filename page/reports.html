@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Reports — CCTV AMC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#F3EEEA', surface: '#F6F1F1', surface2: '#FFFFFF', surface3: '#ede4d4',
+                        borderc: '#B0A695', bordersoft: '#e0d5c4', textdim: '#6b5a48', textfaint: '#8a7a68',
+                        accent: '#2d6a2d', accentdim: '#e8f0e8', accenttext: '#2d6a2d',
+                        amber: '#c47a1a', amberdim: '#f5e8cc', ambertext: '#c47a1a',
+                        redc: '#b53b3b', reddim: '#f0e0e0', redtext: '#b53b3b',
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        html,
+        body {
+            background: #F3EEEA;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c0b5a4;
+            border-radius: 10px;
+        }
+
+        ::selection {
+            background: #2d5a2d;
+            color: #F7F1DE;
+        }
+
+        .sidebar {
+            background: #f0e1ca;
+            transition: width 0.25s ease, transform 0.25s ease;
+            width: 260px;
+            overflow-x: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed {
+            width: 72px;
+        }
+
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .sidebar-nav-text,
+        .sidebar.collapsed .sidebar-user-text,
+        .sidebar.collapsed .sidebar-company-count {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-nav-item {
+            justify-content: center;
+            padding: 0.625rem;
+        }
+
+        .sidebar.collapsed .sidebar-nav-item svg {
+            margin: 0 auto;
+        }
+
+        .sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .sidebar.collapsed .sidebar-toggle-btn {
+            transform: rotate(180deg);
+        }
+
+        .sidebar.collapsed .sidebar-user-section {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .sidebar.collapsed .sidebar-user-avatar {
+            margin: 0 auto;
+        }
+
+        .sidebar .text-textdim,
+        .sidebar .text-faint,
+        .sidebar .text-textfaint {
+            color: #5a4a3a;
+        }
+
+        .sidebar .text-accenttext {
+            color: #2d5a2d;
+        }
+
+        .sidebar .bg-accentdim {
+            background: rgba(45, 90, 45, 0.12);
+        }
+
+        .sidebar a:hover {
+            background: rgba(0, 0, 0, 0.06);
+            color: #1a1a1a;
+        }
+
+        .sidebar a.active {
+            background-color: #5a4a3a !important;
+            color: white !important;
+            width: 90%;
+            margin-left: 10px;
+            border-radius: 8px;
+        }
+
+        .sidebar a.active svg {
+            stroke: white !important;
+        }
+
+        .sidebar {
+            border-right-color: #d4c4b0;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #5a4a3a;
+            color: white;
+            border: none;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: #776B5D;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.99);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #e8e0d8;
+            color: #3a332b;
+            border: 1px solid #c0b5a4;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: #ddd5cb;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.99);
+        }
+
+        .btn-export-excel {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #1a6d3a;
+            color: white;
+            border: none;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-export-excel:hover {
+            background: #0f502a;
+        }
+
+        .btn-export-excel:active {
+            transform: scale(0.99);
+        }
+
+        .btn-email {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-email:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-email:active {
+            transform: scale(0.99);
+        }
+
+        .btn-approve {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: #2d6a2d;
+            color: white;
+            border: none;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .btn-approve:hover {
+            background: #1f4f1f;
+        }
+
+        .btn-approve.approved {
+            background: #8a7a68;
+            cursor: default;
+        }
+
+        .btn-approve.approved:hover {
+            background: #8a7a68;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: .02em;
+        }
+
+        .chip::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .chip-active {
+            background: #e8f0e8;
+            color: #2d6a2d;
+        }
+
+        .chip-expired {
+            background: #f0e0e0;
+            color: #b53b3b;
+        }
+
+        .chip-soon {
+            background: #f5e8cc;
+            color: #c47a1a;
+        }
+
+        .chip-neutral {
+            background: #e8e0d8;
+            color: #6b5a48;
+        }
+
+        .chip-approved {
+            background: #dce8dc;
+            color: #1f4f1f;
+        }
+
+        .chip-pending {
+            background: #f5e8cc;
+            color: #b07d1a;
+        }
+
+        .chip-resolved {
+            background: #dce8dc;
+            color: #1f4f1f;
+        }
+
+        .chip-open {
+            background: #f5e8cc;
+            color: #b07d1a;
+        }
+
+        .chip-progress {
+            background: #d6e4f0;
+            color: #1a4b6a;
+        }
+
+        .chip-closed {
+            background: #e8e0d8;
+            color: #6b5a48;
+        }
+
+        .report-card {
+            background: white;
+            border: 1px solid #e0d5c4;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.15s;
+        }
+
+        .report-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .month-group {
+            background: #F6F1F1;
+            border: 1px solid #e0d5c4;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .month-group .month-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            color: #5a4a3a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-group .month-title .count-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            background: #ede4d4;
+            padding: 2px 10px;
+            border-radius: 20px;
+            color: #5a4a3a;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            max-width: 400px;
+            background: #1c252b;
+            border-left: 3px solid #2d6a2d;
+            color: #e7edf0;
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .5);
+            z-index: 100;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all .25s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.danger {
+            border-left-color: #b53b3b;
+        }
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 24px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        .profile-field {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0ebe5;
+        }
+
+        .profile-field .label {
+            width: 110px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: #8a7a68;
+            font-weight: 500;
+        }
+
+        .profile-field .value {
+            flex: 1;
+            font-size: 14px;
+            color: #3a332b;
+            font-weight: 500;
+        }
+
+        .tab-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            color: #8a7a68;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: #5a4a3a;
+            border-bottom-color: #5a4a3a;
+            background: #f6f1f1;
+        }
+
+        .tab-btn:hover {
+            background: #f6f1f1;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .issue-card {
+            background: white;
+            border: 1px solid #e0d5c4;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.15s;
+            border-left: 4px solid #b53b3b;
+        }
+
+        .issue-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .issue-card.resolved {
+            border-left-color: #2d6a2d;
+        }
+
+        .image-upload-area {
+            border: 2px dashed #e0d5c4;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #faf7f2;
+        }
+
+        .image-upload-area:hover {
+            border-color: #5a4a3a;
+            background: #f6f1f1;
+        }
+
+        .image-upload-area.dragover {
+            border-color: #2d6a2d;
+            background: #e8f0e8;
+        }
+
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0d5c4;
+        }
+
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-preview-item .remove-img {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 40;
+                box-shadow: 0 16px 48px -12px rgba(0, 0, 0, .15);
+                background: #EEE0CC;
+                width: 260px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar.collapsed {
+                width: 260px;
+            }
+
+            .sidebar.collapsed .sidebar-logo-text,
+            .sidebar.collapsed .sidebar-nav-text,
+            .sidebar.collapsed .sidebar-user-text,
+            .sidebar.collapsed .sidebar-company-count {
+                display: inline-block;
+            }
+
+            .sidebar.collapsed .sidebar-nav-item {
+                justify-content: flex-start;
+                padding: 0.625rem 0.75rem;
+            }
+
+            .sidebar.collapsed .sidebar-toggle-btn {
+                transform: none;
+            }
+
+            .overlay.open {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .tab-btn {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+
+            .report-card .actions {
+                flex-wrap: wrap;
+            }
+
+            .issue-card .actions {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== HEADER ===== -->
+    <header class="bg-[#F3EEEA] border-b border-[#B0A695] sticky top-0 z-30">
+        <div class="flex items-center justify-between px-4 md:px-6 py-3">
+            <div class="flex items-center gap-3">
+                <button id="sidebarCollapseBtn"
+                    class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition">
+                    <svg id="collapseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <img src="/page/image/kunash-logo.png" alt="CCTV AMC Manager Logo" class="w-15 h-8">
+                </div>
+            </div>
+
+            <div class="relative">
+                <button id="userMenuBtn"
+                    class="flex items-center gap-2.5 p-1.5 rounded-md border border-[#B0A695] transition group hover:bg-[#776B5D]">
+                    <div
+                        class="w-[34px] h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[12px] font-semibold">
+                        VJ</div>
+                    <div class="hidden sm:block text-left">
+                        <div class="text-[13px] font-semibold text-[#5a4a3a] group-hover:text-white">Vikram Joshi</div>
+                        <div class="text-[11px] text-[#8a7a68] group-hover:text-white">Senior Engineer</div>
+                    </div>
+                    <svg class="w-4 h-4 text-[#5a4a3a] group-hover:text-white transition-transform duration-200"
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+
+                <div id="userDropdown"
+                    class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#B0A695] rounded-lg shadow-lg overflow-hidden z-50"
+                    style="display:none !important;">
+                    <div class="px-4 py-3 border-b border-[#e0d5c4]">
+                        <div class="text-[13px] font-semibold text-[#5a4a3a]">Vikram Joshi</div>
+                        <div class="text-[11px] text-[#8a7a68]">vikram@cctvmanager.com</div>
+                    </div>
+                    <div class="py-1">
+                        <a href="#" id="profileMenuItem"
+                            class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[#5a4a3a] hover:bg-[#F3EEEA] transition">
+                            <i class="fa-regular fa-user"></i> My Profile
+                        </a>
+                    </div>
+                    <div class="border-t border-[#e0d5c4] py-1">
+                        <button id="logoutBtn"
+                            class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex min-h-screen" style="background-color: #F3EEEA;">
+
+        <aside id="sidebar"
+            class="sidebar border-r border-[#d4c4b0] flex flex-col h-screen sticky top-0 overflow-y-auto">
+            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2" id="sidebarNav">
+                <a href="/page/dashboard.html"
+                    class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="flex-shrink-0">
+                        <rect x="3" y="3" width="7" height="9" rx="1" />
+                        <rect x="14" y="3" width="7" height="5" rx="1" />
+                        <rect x="14" y="12" width="7" height="9" rx="1" />
+                        <rect x="3" y="16" width="7" height="5" rx="1" />
+                    </svg>
+                    <span class="sidebar-nav-text">Dashboard</span>
+                </a>
+                <a href="/page/company-management.html"
+                    class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="flex-shrink-0">
+                        <path d="M3 21h18" />
+                        <path d="M5 21V7l8-4v18" />
+                        <path d="M19 21V11l-6-4" />
+                    </svg>
+                    <span class="sidebar-nav-text">Companies</span>
+                </a>
+                <a href="/page/monthly-inspection.html"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="flex-shrink-0">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    <span class="sidebar-nav-text">Monthly Visits</span>
+                </a>
+                <a href="/page/reports.html"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="flex-shrink-0">
+                        <path d="M3 3v18h18" />
+                        <path d="M18 17V9" />
+                        <path d="M13 17V5" />
+                        <path d="M8 17v-3" />
+                    </svg>
+                    <span class="sidebar-nav-text">Reports</span>
+                </a>
+                <a href="/page/excel-import-export.html"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        class="flex-shrink-0">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span class="sidebar-nav-text">Excel Import / Export</span>
+                </a>
+            </nav>
+            <div class="p-3 border-t border-[#d4c4b0]">
+                <div class="text-[10px] text-[#8a7a68] font-mono text-center">v2.0.0</div>
+            </div>
+        </aside>
+
+        <div id="overlay" class="overlay hidden fixed inset-0 bg-black/50 z-[35]"></div>
+
+        <main class="flex-1 px-4 md:px-9 pt-5 md:pt-8 pb-16 max-w-[1400px]">
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="font-display font-bold text-2xl text-[#5a4a3a]"><i
+                            class="fa-regular fa-file-lines mr-2"></i>Reports</h1>
+                    <p class="text-[#8a7a68] text-sm mt-1">View and manage inspection reports & issues</p>
+                </div>
+            </div>
+
+            <div class="flex border-b border-bordersoft mb-6">
+                <button class="tab-btn active" data-tab="reports"><i
+                        class="fa-regular fa-calendar-check mr-2"></i>Monthly Inspection Report</button>
+                <button class="tab-btn" data-tab="issues"><i class="fa-regular fa-circle-exclamation mr-2"></i>Issues
+                    Report</button>
+            </div>
+
+            <div id="tab-reports" class="tab-content active">
+                <div class="flex flex-col md:flex-row gap-3 mb-4">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#8a7a68] text-sm"></i>
+                        <input type="text" id="searchReport" placeholder="Search by company, engineer..."
+                            class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <select id="filterApprove"
+                        class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                        <option value="">All Status</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                    <select id="filterCompany"
+                        class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                        <option value="">All Companies</option>
+                    </select>
+                    <button id="resetReportFilters" class="btn-secondary px-4 py-2 text-sm">
+                        <i class="fa-solid fa-rotate-right"></i> Reset
+                    </button>
+                </div>
+                <div id="reportsContainer"></div>
+            </div>
+
+            <div id="tab-issues" class="tab-content">
+                <div class="flex flex-col md:flex-row gap-3 mb-4">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#8a7a68] text-sm"></i>
+                        <input type="text" id="searchIssues" placeholder="Search by company, camera..."
+                            class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <select id="filterIssueStatus"
+                        class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                        <option value="">All Status</option>
+                        <option value="Open">Open</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                    <button id="resetIssueFilters" class="btn-secondary px-4 py-2 text-sm">
+                        <i class="fa-solid fa-rotate-right"></i> Reset
+                    </button>
+                </div>
+                <div id="issuesContainer"></div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toastMessage" class="toast"></div>
+
+    <!-- ===== EXPORT EXCEL MODAL ===== -->
+    <div id="exportExcelModal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i
+                        class="fa-regular fa-file-excel mr-2"></i>Export Excel Report</h3>
+                <button id="closeExportModal" class="p-2 hover:bg-surface3 rounded-full transition"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="exportExcelForm">
+                <input type="hidden" id="exportReportId">
+                <input type="hidden" id="exportType" value="report">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">Select Month & Year</label>
+                        <input type="month" id="exportMonthYear"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div class="bg-[#f6f1f1] rounded-lg p-3 text-sm text-[#8a7a68]">
+                        <p><i class="fa-regular fa-info-circle mr-1"></i> Excel sheet will be generated with all camera
+                            details including working status, lens cleaning, visual on TV, focus angle, damage, and
+                            abnormalities.</p>
+                        <p class="mt-1 text-xs">File will be saved as: <span id="exportFileName"
+                                class="font-semibold text-[#5a4a3a]">CompanyName_MonthYear.xlsx</span></p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="cancelExport" class="btn-secondary px-6 py-2">Cancel</button>
+                    <button type="submit" class="btn-export-excel px-6 py-2">
+                        <i class="fa-solid fa-download"></i> Download Excel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== EMAIL MODAL ===== -->
+    <div id="emailModal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i
+                        class="fa-regular fa-envelope mr-2"></i>Send Email</h3>
+                <button id="closeEmailModal" class="p-2 hover:bg-surface3 rounded-full transition"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="emailForm">
+                <input type="hidden" id="emailReportId">
+                <input type="hidden" id="emailType" value="report">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">To Email</label>
+                        <input type="email" id="emailTo" placeholder="Enter recipient email"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">Subject</label>
+                        <input type="text" id="emailSubject" placeholder="Email subject"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">Message</label>
+                        <textarea id="emailMessage" rows="8"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></textarea>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">Attach Excel</label>
+                        <div class="flex items-center gap-2">
+                            <input type="checkbox" id="attachExcel" checked class="w-4 h-4 accent-[#5a4a3a]">
+                            <label for="attachExcel" class="text-sm text-[#6b5a48]">Include Excel report as
+                                attachment</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">Attach Images</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <i class="fa-regular fa-image text-2xl text-[#8a7a68] block mb-2"></i>
+                            <p class="text-sm text-[#8a7a68]">Click or drag & drop images here</p>
+                            <input type="file" id="imageInput" accept="image/*" multiple class="hidden">
+                        </div>
+                        <div id="imagePreviewContainer" class="image-preview-grid"></div>
+                    </div>
+                    <div class="bg-[#f6f1f1] rounded-lg p-3 text-sm text-[#8a7a68]">
+                        <p><i class="fa-regular fa-info-circle mr-1"></i> This will open your default email client with
+                            a pre-filled template including camera status, issue updates, Excel attachment, and images.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="cancelEmail" class="btn-secondary px-6 py-2">Cancel</button>
+                    <button type="submit" class="btn-email px-6 py-2">
+                        <i class="fa-regular fa-paper-plane"></i> Send Email
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== PROFILE MODAL ===== -->
+    <div id="profileModal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-bold text-xl"><i class="fa-regular fa-user mr-2"></i> Employee Profile</h3>
+                <button id="closeProfileModal" class="p-2 hover:bg-surface3 rounded-full transition"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="flex items-center gap-4 mb-4 pb-4 border-b border-bordersoft">
+                <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=2d6a2d&color=fff&size=64"
+                    alt="Profile" class="w-16 h-16 rounded-full border-2 border-accent">
+                <div>
+                    <div class="font-display font-bold text-lg">Vikram Joshi</div>
+                    <div class="text-sm text-textfaint">ENG-021 · Senior Engineer</div>
+                </div>
+            </div>
+            <div class="profile-field"><span class="label">First Name</span><span class="value">Vikram</span></div>
+            <div class="profile-field"><span class="label">Middle Name</span><span class="value">R.</span></div>
+            <div class="profile-field"><span class="label">Last Name</span><span class="value">Joshi</span></div>
+            <div class="profile-field"><span class="label">Date of Birth</span><span class="value">15 May 1985</span>
+            </div>
+            <div class="profile-field"><span class="label">Gender</span><span class="value">Male</span></div>
+            <div class="profile-field"><span class="label">Blood Group</span><span class="value">A+</span></div>
+            <div class="profile-field"><span class="label">Address</span><span class="value">42, Green Park Colony, Pune
+                    - 411001</span></div>
+            <div class="profile-field"><span class="label">Designation</span><span class="value">Senior CCTV
+                    Engineer</span></div>
+            <div class="profile-field"><span class="label">Joining Date</span><span class="value">1 April 2020</span>
+            </div>
+            <div class="mt-4 pt-4 border-t border-bordersoft"><button id="closeProfileModalBtn" class="btn-primary"><i
+                        class="fa-regular fa-circle-check mr-2"></i>Close</button></div>
+        </div>
+    </div>
+
+    <!-- ===== VIEW REPORT MODAL ===== -->
+    <div id="viewReportModal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i class="fa-regular fa-eye mr-2"></i>Report
+                    Details</h3>
+                <button id="closeViewReport" class="p-2 hover:bg-surface3 rounded-full transition"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="viewReportContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== EDIT REPORT MODAL ===== -->
+    <div id="editReportModal" class="modal-backdrop">
+        <div class="modal-card">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i
+                        class="fa-regular fa-pen-to-square mr-2"></i>Edit Report</h3>
+                <button id="closeEditReport" class="p-2 hover:bg-surface3 rounded-full transition"><i
+                        class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="editReportForm">
+                <input type="hidden" id="editReportId">
+                <input type="hidden" id="editReportType" value="report">
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Company</label><input type="text"
+                            id="editCompany"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Engineer</label><input type="text"
+                            id="editEngineer"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Date</label><input type="date"
+                            id="editDate"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Total Cameras</label><input
+                            type="number" id="editTotal"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Working</label><input
+                            type="number" id="editWorking"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Faulty</label><input type="number"
+                            id="editFaulty"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                    <div class="col-span-2"><label
+                            class="text-xs font-medium text-[#6b5a48] block mb-1">Remarks</label><input type="text"
+                            id="editRemarks"
+                            class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="cancelEditReport" class="btn-secondary px-6 py-2">Cancel</button>
+                    <button type="submit" class="btn-primary px-6 py-2">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== DELETE CONFIRMATION MODAL ===== -->
+    <div id="deleteBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
+        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
+            <div
+                class="w-16 h-16 rounded-full bg-red-100 text-red-600 text-3xl flex items-center justify-center mx-auto mb-4">
+                <i class="fa-regular fa-trash-can"></i>
+            </div>
+            <h3 class="font-display text-xl font-bold text-[#5a4a3a] mb-2">Delete Report?</h3>
+            <p class="text-[#8a7a68] text-sm mb-1">This action cannot be undone.</p>
+            <div class="flex justify-center gap-3 mt-6">
+                <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
+                <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOGOUT CONFIRMATION MODAL ===== -->
+    <div id="logoutBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
+        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
+            <div class="w-11 h-11 rounded-full bg-red-500 text-white text-xl mx-auto flex items-center justify-center">!
+            </div>
+            <h3 class="font-display text-[16px] text-[#5a4a3a] mb-1 mt-3">Confirm Logout</h3>
+            <p class="text-[#8a7a68] text-[13px]">Are you sure you want to logout?</p>
+            <div class="flex justify-center gap-2.5 mt-6">
+                <button id="cancelLogout" class="px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Cancel</button>
+                <button id="confirmLogout" class="px-4 py-2 bg-red-500 text-white rounded-md text-sm">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            (function () {
+                'use strict';
+
+                // ===== TOAST =====
+                function showToast(msg, danger) {
+                    danger = danger || false;
+                    var toast = document.getElementById('toastMessage');
+                    if (!toast) {
+                        console.log('Toast element not found');
+                        return;
+                    }
+                    toast.textContent = msg;
+                    toast.className = 'toast' + (danger ? ' danger' : '') + ' show';
+                    clearTimeout(toast._t);
+                    toast._t = setTimeout(function () {
+                        toast.classList.remove('show');
+                    }, 2800);
+                }
+
+                // ===== MOCK DATA =====
+                var reports = [
+                    { id: 1, company: "Shree Balaji Enterprises", date: "2026-01-15", engineer: "Vikram Joshi", total: 6, working: 6, faulty: 0, remarks: "All cameras working fine", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-01-16" },
+                    { id: 2, company: "Shree Balaji Enterprises", date: "2026-02-12", engineer: "Vikram Joshi", total: 6, working: 5, faulty: 1, remarks: "Camera 2 needs replacement", approved: false, approved_by: null, approved_date: null },
+                    { id: 3, company: "Shree Balaji Enterprises", date: "2026-03-18", engineer: "Vikram Joshi", total: 6, working: 6, faulty: 0, remarks: "Replaced faulty camera", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-03-19" },
+                    { id: 4, company: "Patil Traders", date: "2026-01-20", engineer: "Vikram Joshi", total: 8, working: 8, faulty: 0, remarks: "All good", approved: true, approved_by: "Sunil Patil", approved_date: "2026-01-21" },
+                    { id: 5, company: "Patil Traders", date: "2026-02-22", engineer: "Suresh Patil", total: 8, working: 7, faulty: 1, remarks: "Camera 5 showing interference", approved: false, approved_by: null, approved_date: null },
+                    { id: 6, company: "Greenfield Apartments", date: "2026-01-25", engineer: "Vikram Joshi", total: 12, working: 12, faulty: 0, remarks: "All cameras working", approved: true, approved_by: "Anita Deshmukh", approved_date: "2026-01-26" },
+                    { id: 7, company: "Greenfield Apartments", date: "2026-02-28", engineer: "Suresh Patil", total: 12, working: 11, faulty: 1, remarks: "Camera 8 not recording", approved: false, approved_by: null, approved_date: null },
+                    { id: 8, company: "Greenfield Apartments", date: "2026-03-05", engineer: "Vikram Joshi", total: 12, working: 12, faulty: 0, remarks: "Issue resolved", approved: true, approved_by: "Anita Deshmukh", approved_date: "2026-03-06" },
+                ];
+
+                var issues = [
+                    { id: 1, company: "Shree Balaji Enterprises", camera: "CAM002", issue_type: "Hardware", priority: "High", status: "Resolved", description: "Camera not powering on", created: "2026-02-12", resolved_date: "2026-02-14", resolved_by: "Vikram Joshi", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-02-15" },
+                    { id: 2, company: "Patil Traders", camera: "CAM005", issue_type: "Network", priority: "Critical", status: "Resolved", description: "Camera offline - network issue", created: "2026-02-22", resolved_date: "2026-02-24", resolved_by: "Suresh Patil", approved: true, approved_by: "Sunil Patil", approved_date: "2026-02-25" },
+                    { id: 3, company: "Greenfield Apartments", camera: "CAM008", issue_type: "Hardware", priority: "High", status: "Resolved", description: "Camera not recording", created: "2026-02-28", resolved_date: "2026-03-02", resolved_by: "Vikram Joshi", approved: false, approved_by: null, approved_date: null },
+                    { id: 4, company: "Shree Balaji Enterprises", camera: "CAM001", issue_type: "Software", priority: "Medium", status: "Open", description: "Firmware update needed", created: "2026-03-18", resolved_date: null, resolved_by: null, approved: false, approved_by: null, approved_date: null },
+                    { id: 5, company: "Patil Traders", camera: "CAM003", issue_type: "Hardware", priority: "Low", status: "In Progress", description: "Camera lens fogging", created: "2026-03-15", resolved_date: null, resolved_by: null, approved: false, approved_by: null, approved_date: null },
+                    { id: 6, company: "Greenfield Apartments", camera: "CAM010", issue_type: "Network", priority: "Critical", status: "Resolved", description: "Camera disconnected", created: "2026-03-05", resolved_date: "2026-03-06", resolved_by: "Vikram Joshi", approved: true, approved_by: "Anita Deshmukh", approved_date: "2026-03-07" },
+                ];
+
+                // Generate camera details dynamically for all reports
+                function generateCameraDetails(report) {
+                    var cameras = [];
+                    var locations = ['Reception', 'Parking', 'Server Room', 'Warehouse', 'Cabin', 'Main Gate', 'Garden', 'Lift Lobby'];
+                    var total = report.total || 10;
+
+                    for (var i = 1; i <= total; i++) {
+                        var isFaulty = i <= report.faulty;
+                        var locIndex = (i - 1) % locations.length;
+                        cameras.push({
+                            sr_no: i,
+                            camera_name: 'CAM' + String(i).padStart(3, '0'),
+                            location: locations[locIndex] || 'Unknown',
+                            working: isFaulty ? 'No' : 'Yes',
+                            lens_cleaning: isFaulty ? 'Pending' : 'Done',
+                            visual_on_tv: isFaulty ? 'No' : 'Yes',
+                            focus_angle: isFaulty ? 'Adjustment Required' : 'Correct',
+                            damage: isFaulty ? 'Issue with camera ' + i : '',
+                            abnormality: isFaulty ? 'Camera ' + i + ' needs attention' : ''
+                        });
+                    }
+                    return cameras;
+                }
+
+                // Store camera details for each report
+                reports.forEach(function (r) {
+                    r._cameraDetails = generateCameraDetails(r);
+                });
+
+                var deleteId = null;
+                var deleteType = null;
+                var exportReportId = null;
+                var exportType = null;
+                var emailImages = [];
+
+                var reportsContainer = document.getElementById('reportsContainer');
+                var issuesContainer = document.getElementById('issuesContainer');
+
+                function groupByMonth(data, dateKey) {
+                    var groups = {};
+                    data.forEach(function (item) {
+                        var date = new Date(item[dateKey]);
+                        var monthYear = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                        if (!groups[monthYear]) groups[monthYear] = [];
+                        groups[monthYear].push(item);
+                    });
+                    var sortedKeys = Object.keys(groups).sort(function (a, b) {
+                        var da = new Date(a + ' 1');
+                        var db = new Date(b + ' 1');
+                        return db - da;
+                    });
+                    var sorted = {};
+                    sortedKeys.forEach(function (key) { sorted[key] = groups[key]; });
+                    return sorted;
+                }
+
+                // ===== EMAIL GENERATION =====
+                function generateEmailBody(item, type, images) {
+                    var date = new Date(item.date || item.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+                    var status = item.faulty !== undefined ? (item.faulty === 0 ? '✅ All Cameras are Working' : '⚠️ ' + item.faulty + ' Camera(s) are Faulty') : '';
+                    var pendingIssues = issues.filter(function (i) { return i.company === item.company && i.status !== 'Resolved' && i.status !== 'Closed'; });
+                    var pendingText = pendingIssues.length > 0 ? '\n\n⚠️ Pending Issues:\n' + pendingIssues.map(function (i) { return '  - ' + i.camera + ': ' + i.description + ' (' + i.status + ')'; }).join('\n') : '\n\n✅ No pending issues. All issues resolved.';
+
+                    var body = 'Dear Team,\n\n';
+                    body += 'Please find the ' + (type === 'report' ? 'Monthly Inspection Report' : 'Issue Report') + ' for **' + item.company + '** dated ' + date + '.\n\n';
+                    body += '--- Summary ---\n';
+
+                    if (type === 'report') {
+                        body += '📷 Total Cameras: ' + item.total + '\n';
+                        body += '✅ Working: ' + item.working + '\n';
+                        body += '❌ Faulty: ' + item.faulty + '\n';
+                        body += '📊 Status: ' + status + '\n';
+                        body += '📝 Remarks: ' + (item.remarks || 'N/A') + '\n';
+                        body += '👤 Engineer: ' + item.engineer + '\n';
+                        body += '✅ Approval Status: ' + (item.approved ? 'Approved ✓' : 'Pending Approval') + '\n';
+                        if (item.approved) {
+                            body += '✅ Approved by: ' + item.approved_by + ' on ' + item.approved_date + '\n';
+                        }
+                        body += '\n--- Camera Status ---\n';
+                        var cameras = item._cameraDetails || [];
+                        if (cameras.length > 0) {
+                            cameras.forEach(function (c) {
+                                var workingStatus = c.working === 'Yes' ? '✅ Working' : '❌ Faulty';
+                                var issuesList = [];
+                                if (c.damage) issuesList.push('Damage: ' + c.damage);
+                                if (c.abnormality) issuesList.push('Abnormality: ' + c.abnormality);
+                                if (c.focus_angle === 'Adjustment Required') issuesList.push('Focus Adjustment Required');
+                                if (c.lens_cleaning === 'Pending') issuesList.push('Lens Cleaning Pending');
+                                var issueText = issuesList.length > 0 ? ' (' + issuesList.join(', ') + ')' : '';
+                                body += '  • ' + c.camera_name + ' (' + c.location + ') - ' + workingStatus + issueText + '\n';
+                            });
+                        }
+                        body += '\n--- Issue Updates ---\n' + pendingText;
+                    } else {
+                        body += '📌 Issue: ' + item.description + '\n';
+                        body += '📷 Camera: ' + item.camera + '\n';
+                        body += '🔧 Type: ' + item.issue_type + '\n';
+                        body += '⚠️ Priority: ' + item.priority + '\n';
+                        body += '📊 Status: ' + item.status + '\n';
+                        if (item.resolved_by) {
+                            body += '✅ Resolved by: ' + item.resolved_by + '\n';
+                        }
+                        if (item.resolved_date) {
+                            var resolvedDate = new Date(item.resolved_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+                            body += '📅 Resolved on: ' + resolvedDate + '\n';
+                        }
+                        body += '✅ Approval Status: ' + (item.approved ? 'Approved ✓' : 'Pending Approval') + '\n';
+                        if (item.approved) {
+                            body += '✅ Approved by: ' + item.approved_by + ' on ' + item.approved_date + '\n';
+                        }
+                    }
+
+                    body += '\n--- Attachments ---\n';
+                    body += '📎 Excel Report: Attached\n';
+                    if (images && images.length > 0) {
+                        body += '📸 Images: ' + images.length + ' image(s) attached\n';
+                    }
+                    body += '\n---\n';
+                    body += 'Regards,\n' + (item.engineer || 'Service Team') + '\nCCTV AMC Manager';
+
+                    return body;
+                }
+
+                // ===== RENDER REPORTS =====
+                function renderReports() {
+                    var search = document.getElementById('searchReport').value.toLowerCase();
+                    var filterApprove = document.getElementById('filterApprove').value;
+                    var filterCompany = document.getElementById('filterCompany').value;
+
+                    var filtered = reports.filter(function (r) {
+                        var matchSearch = r.company.toLowerCase().includes(search) || r.engineer.toLowerCase().includes(search);
+                        var matchApprove = !filterApprove || (filterApprove === 'Approved' ? r.approved : !r.approved);
+                        var matchCompany = !filterCompany || r.company === filterCompany;
+                        return matchSearch && matchApprove && matchCompany;
+                    });
+
+                    var compFilter = document.getElementById('filterCompany');
+                    var companies = [];
+                    reports.forEach(function (r) {
+                        if (companies.indexOf(r.company) === -1) companies.push(r.company);
+                    });
+                    compFilter.innerHTML = '<option value="">All Companies</option>' + companies.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+
+                    var grouped = groupByMonth(filtered, 'date');
+                    var html = '';
+
+                    if (Object.keys(grouped).length === 0) {
+                        html = '<div class="text-center py-12 text-[#8a7a68]"><i class="fa-regular fa-file-lines text-4xl block mb-3"></i><p>No reports found</p></div>';
+                    } else {
+                        Object.keys(grouped).forEach(function (month) {
+                            var records = grouped[month];
+                            html += '<div class="month-group"><div class="month-title"><i class="fa-regular fa-calendar-circle-plus text-accenttext"></i>' + month + '<span class="count-badge">' + records.length + ' ' + (records.length > 1 ? 'reports' : 'report') + '</span></div><div class="grid grid-cols-1 gap-3">';
+                            records.forEach(function (r) {
+                                var status = r.faulty === 0 ? 'All Working' : r.faulty + ' Faulty';
+                                var statusCls = r.faulty === 0 ? 'chip-active' : 'chip-soon';
+                                var approveCls = r.approved ? 'chip-approved' : 'chip-pending';
+                                var approveLabel = r.approved ? 'Approved ✓' : 'Pending';
+                                var date = new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                                html += '<div class="report-card"><div class="flex flex-wrap justify-between items-start gap-2"><div><div class="font-semibold text-[#5a4a3a] text-lg">' + r.company + '</div><div class="flex flex-wrap gap-3 text-xs text-[#8a7a68] mt-1"><span><i class="fa-regular fa-user mr-1"></i>' + r.engineer + '</span><span><i class="fa-regular fa-calendar mr-1"></i>' + date + '</span></div></div><div class="flex flex-wrap gap-2 items-center"><span class="chip ' + statusCls + '">' + status + '</span><span class="chip ' + approveCls + '">' + approveLabel + '</span></div></div><div class="flex flex-wrap gap-4 text-sm text-[#6b5a48] mt-2"><span><i class="fa-regular fa-video mr-1"></i>Total: ' + r.total + '</span><span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>Working: ' + r.working + '</span>' + (r.faulty > 0 ? '<span class="text-redc"><i class="fa-regular fa-circle-xmark mr-1"></i>Faulty: ' + r.faulty + '</span>' : '') + '</div>' + (r.remarks ? '<div class="text-sm text-[#8a7a68] mt-2 italic">' + r.remarks + '</div>' : '') + (r.approved ? '<div class="text-xs text-[#8a7a68] mt-1">Approved by: ' + r.approved_by + ' on ' + r.approved_date + '</div>' : '') + '<div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions"><button class="btn-export-excel text-xs py-1.5 px-3" onclick="openExportModal(' + r.id + ', \'report\')"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button><button class="btn-email text-xs py-1.5 px-3" onclick="openEmailModal(' + r.id + ', \'report\')"><i class="fa-regular fa-envelope mr-1"></i>Email</button><button class="btn-approve ' + (r.approved ? 'approved' : '') + '" onclick="toggleApprove(' + r.id + ', \'report\')" ' + (r.approved ? 'disabled' : '') + '><i class="fa-regular ' + (r.approved ? 'fa-circle-check' : 'fa-thumbs-up') + '"></i>' + (r.approved ? 'Approved' : 'Approve') + '</button><button class="text-[#5a4a3a] hover:text-accenttext text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="viewReport(' + r.id + ', \'report\')"><i class="fa-regular fa-eye mr-1"></i>View</button><button class="text-[#5a4a3a] hover:text-accenttext text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="editReport(' + r.id + ', \'report\')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button><button class="text-redc hover:text-red-700 text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-red-50 transition" onclick="deleteReport(' + r.id + ', \'report\')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button></div></div>';
+                            });
+                            html += '</div></div>';
+                        });
+                    }
+                    reportsContainer.innerHTML = html;
+                }
+
+                // ===== RENDER ISSUES =====
+                function renderIssues() {
+                    var search = document.getElementById('searchIssues').value.toLowerCase();
+                    var filterStatus = document.getElementById('filterIssueStatus').value;
+
+                    var filtered = issues.filter(function (r) {
+                        var matchSearch = r.company.toLowerCase().includes(search) || r.camera.toLowerCase().includes(search);
+                        var matchStatus = !filterStatus || r.status === filterStatus;
+                        return matchSearch && matchStatus;
+                    });
+
+                    var grouped = groupByMonth(filtered, 'created');
+                    var html = '';
+
+                    if (Object.keys(grouped).length === 0) {
+                        html = '<div class="text-center py-12 text-[#8a7a68]"><i class="fa-regular fa-circle-exclamation text-4xl block mb-3"></i><p>No issues found</p></div>';
+                    } else {
+                        Object.keys(grouped).forEach(function (month) {
+                            var records = grouped[month];
+                            html += '<div class="month-group"><div class="month-title"><i class="fa-regular fa-circle-exclamation text-redc"></i>' + month + '<span class="count-badge">' + records.length + ' ' + (records.length > 1 ? 'issues' : 'issue') + '</span></div><div class="grid grid-cols-1 gap-3">';
+                            records.forEach(function (r) {
+                                var statusCls = r.status === 'Resolved' ? 'chip-resolved' : r.status === 'Open' ? 'chip-open' : r.status === 'In Progress' ? 'chip-progress' : 'chip-closed';
+                                var priorityCls = r.priority === 'Critical' ? 'text-redc font-bold' : r.priority === 'High' ? 'text-amber font-bold' : 'text-[#6b5a48]';
+                                var createdDate = new Date(r.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                                var resolvedDate = r.resolved_date ? new Date(r.resolved_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
+                                var approveCls = r.approved ? 'chip-approved' : 'chip-pending';
+                                var approveLabel = r.approved ? 'Approved ✓' : 'Pending';
+
+                                html += '<div class="issue-card ' + (r.status === 'Resolved' ? 'resolved' : '') + '"><div class="flex flex-wrap justify-between items-start gap-2"><div><div class="font-semibold text-[#5a4a3a] text-lg">' + r.company + '</div><div class="flex flex-wrap gap-3 text-xs text-[#8a7a68] mt-1"><span><i class="fa-regular fa-video mr-1"></i>' + r.camera + '</span><span><i class="fa-regular fa-calendar mr-1"></i>' + createdDate + '</span></div></div><div class="flex flex-wrap gap-2 items-center"><span class="chip ' + statusCls + '">' + r.status + '</span><span class="chip ' + approveCls + '">' + approveLabel + '</span></div></div><div class="text-sm mt-1">' + r.description + '</div><div class="flex flex-wrap gap-2 text-xs text-[#6b5a48] mt-1.5"><span class="' + priorityCls + '"><i class="fa-regular fa-flag mr-1"></i>' + r.priority + '</span><span><i class="fa-regular fa-tag mr-1"></i>' + r.issue_type + '</span>' + (resolvedDate ? '<span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>' + resolvedDate + '</span>' : '') + '</div>' + (r.resolved_by ? '<div class="text-xs text-[#8a7a68] mt-1">Resolved by: ' + r.resolved_by + '</div>' : '') + (r.approved ? '<div class="text-xs text-[#8a7a68] mt-1">Approved by: ' + r.approved_by + ' on ' + r.approved_date + '</div>' : '') + '<div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions"><button class="btn-export-excel text-xs py-1.5 px-3" onclick="openExportModal(' + r.id + ', \'issue\')"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button><button class="btn-email text-xs py-1.5 px-3" onclick="openEmailModal(' + r.id + ', \'issue\')"><i class="fa-regular fa-envelope mr-1"></i>Email</button><button class="btn-approve ' + (r.approved ? 'approved' : '') + '" onclick="toggleApprove(' + r.id + ', \'issue\')" ' + (r.approved ? 'disabled' : '') + '><i class="fa-regular ' + (r.approved ? 'fa-circle-check' : 'fa-thumbs-up') + '"></i>' + (r.approved ? 'Approved' : 'Approve') + '</button><button class="text-[#5a4a3a] hover:text-accenttext text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="viewReport(' + r.id + ', \'issue\')"><i class="fa-regular fa-eye mr-1"></i>View</button><button class="text-[#5a4a3a] hover:text-accenttext text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="editReport(' + r.id + ', \'issue\')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button><button class="text-redc hover:text-red-700 text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-red-50 transition" onclick="deleteReport(' + r.id + ', \'issue\')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button></div></div>';
+                            });
+                            html += '</div></div>';
+                        });
+                    }
+                    issuesContainer.innerHTML = html;
+                }
+
+                // ===== EXPORT EXCEL =====
+                window.openExportModal = function (id, type) {
+                    exportReportId = id;
+                    exportType = type;
+                    document.getElementById('exportType').value = type;
+                    var item = type === 'report' ? reports.find(function (r) { return r.id === id; }) : issues.find(function (r) { return r.id === id; });
+                    if (!item) return;
+
+                    var date = new Date(item.date || item.created);
+                    var monthYear = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+                    document.getElementById('exportMonthYear').value = monthYear;
+                    document.getElementById('exportFileName').textContent = item.company + '_' + date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }).replace(/ /g, '_') + '.xlsx';
+                    document.getElementById('exportExcelModal').classList.add('open');
+                };
+
+                document.getElementById('closeExportModal').onclick = function () { document.getElementById('exportExcelModal').classList.remove('open'); };
+                document.getElementById('cancelExport').onclick = function () { document.getElementById('exportExcelModal').classList.remove('open'); };
+
+                document.getElementById('exportExcelForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var id = Number(document.getElementById('exportReportId').value);
+                    var type = document.getElementById('exportType').value;
+                    var item = type === 'report' ? reports.find(function (r) { return r.id === id; }) : issues.find(function (r) { return r.id === id; });
+                    if (!item) {
+                        showToast('Report not found', true);
+                        return;
+                    }
+
+                    var monthYear = document.getElementById('exportMonthYear').value;
+                    if (!monthYear) {
+                        showToast('Please select month and year', true);
+                        return;
+                    }
+
+                    var parts = monthYear.split('-');
+                    var year = parts[0];
+                    var month = parts[1];
+                    var monthName = new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
+                    var fileName = item.company + '_' + monthName + '_' + year + '.xlsx';
+
+                    var excelData;
+                    if (type === 'report') {
+                        var cameras = item._cameraDetails || [];
+                        excelData = [
+                            ['Monthly camera checksheet', '', '', '', '', '', '', '', '', 'Vendor', '', ''],
+                            ['', '', '', '', '', '', '', '', '', 'Dept', '', ''],
+                            ['Sr.No', 'Camera Name', 'Location', 'Working(Yes/No)', 'Lens cleaning', 'Visual on TV/not', 'Focus angle of camera', 'Damage if any', 'Any other abnormality', 'Date of checking', 'Checked by', 'BSID PIC']
+                        ];
+
+                        if (cameras.length > 0) {
+                            cameras.forEach(function (cam) {
+                                excelData.push([
+                                    cam.sr_no || '', cam.camera_name || '', cam.location || '', cam.working || '',
+                                    cam.lens_cleaning || '', cam.visual_on_tv || '', cam.focus_angle || '',
+                                    cam.damage || '', cam.abnormality || '', item.date || '', item.engineer || '', ''
+                                ]);
+                            });
+                        } else {
+                            for (var i = 0; i < 10; i++) {
+                                excelData.push([i + 1, '', '', '', '', '', '', '', '', item.date || '', item.engineer || '', '']);
+                            }
+                        }
+
+                        while (excelData.length < 44) {
+                            excelData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
+                        }
+                        excelData.push(['BSID PIC', '', '', '', 'Area Manager', '', '', '', 'Manager', '', '', '']);
+                    } else {
+                        excelData = [
+                            ['Issues Report'],
+                            [''],
+                            ['Sr.No', 'Company', 'Camera', 'Issue Type', 'Priority', 'Status', 'Description', 'Created Date', 'Resolved Date', 'Resolved By', 'Approved']
+                        ];
+                        excelData.push([
+                            1, item.company, item.camera, item.issue_type, item.priority, item.status,
+                            item.description, item.created, item.resolved_date || '', item.resolved_by || '',
+                            item.approved ? 'Yes' : 'No'
+                        ]);
+                    }
+
+                    try {
+                        var wb = XLSX.utils.book_new();
+                        var ws = XLSX.utils.aoa_to_sheet(excelData);
+                        ws['!cols'] = type === 'report' ?
+                            [{ wch: 8 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 22 }, { wch: 18 }, { wch: 18 }, { wch: 15 }] :
+                            [{ wch: 6 }, { wch: 25 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 14 }, { wch: 30 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 10 }];
+
+                        XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                        XLSX.writeFile(wb, fileName);
+                        document.getElementById('exportExcelModal').classList.remove('open');
+                        showToast('Excel exported: ' + fileName + ' ✓');
+                    } catch (error) {
+                        showToast('Error generating Excel: ' + error.message, true);
+                    }
+                });
+
+                // ===== EMAIL =====
+                window.openEmailModal = function (id, type) {
+                    emailImages = [];
+                    document.getElementById('imagePreviewContainer').innerHTML = '';
+                    document.getElementById('imageInput').value = '';
+
+                    document.getElementById('emailReportId').value = id;
+                    document.getElementById('emailType').value = type;
+                    var item = type === 'report' ? reports.find(function (r) { return r.id === id; }) : issues.find(function (r) { return r.id === id; });
+                    if (!item) return;
+
+                    var date = new Date(item.date || item.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+                    document.getElementById('emailSubject').value = (type === 'report' ? 'Monthly Inspection Report' : 'Issue Report') + ' - ' + item.company + ' - ' + date;
+                    document.getElementById('emailMessage').value = generateEmailBody(item, type, []);
+                    document.getElementById('emailModal').classList.add('open');
+                };
+
+                document.getElementById('closeEmailModal').onclick = function () { document.getElementById('emailModal').classList.remove('open'); };
+                document.getElementById('cancelEmail').onclick = function () { document.getElementById('emailModal').classList.remove('open'); };
+
+                // Image upload handling
+                var imageUploadArea = document.getElementById('imageUploadArea');
+                var imageInput = document.getElementById('imageInput');
+                var imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+                imageUploadArea.addEventListener('click', function () { imageInput.click(); });
+
+                imageUploadArea.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    imageUploadArea.classList.add('dragover');
+                });
+
+                imageUploadArea.addEventListener('dragleave', function () {
+                    imageUploadArea.classList.remove('dragover');
+                });
+
+                imageUploadArea.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    imageUploadArea.classList.remove('dragover');
+                    if (e.dataTransfer.files.length) {
+                        handleImageFiles(e.dataTransfer.files);
+                    }
+                });
+
+                imageInput.addEventListener('change', function () {
+                    if (this.files.length) {
+                        handleImageFiles(this.files);
+                    }
+                });
+
+                function handleImageFiles(files) {
+                    for (var i = 0; i < files.length; i++) {
+                        var file = files[i];
+                        if (file.type.startsWith('image/')) {
+                            var reader = new FileReader();
+                            reader.onload = function (e) {
+                                emailImages.push(e.target.result);
+                                renderImagePreviews();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                }
+
+                function renderImagePreviews() {
+                    imagePreviewContainer.innerHTML = emailImages.map(function (img, idx) {
+                        return '<div class="image-preview-item"><img src="' + img + '" alt="Image ' + (idx + 1) + '"><button type="button" class="remove-img" onclick="removeImage(' + idx + ')">×</button></div>';
+                    }).join('');
+                }
+
+                window.removeImage = function (idx) {
+                    emailImages.splice(idx, 1);
+                    renderImagePreviews();
+                };
+
+                document.getElementById('emailForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var to = document.getElementById('emailTo').value;
+                    var subject = document.getElementById('emailSubject').value;
+                    var message = document.getElementById('emailMessage').value;
+                    var attachExcel = document.getElementById('attachExcel').checked;
+
+                    if (!to) {
+                        showToast('Please enter recipient email', true);
+                        return;
+                    }
+
+                    var finalMessage = message;
+                    if (emailImages.length > 0) {
+                        finalMessage += '\n\n--- Attached Images ---\n';
+                        emailImages.forEach(function (img, idx) {
+                            finalMessage += '\n[Image ' + (idx + 1) + ']';
+                        });
+                    }
+                    if (attachExcel) {
+                        finalMessage += '\n\n📎 Excel Report: Attached as separate file.';
+                    }
+
+                    window.location.href = 'mailto:' + to + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(finalMessage);
+                    document.getElementById('emailModal').classList.remove('open');
+                    showToast('Email client opened ✓');
+                });
+
+                // ===== APPROVE =====
+                window.toggleApprove = function (id, type) {
+                    var items = type === 'report' ? reports : issues;
+                    var item = items.find(function (r) { return r.id === id; });
+                    if (!item || item.approved) return;
+
+                    var name = prompt('Enter your name for approval:');
+                    if (!name) return;
+
+                    item.approved = true;
+                    item.approved_by = name;
+                    item.approved_date = new Date().toISOString().split('T')[0];
+                    showToast((type === 'report' ? 'Report' : 'Issue') + ' approved ✓');
+                    renderReports();
+                    renderIssues();
+                };
+
+                // ===== VIEW =====
+                window.viewReport = function (id, type) {
+                    var item = type === 'report' ? reports.find(function (r) { return r.id === id; }) : issues.find(function (r) { return r.id === id; });
+                    if (!item) return;
+
+                    var date = new Date(item.date || item.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+                    var approveLabel = item.approved ? 'Approved ✓' : 'Pending';
+
+                    var detailsHtml = '';
+                    if (type === 'report') {
+                        var status = item.faulty === 0 ? 'All Working' : item.faulty + ' Faulty';
+                        detailsHtml = '<div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-medium text-[#8a7a68]">Company</label><div class="font-semibold text-[#5a4a3a]">' + item.company + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Engineer</label><div class="font-semibold text-[#5a4a3a]">' + item.engineer + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Date</label><div class="font-semibold text-[#5a4a3a]">' + date + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Status</label><div><span class="chip ' + (item.faulty === 0 ? 'chip-active' : 'chip-soon') + '">' + status + '</span></div></div><div><label class="text-xs font-medium text-[#8a7a68]">Total Cameras</label><div class="font-semibold text-[#5a4a3a]">' + item.total + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Working / Faulty</label><div class="font-semibold text-[#5a4a3a]">' + item.working + ' / ' + item.faulty + '</div></div><div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Remarks</label><div class="text-[#5a4a3a]">' + (item.remarks || '—') + '</div></div><div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approval Status</label><div><span class="chip ' + (item.approved ? 'chip-approved' : 'chip-pending') + '">' + approveLabel + '</span></div></div>' + (item.approved ? '<div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approved By</label><div class="text-[#5a4a3a]">' + item.approved_by + ' on ' + item.approved_date + '</div></div>' : '') + '</div>';
+                    } else {
+                        var statusCls = item.status === 'Resolved' ? 'chip-resolved' : item.status === 'Open' ? 'chip-open' : item.status === 'In Progress' ? 'chip-progress' : 'chip-closed';
+                        var priorityCls = item.priority === 'Critical' ? 'text-redc font-bold' : item.priority === 'High' ? 'text-amber font-bold' : 'text-[#6b5a48]';
+                        var resolvedDate = item.resolved_date ? new Date(item.resolved_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
+                        detailsHtml = '<div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-medium text-[#8a7a68]">Company</label><div class="font-semibold text-[#5a4a3a]">' + item.company + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Camera</label><div class="font-semibold text-[#5a4a3a]">' + item.camera + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Issue Type</label><div class="font-semibold text-[#5a4a3a]">' + item.issue_type + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Priority</label><div class="' + priorityCls + '">' + item.priority + '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Status</label><div><span class="chip ' + statusCls + '">' + item.status + '</span></div></div><div><label class="text-xs font-medium text-[#8a7a68]">Created</label><div class="font-semibold text-[#5a4a3a]">' + date + '</div></div>' + (resolvedDate ? '<div><label class="text-xs font-medium text-[#8a7a68]">Resolved Date</label><div class="font-semibold text-accenttext">' + resolvedDate + '</div></div>' : '') + (item.resolved_by ? '<div><label class="text-xs font-medium text-[#8a7a68]">Resolved By</label><div class="font-semibold text-[#5a4a3a]">' + item.resolved_by + '</div></div>' : '') + '<div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Description</label><div class="text-[#5a4a3a]">' + item.description + '</div></div><div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approval Status</label><div><span class="chip ' + (item.approved ? 'chip-approved' : 'chip-pending') + '">' + approveLabel + '</span></div></div>' + (item.approved ? '<div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approved By</label><div class="text-[#5a4a3a]">' + item.approved_by + ' on ' + item.approved_date + '</div></div>' : '') + '</div>';
+                    }
+
+                    document.getElementById('viewReportContent').innerHTML = '<div class="space-y-3">' + detailsHtml + '<div class="flex justify-end mt-4"><button onclick="document.getElementById(\'viewReportModal\').classList.remove(\'open\')" class="btn-primary px-6 py-2">Close</button></div></div>';
+                    document.getElementById('viewReportModal').classList.add('open');
+                };
+
+                // ===== EDIT =====
+                window.editReport = function (id, type) {
+                    var item = type === 'report' ? reports.find(function (r) { return r.id === id; }) : issues.find(function (r) { return r.id === id; });
+                    if (!item) return;
+
+                    document.getElementById('editReportId').value = id;
+                    document.getElementById('editReportType').value = type;
+
+                    if (type === 'report') {
+                        document.getElementById('editCompany').value = item.company;
+                        document.getElementById('editEngineer').value = item.engineer;
+                        document.getElementById('editDate').value = item.date;
+                        document.getElementById('editTotal').value = item.total;
+                        document.getElementById('editWorking').value = item.working;
+                        document.getElementById('editFaulty').value = item.faulty;
+                        document.getElementById('editRemarks').value = item.remarks || '';
+                    } else {
+                        document.getElementById('editCompany').value = item.company;
+                        document.getElementById('editEngineer').value = item.resolved_by || '';
+                        document.getElementById('editDate').value = item.created;
+                        document.getElementById('editTotal').value = 0;
+                        document.getElementById('editWorking').value = 0;
+                        document.getElementById('editFaulty').value = 0;
+                        document.getElementById('editRemarks').value = item.description || '';
+                    }
+                    document.getElementById('editReportModal').classList.add('open');
+                };
+
+                document.getElementById('editReportForm').addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    var id = Number(document.getElementById('editReportId').value);
+                    var type = document.getElementById('editReportType').value;
+                    var items = type === 'report' ? reports : issues;
+                    var item = items.find(function (r) { return r.id === id; });
+                    if (!item) return;
+
+                    if (type === 'report') {
+                        item.company = document.getElementById('editCompany').value;
+                        item.engineer = document.getElementById('editEngineer').value;
+                        item.date = document.getElementById('editDate').value;
+                        item.total = Number(document.getElementById('editTotal').value);
+                        item.working = Number(document.getElementById('editWorking').value);
+                        item.faulty = Number(document.getElementById('editFaulty').value);
+                        item.remarks = document.getElementById('editRemarks').value;
+                        item._cameraDetails = generateCameraDetails(item);
+                    } else {
+                        item.resolved_by = document.getElementById('editEngineer').value;
+                        item.description = document.getElementById('editRemarks').value;
+                    }
+
+                    document.getElementById('editReportModal').classList.remove('open');
+                    showToast((type === 'report' ? 'Report' : 'Issue') + ' updated ✓');
+                    renderReports();
+                    renderIssues();
+                });
+
+                document.getElementById('closeEditReport').onclick = function () { document.getElementById('editReportModal').classList.remove('open'); };
+                document.getElementById('cancelEditReport').onclick = function () { document.getElementById('editReportModal').classList.remove('open'); };
+
+                // ===== DELETE =====
+                window.deleteReport = function (id, type) {
+                    deleteId = id;
+                    deleteType = type;
+                    document.getElementById('deleteBackdrop').classList.add('open');
+                };
+
+                document.getElementById('confirmDelete').onclick = function () {
+                    if (deleteId !== null && deleteType !== null) {
+                        if (deleteType === 'report') {
+                            reports = reports.filter(function (r) { return r.id !== deleteId; });
+                        } else {
+                            issues = issues.filter(function (r) { return r.id !== deleteId; });
+                        }
+                        var tempType = deleteType;
+                        deleteId = null;
+                        deleteType = null;
+                        document.getElementById('deleteBackdrop').classList.remove('open');
+                        showToast((tempType === 'report' ? 'Report' : 'Issue') + ' deleted', true);
+                        renderReports();
+                        renderIssues();
+                    }
+                };
+
+                document.getElementById('cancelDelete').onclick = function () {
+                    deleteId = null;
+                    deleteType = null;
+                    document.getElementById('deleteBackdrop').classList.remove('open');
+                };
+
+                document.getElementById('closeViewReport').onclick = function () { document.getElementById('viewReportModal').classList.remove('open'); };
+
+                // ===== FILTERS =====
+                document.getElementById('searchReport').addEventListener('input', renderReports);
+                document.getElementById('filterApprove').addEventListener('change', renderReports);
+                document.getElementById('filterCompany').addEventListener('change', renderReports);
+                document.getElementById('resetReportFilters').onclick = function () {
+                    document.getElementById('searchReport').value = '';
+                    document.getElementById('filterApprove').value = '';
+                    document.getElementById('filterCompany').value = '';
+                    renderReports();
+                    showToast('Filters reset');
+                };
+
+                document.getElementById('searchIssues').addEventListener('input', renderIssues);
+                document.getElementById('filterIssueStatus').addEventListener('change', renderIssues);
+                document.getElementById('resetIssueFilters').onclick = function () {
+                    document.getElementById('searchIssues').value = '';
+                    document.getElementById('filterIssueStatus').value = '';
+                    renderIssues();
+                    showToast('Filters reset');
+                };
+
+                // ===== TABS =====
+                document.querySelectorAll('.tab-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+                        document.querySelectorAll('.tab-content').forEach(function (c) { c.classList.remove('active'); });
+                        this.classList.add('active');
+                        document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+                    });
+                });
+
+                // ===== SIDEBAR =====
+                var sidebar = document.getElementById('sidebar');
+                var sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+                var isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+                sidebarCollapseBtn.onclick = function () {
+                    sidebar.classList.toggle('collapsed');
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                };
+
+                // ===== USER DROPDOWN - FIX =====
+                var userMenuBtn = document.getElementById('userMenuBtn');
+                var userDropdown = document.getElementById('userDropdown');
+                var profileModal = document.getElementById('profileModal');
+                var logoutBackdrop = document.getElementById('logoutBackdrop');
+
+                // Initially hide dropdown
+                userDropdown.style.display = 'none';
+
+                userMenuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    var isHidden = userDropdown.style.display === 'none';
+                    userDropdown.style.display = isHidden ? 'block' : 'none';
+                    // Remove inline style when hidden
+                    if (!isHidden) {
+                        userDropdown.style.display = 'none';
+                    }
+                });
+
+                // Click outside to close
+                document.addEventListener('click', function (e) {
+                    if (!e.target.closest('#userMenuBtn') && !e.target.closest('#userDropdown')) {
+                        userDropdown.style.display = 'none';
+                    }
+                });
+
+                document.getElementById('profileMenuItem').addEventListener('click', function (e) {
+                    e.preventDefault();
+                    userDropdown.style.display = 'none';
+                    profileModal.classList.add('open');
+                });
+
+                document.getElementById('closeProfileModal').addEventListener('click', function () { profileModal.classList.remove('open'); });
+                document.getElementById('closeProfileModalBtn').addEventListener('click', function () { profileModal.classList.remove('open'); });
+                profileModal.addEventListener('click', function (e) {
+                    if (e.target === profileModal) profileModal.classList.remove('open');
+                });
+
+                // ===== LOGOUT =====
+                document.getElementById('logoutBtn').onclick = function () {
+                    userDropdown.style.display = 'none';
+                    logoutBackdrop.classList.add('open');
+                };
+                document.getElementById('cancelLogout').onclick = function () { logoutBackdrop.classList.remove('open'); };
+                document.getElementById('confirmLogout').onclick = function () {
+                    sessionStorage.removeItem('amc_session');
+                    setTimeout(function () {
+                        logoutBackdrop.classList.remove('open');
+                        window.location.href = '/page/login.html';
+                    }, 300);
+                };
+
+                // ===== INIT =====
+                renderReports();
+                renderIssues();
+
+            })();
+    </script>
+</body>
+
+</html>

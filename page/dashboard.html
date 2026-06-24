@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — CCTV AMC Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bg: '#F3EEEA', surface: '#F6F1F1', surface2: '#FFFFFF', surface3: '#ede4d4',
+                        borderc: '#B0A695', bordersoft: '#e0d5c4', textdim: '#6b5a48', textfaint: '#8a7a68',
+                        accent: '#2d6a2d', accentdim: '#e8f0e8', accenttext: '#2d6a2d',
+                        amber: '#c47a1a', amberdim: '#f5e8cc', ambertext: '#c47a1a',
+                        redc: '#b53b3b', reddim: '#f0e0e0', redtext: '#b53b3b',
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'sans-serif'],
+                        body: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+
+        html, body { background-color: #F3EEEA; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .sidebar {
+            background: #f0e1ca;
+            transition: width 0.25s ease, transform 0.25s ease;
+            width: 260px;
+            overflow-x: hidden;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed { width: 72px; }
+
+        .sidebar.collapsed .sidebar-logo-text,
+        .sidebar.collapsed .sidebar-nav-text,
+        .sidebar.collapsed .sidebar-user-text,
+        .sidebar.collapsed .sidebar-company-count { display: none; }
+
+        .sidebar.collapsed .sidebar-nav-item { justify-content: center; padding: 0.625rem; }
+        .sidebar.collapsed .sidebar-nav-item svg { margin: 0 auto; }
+        .sidebar.collapsed .sidebar-logo { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .sidebar-toggle-btn { transform: rotate(180deg); }
+        .sidebar.collapsed .sidebar-user-section { justify-content: center; padding-left: 0; padding-right: 0; }
+        .sidebar.collapsed .sidebar-user-avatar { margin: 0 auto; }
+
+        .sidebar .text-textdim,
+        .sidebar .text-faint,
+        .sidebar .text-textfaint { color: #5a4a3a; }
+
+        .sidebar .text-accenttext { color: #2d5a2d; }
+        .sidebar .bg-accentdim { background: rgba(45, 90, 45, 0.12); }
+
+        .sidebar a:hover { background: rgba(0, 0, 0, 0.06); color: #1a1a1a; }
+
+        .sidebar a.active {
+            background-color: #5a4a3a !important;
+            color: white !important;
+            width: 90%;
+            margin-left: 10px;
+            border-radius: 8px;
+        }
+
+        .sidebar a.active svg { stroke: white !important; }
+        .sidebar { border-right-color: #d4c4b0; }
+
+        .bg-surface2 { background: #f5efdd; }
+        .bg-surface3 { background: #ede4d4; }
+        .border-bordersoft, .border-borderc { border-color: #e0d5c4; }
+        .text-textdim { color: #6b5a48; }
+        .text-textfaint { color: #463d34; }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; display: none; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #c0b5a4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a89884; }
+        ::selection { background: #2d5a2d; color: #F7F1DE; }
+
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 11.5px; font-weight: 600; padding: 4px 10px;
+            border-radius: 999px; font-family: 'JetBrains Mono', monospace; letter-spacing: .02em;
+        }
+        .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+        .chip-active { background: #e8f0e8; color: #2d6a2d; }
+        .chip-expired { background: #f0e0e0; color: #b53b3b; }
+        .chip-soon { background: #f5e8cc; color: #c47a1a; }
+        .chip-neutral { background: #e8e0d8; color: #6b5a48; }
+
+        .modal-backdrop { display: none; }
+        .modal-backdrop.open { display: flex; }
+
+        .dropdown-menu { opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s ease; }
+        .dropdown-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
+
+        main { transition: margin-left 0.25s ease; }
+
+        .activity-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .activity-row { transition: background 0.12s ease; }
+        .activity-row:hover { background: white; }
+
+        .quick-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .quick-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px -8px rgba(119,107,93,0.25);
+        }
+
+        /* Button styles matching monthly inspection */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #5a4a3a;
+            color: white;
+            border: none;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-primary:hover { background: #776B5D; }
+        .btn-primary:active { transform: scale(0.99); }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: #e8e0d8;
+            color: #3a332b;
+            border: 1px solid #c0b5a4;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-secondary:hover { background: #ddd5cb; }
+        .btn-secondary:active { transform: scale(0.99); }
+
+        .stat-card {
+            background: #F6F1F1;
+            border: 1px solid #B0A695;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .stat-card .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 28px;
+            color: #5a4a3a;
+        }
+        .stat-card .stat-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #8a7a68;
+            margin-bottom: 6px;
+        }
+
+        .card {
+            background: #F6F1F1;
+            border: 1px solid #B0A695;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: #776B5D;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed; left: 0; top: 0; height: 100vh;
+                transform: translateX(-100%); z-index: 40;
+                box-shadow: 0 16px 48px -12px rgba(0, 0, 0, .15);
+                background: #EEE0CC; width: 260px;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar.collapsed { width: 260px; }
+            .sidebar.collapsed .sidebar-logo-text,
+            .sidebar.collapsed .sidebar-nav-text,
+            .sidebar.collapsed .sidebar-user-text,
+            .sidebar.collapsed .sidebar-company-count { display: inline-block; }
+            .sidebar.collapsed .sidebar-nav-item { justify-content: flex-start; padding: 0.625rem 0.75rem; }
+            .sidebar.collapsed .sidebar-toggle-btn { transform: none; }
+            .overlay.open { display: block; }
+        }
+    </style>
+</head>
+
+<body class="text-[#3a332b]">
+
+    <!-- Header -->
+    <header class="bg-[#F3EEEA] border-b border-[#B0A695] sticky top-0 z-30">
+        <div class="flex items-center justify-between px-4 md:px-6 py-3">
+            <div class="flex items-center gap-3">
+                <button id="sidebarCollapseBtn"
+                    class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition">
+                    <svg id="collapseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round">
+                        <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                </button>
+                <div class="flex items-center gap-2">
+                    <img src="/page/image/kunash-logo.png" alt="CCTV AMC Manager Logo" class="w-15 h-8">
+                </div>
+            </div>
+
+            <div class="relative">
+                <button id="profileBtn" class="flex items-center gap-2.5 p-1.5 rounded-md border border-[#B0A695] transition group hover:bg-[#776B5D]">
+                    <div class="w-[34px] h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[12px] font-semibold">AD</div>
+                    <div class="hidden sm:block text-left">
+                        <div class="text-[13px] font-semibold text-[#5a4a3a] group-hover:text-white">Admin User</div>
+                        <div class="text-[11px] text-[#8a7a68] group-hover:text-white">Administrator</div>
+                    </div>
+                    <svg class="w-4 h-4 text-[#5a4a3a] group-hover:text-white transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+
+                <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#B0A695] rounded-lg shadow-lg overflow-hidden z-50">
+                    <div class="px-4 py-3 border-b border-[#e0d5c4]">
+                        <div class="text-[13px] font-semibold text-[#5a4a3a]">Admin User</div>
+                        <div class="text-[11px] text-[#8a7a68]">admin@cctvmanager.com</div>
+                    </div>
+                    <!-- <div class="py-1">
+                        <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[#5a4a3a] hover:bg-[#F3EEEA] transition">
+                            <i class="fa-regular fa-user"></i>
+                            My Profile
+                        </a>
+                    </div> -->
+                    <div class="border-t border-[#e0d5c4] py-1">
+                        <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex min-h-screen" style="background-color: #F3EEEA;">
+        
+
+        <aside id="sidebar" class="sidebar border-r border-[#d4c4b0] flex flex-col h-screen sticky top-0 overflow-y-auto">
+            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto " id="sidebarNav">
+                <a href="/page/dashboard.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
+                    <span class="sidebar-nav-text" style="margin-top: 0.5rem;">Dashboard</span>
+                </a>
+                <a href="/page/company-management.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
+                    <span class="sidebar-nav-text">Companies</span>
+                    <span class="ml-auto font-mono text-[11px] bg-black/5 text-[#5a4a3a] rounded-full px-2 py-0.5 min-w-[22px] text-center sidebar-company-count" id="navCompanyCount">0</span>
+                </a>
+                <a href="/page/monthly-inspection.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                    <span class="sidebar-nav-text">Monthly Visits</span>
+                </a>
+                <a href="/page/reports.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
+                    <span class="sidebar-nav-text">Reports</span>
+                </a>
+                <a href="/page/excel-import-export.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    <span class="sidebar-nav-text">Excel Import / Export</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div id="overlay" class="overlay hidden fixed inset-0 bg-black/50 z-[35]"></div>
+
+        <main class="flex-1 px-4 md:px-9 pt-5 md:pt-8 pb-16 max-w-[1400px]">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-5 mb-7">
+                <div>
+                    <h1 class="font-display font-semibold text-lg md:text-lg tracking-tight m-0 mb-1.5 text-[#5a4a3a]">Dashboard</h1>
+                </div>
+            </div>
+
+            <!-- Stat strip -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2.5 md:gap-3.5 mb-7">
+                <div class="stat-card">
+                    <div class="stat-label">Total Companies</div>
+                    <div id="statTotal" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Cameras</div>
+                    <div id="statCameras" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">AMC Active</div>
+                    <div id="statAmcActive" class="stat-value text-[#2d6a2d]">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">AMC Expired</div>
+                    <div id="statAmcExpired" class="stat-value text-[#b53b3b]">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Warranty Expiring</div>
+                    <div id="statWarrantySoon" class="stat-value text-[#c47a1a]">0</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+                <!-- Left: Recent Activity -->
+                <div class="lg:col-span-2 flex flex-col gap-5">
+
+                    <!-- AMC / Warranty Expiry Alerts -->
+                    <div class="card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="card-title">Expiry Alerts</div>
+                            <a href="/page/company-management.html" class="text-[12px] text-[#5a4a3a] hover:underline">View all companies</a>
+                        </div>
+                        <div id="alertsList" class="flex flex-col gap-2"></div>
+                        <div id="alertsEmpty" class="hidden text-center py-6 text-[13px] text-[#8a7a68]">No upcoming AMC or warranty expiries. All clear.</div>
+                    </div>
+
+                    <!-- Recent Inspections -->
+                    <div class="card">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="card-title">Recent Monthly Inspections</div>
+                            <a href="/page/reports.html" class="text-[12px] text-[#5a4a3a] hover:underline">View all reports</a>
+                        </div>
+                        <div id="inspectionsList" class="flex flex-col gap-2"></div>
+                    </div>
+
+                </div>
+
+                <!-- Right: Quick links + AMC breakdown -->
+                <div class="flex flex-col gap-5">
+
+                    <div class="card">
+                        <div class="card-title">Quick Actions</div>
+                        <div class="flex flex-col gap-2.5">
+                            <a href="/page/company-management.html" class="quick-card flex items-center gap-3 bg-white border border-[#e0d5c4] rounded-lg px-3.5 py-3">
+                                <div class="activity-icon bg-[#ede4d4] text-[#5a4a3a]">
+                                    <i class="fa-solid fa-building"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[13px] font-semibold text-[#3a332b]">Manage Companies</div>
+                                    <div class="text-[11px] text-[#8a7a68]">Add or edit client sites</div>
+                                </div>
+                            </a>
+                            <a href="/page/monthly-inspection.html" class="quick-card flex items-center gap-3 bg-white border border-[#e0d5c4] rounded-lg px-3.5 py-3">
+                                <div class="activity-icon bg-[#e8f0e8] text-[#2d6a2d]">
+                                    <i class="fa-solid fa-clipboard-check"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[13px] font-semibold text-[#3a332b]">Start Inspection</div>
+                                    <div class="text-[11px] text-[#8a7a68]">Engineer monthly checklist</div>
+                                </div>
+                            </a>
+                            <a href="/page/reports.html" class="quick-card flex items-center gap-3 bg-white border border-[#e0d5c4] rounded-lg px-3.5 py-3">
+                                <div class="activity-icon bg-[#f5e8cc] text-[#c47a1a]">
+                                    <i class="fa-solid fa-chart-simple"></i>
+                                </div>
+                                <div>
+                                    <div class="text-[13px] font-semibold text-[#3a332b]">View Reports</div>
+                                    <div class="text-[11px] text-[#8a7a68]">Export Excel, send emails</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-title">AMC Status Breakdown</div>
+                        <div class="flex flex-col gap-3" id="amcBreakdown"></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
+        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
+            <div class="w-11 h-11 rounded-full bg-red-500 text-white text-xl mx-auto flex items-center justify-center">!</div>
+            <h3 class="font-display text-[16px] text-[#5a4a3a] mb-1 mt-3">Confirm Logout</h3>
+            <p class="text-[#8a7a68] text-[13px]">Are you sure you want to logout?</p>
+            <div class="flex justify-center gap-2.5 mt-6">
+                <button id="cancelLogout" class="btn-secondary px-6 py-2">Cancel</button>
+                <button id="confirmLogout" class="btn-primary px-6 py-2 bg-red-500 hover:bg-red-600">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+
+            // ---------------------------------------------------------------------
+            // Shared data (same shape as company-management.html / reports.html)
+            // ---------------------------------------------------------------------
+            const companies = [
+                { company_id: 101, company_name: "Shree Balaji Enterprises", contact_person: "Rajesh Sharma", mobile_number: "9876543210", email: "rajesh@shreebalaji.com", address: "Shop No. 12, MG Road, Pune", amc_start_date: "2026-01-01", amc_end_date: "2026-12-31", amc_amount: 24000, warranty_start_date: "2026-01-01", warranty_end_date: "2026-07-10", vendor_name: "CP Plus Distributor", notes: "", camera_locations: [{ id: 1, location_name: "Reception", camera_count: 2 }, { id: 2, location_name: "Parking", camera_count: 4 }] },
+                { company_id: 102, company_name: "Patil Traders", contact_person: "Sunil Patil", mobile_number: "9823456712", email: "sunil@patiltraders.in", address: "Plot 45, MIDC, Bhosari", amc_start_date: "2025-03-15", amc_end_date: "2026-03-15", amc_amount: 36000, warranty_start_date: "2025-06-20", warranty_end_date: "2026-06-20", vendor_name: "Hikvision", notes: "", camera_locations: [{ id: 5, location_name: "Cabin", camera_count: 6 }, { id: 6, location_name: "Reception", camera_count: 2 }] },
+                { company_id: 103, company_name: "Greenfield Apartments", contact_person: "Mrs. Anita Deshmukh", mobile_number: "9765432109", email: "secretary@greenfieldapts.com", address: "Greenfield Society, Baner", amc_start_date: "2026-02-01", amc_end_date: "2027-02-01", amc_amount: 48000, warranty_start_date: "2026-02-01", warranty_end_date: "2027-08-01", vendor_name: "Local Vendor", notes: "", camera_locations: [{ id: 8, location_name: "Main Gate", camera_count: 2 }, { id: 9, location_name: "Parking", camera_count: 8 }] }
+            ];
+
+            let reports = [
+                { id: 9001, company_id: 101, month_label: "January 2026", visit_date: "2026-01-12", engineer: "Vikram Joshi", total: 8, working: 8, faulty: 0, email_status: "Sent" },
+                { id: 9002, company_id: 101, month_label: "February 2026", visit_date: "2026-02-14", engineer: "Vikram Joshi", total: 8, working: 7, faulty: 1, email_status: "Pending" },
+                { id: 9003, company_id: 102, month_label: "January 2026", visit_date: "2026-01-20", engineer: "Vikram Joshi", total: 16, working: 16, faulty: 0, email_status: "Sent" },
+                { id: 9004, company_id: 103, month_label: "March 2026", visit_date: "2026-03-05", engineer: "Suresh Patil", total: 14, working: 12, faulty: 2, email_status: "Failed" }
+            ];
+
+            const todayStr = () => new Date().toISOString().split('T')[0];
+            const amcStatus = c => !c.amc_end_date ? { label: 'No AMC', cls: 'chip-neutral' } : c.amc_end_date >= todayStr() ? { label: 'Active', cls: 'chip-active' } : { label: 'Expired', cls: 'chip-expired' };
+            const warrantyDays = c => c.warranty_end_date ? Math.ceil((new Date(c.warranty_end_date) - new Date()) / 86400000) : null;
+            const warrantyStatus = c => { const d = warrantyDays(c); if (d === null) return { label: 'N/A', cls: 'chip-neutral' }; return d < 0 ? { label: 'Expired', cls: 'chip-expired' } : d <= 30 ? { label: 'Expiring Soon', cls: 'chip-soon' } : { label: 'Active', cls: 'chip-active' }; };
+            const amcDays = c => c.amc_end_date ? Math.ceil((new Date(c.amc_end_date) - new Date()) / 86400000) : null;
+            const totalCameras = c => (c.camera_locations || []).reduce((s, l) => s + (Number(l.camera_count) || 0), 0);
+            const escapeHtml = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+
+            const navCompanyCount = document.getElementById('navCompanyCount');
+            navCompanyCount.textContent = companies.length;
+
+            // ---------------------------------------------------------------------
+            // Stats
+            // ---------------------------------------------------------------------
+            document.getElementById('statTotal').textContent = companies.length;
+            document.getElementById('statCameras').textContent = companies.reduce((s, c) => s + totalCameras(c), 0);
+            document.getElementById('statAmcActive').textContent = companies.filter(c => amcStatus(c).label === 'Active').length;
+            document.getElementById('statAmcExpired').textContent = companies.filter(c => amcStatus(c).label === 'Expired').length;
+            document.getElementById('statWarrantySoon').textContent = companies.filter(c => warrantyStatus(c).label === 'Expiring Soon').length;
+
+            // ---------------------------------------------------------------------
+            // Expiry alerts (AMC + Warranty, sorted by urgency)
+            // ---------------------------------------------------------------------
+            const alertsList = document.getElementById('alertsList');
+            const alertsEmpty = document.getElementById('alertsEmpty');
+
+            const alerts = [];
+            companies.forEach(c => {
+                const ad = amcDays(c);
+                if (ad !== null && ad <= 30) {
+                    alerts.push({
+                        company: c.company_name,
+                        type: ad < 0 ? 'AMC Expired' : 'AMC Expiring',
+                        days: ad,
+                        cls: ad < 0 ? 'chip-expired' : 'chip-soon',
+                        icon: 'amc'
+                    });
+                }
+                const wd = warrantyDays(c);
+                if (wd !== null && wd <= 30) {
+                    alerts.push({
+                        company: c.company_name,
+                        type: wd < 0 ? 'Warranty Expired' : 'Warranty Expiring',
+                        days: wd,
+                        cls: wd < 0 ? 'chip-expired' : 'chip-soon',
+                        icon: 'warranty'
+                    });
+                }
+            });
+            alerts.sort((a, b) => a.days - b.days);
+
+            if (alerts.length === 0) {
+                alertsEmpty.classList.remove('hidden');
+            } else {
+                alerts.forEach(a => {
+                    const row = document.createElement('div');
+                    row.className = 'activity-row flex items-center gap-3 bg-white border border-[#e0d5c4] rounded-lg px-3.5 py-3';
+                    const iconBg = a.icon === 'amc' ? 'bg-[#ede4d4] text-[#5a4a3a]' : 'bg-[#f5e8cc] text-[#c47a1a]';
+                    const iconSvg = a.icon === 'amc'
+                        ? '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'
+                        : '<path d="M12 22s8-4.5 8-11.8A8 8 0 0 0 4 10.2C4 17.5 12 22 12 22z"/><circle cx="12" cy="10" r="3"/>';
+                    const daysText = a.days < 0 ? `${Math.abs(a.days)} days ago` : a.days === 0 ? 'today' : `in ${a.days} days`;
+                    row.innerHTML = `
+                        <div class="activity-icon ${iconBg}">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${iconSvg}</svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[13px] font-semibold text-[#3a332b] truncate">${escapeHtml(a.company)}</div>
+                            <div class="text-[11.5px] text-[#8a7a68] mt-0.5">${a.type} · ${daysText}</div>
+                        </div>
+                        <span class="chip ${a.cls}">${a.type.includes('Expired') ? 'Expired' : 'Soon'}</span>
+                    `;
+                    alertsList.appendChild(row);
+                });
+            }
+
+            // ---------------------------------------------------------------------
+            // Recent inspections
+            // ---------------------------------------------------------------------
+            const inspectionsList = document.getElementById('inspectionsList');
+            const companyName = id => { const c = companies.find(c => c.company_id === id); return c ? c.company_name : 'Unknown'; };
+
+            reports
+                .sort((a, b) => b.visit_date.localeCompare(a.visit_date))
+                .slice(0, 5)
+                .forEach(r => {
+                    const row = document.createElement('div');
+                    row.className = 'activity-row flex items-center gap-3 bg-white border border-[#e0d5c4] rounded-lg px-3.5 py-3';
+                    const statusCls = r.faulty > 0 ? 'chip-soon' : 'chip-active';
+                    const statusLabel = r.faulty > 0 ? `${r.faulty} Faulty` : 'All Working';
+                    row.innerHTML = `
+                        <div class="activity-icon bg-[#e8f0e8] text-[#2d6a2d]">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-[13px] font-semibold text-[#3a332b] truncate">${escapeHtml(companyName(r.company_id))}</div>
+                            <div class="text-[11.5px] text-[#8a7a68] mt-0.5">${r.month_label} · ${r.total} cameras · ${escapeHtml(r.engineer)}</div>
+                        </div>
+                        <span class="chip ${statusCls}">${statusLabel}</span>
+                    `;
+                    inspectionsList.appendChild(row);
+                });
+
+            if (reports.length === 0) {
+                inspectionsList.innerHTML = '<div class="text-center py-6 text-[13px] text-[#8a7a68]">No inspections submitted yet.</div>';
+            }
+
+            // ---------------------------------------------------------------------
+            // AMC breakdown bar
+            // ---------------------------------------------------------------------
+            const amcBreakdown = document.getElementById('amcBreakdown');
+            const activeCount = companies.filter(c => amcStatus(c).label === 'Active').length;
+            const expiredCount = companies.filter(c => amcStatus(c).label === 'Expired').length;
+            const noneCount = companies.length - activeCount - expiredCount;
+            const total = companies.length || 1;
+
+            const segments = [
+                { label: 'Active', count: activeCount, color: '#2d6a2d' },
+                { label: 'Expired', count: expiredCount, color: '#b53b3b' },
+                { label: 'No AMC', count: noneCount, color: '#a89884' }
+            ];
+
+            const barWrap = document.createElement('div');
+            barWrap.className = 'flex h-2.5 rounded-full overflow-hidden bg-[#ede4d4]';
+            segments.forEach(s => {
+                if (s.count === 0) return;
+                const seg = document.createElement('div');
+                seg.style.width = `${(s.count / total) * 100}%`;
+                seg.style.background = s.color;
+                barWrap.appendChild(seg);
+            });
+            amcBreakdown.appendChild(barWrap);
+
+            const legend = document.createElement('div');
+            legend.className = 'flex flex-col gap-2 mt-3';
+            segments.forEach(s => {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between text-[12.5px]';
+                row.innerHTML = `
+                    <span class="flex items-center gap-2 text-[#6b5a48]"><span class="w-2.5 h-2.5 rounded-full" style="background:${s.color}"></span>${s.label}</span>
+                    <span class="font-mono font-semibold text-[#3a332b]">${s.count}</span>
+                `;
+                legend.appendChild(row);
+            });
+            amcBreakdown.appendChild(legend);
+
+            // ---------------------------------------------------------------------
+            // Greeting
+            // ---------------------------------------------------------------------
+            let session = null;
+            try { session = JSON.parse(sessionStorage.getItem('amc_session') || 'null'); } catch (e) {}
+            if (session && session.name) {
+                document.getElementById('welcomeText').textContent = `Welcome back, ${session.name}. Here's what's happening across your sites.`;
+            }
+
+            // ---------------------------------------------------------------------
+            // Sidebar collapse
+            // ---------------------------------------------------------------------
+            const sidebar = document.getElementById('sidebar');
+            const sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+            sidebarCollapseBtn.onclick = () => { sidebar.classList.toggle('collapsed'); localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); };
+
+            // Profile dropdown
+            const profileBtn = document.getElementById('profileBtn');
+            const profileDropdown = document.getElementById('profileDropdown');
+            profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
+            document.addEventListener('click', e => { if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('open'); });
+
+            // Logout
+            const logoutBackdrop = document.getElementById('logoutBackdrop');
+            document.getElementById('logoutBtn').onclick = () => { profileDropdown.classList.remove('open'); logoutBackdrop.classList.add('open'); };
+            document.getElementById('cancelLogout').onclick = () => logoutBackdrop.classList.remove('open');
+            document.getElementById('confirmLogout').onclick = () => { setTimeout(() => { logoutBackdrop.classList.remove('open'); window.location.href = '/page/login.html'; }, 300); };
+
+        })();
+    </script>
+</body>
+</html>
