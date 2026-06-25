@@ -469,6 +469,35 @@
       background: #776B5D;
     }
 
+    /* See More button style */
+    .see-more-btn {
+      background: #5a4a3a;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 10px 24px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .see-more-btn:hover {
+      background: #776B5D;
+      transform: translateY(-1px);
+    }
+
+    .see-more-btn .fa-chevron-down {
+      transition: transform 0.3s ease;
+    }
+
+    .see-more-btn.expanded .fa-chevron-down {
+      transform: rotate(180deg);
+    }
+
     @media (max-width: 768px) {
       .nav-links {
         display: none;
@@ -663,6 +692,14 @@
 
       <!-- camera cards grid -->
       <div id="cameraCards" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+      
+      <!-- See More button container -->
+      <div id="seeMoreContainer" class="mt-4 text-center hidden">
+        <button id="seeMoreBtn" class="see-more-btn">
+          <span id="seeMoreText">See More Cameras</span>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+      </div>
 
       <!-- General remarks -->
       <div class="mt-4 bg-white/70 border border-bordersoft rounded-2xl p-4">
@@ -812,6 +849,8 @@
         let selectedCameras = new Set();
         let issues = [];
         let inspectionHistory = [];
+        let showAllCameras = false; // State for "See More" toggle
+        let isSearchActive = false; // Track if search is active
 
         // DOM refs
         const $ = id => document.getElementById(id);
@@ -826,6 +865,10 @@
         const toast = $('toast');
         const simpleSubmitBtn = $('simpleSubmitBtn');
         const submitBtnContainer = $('submitBtnContainer');
+        const seeMoreContainer = $('seeMoreContainer');
+        const seeMoreBtn = $('seeMoreBtn');
+        const seeMoreText = $('seeMoreText');
+        const searchCamera = $('searchCamera');
 
         // ===== MOBILE NAV TOGGLE =====
         const mobileNavToggle = document.getElementById('mobileNavToggle');
@@ -834,7 +877,8 @@
           mobileNav.classList.toggle('hidden');
         });
 
-        // ===== HELPERS =====        function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2800); }
+        // ===== HELPERS =====
+        function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2800); }
 
         function buildCameras(company) {
           const cams = []; let c = 1;
@@ -847,10 +891,23 @@
 
         companySelect.addEventListener('change', function () {
           const id = Number(this.value);
-          if (!id) { currentCompany = null; cameras = []; cameraSection.classList.add('hidden'); issueSection.classList.add('hidden'); headerFields.classList.add('hidden'); companyMeta.classList.add('hidden'); submitBtnContainer.style.display = 'none'; return; }
+          if (!id) { 
+            currentCompany = null; 
+            cameras = []; 
+            cameraSection.classList.add('hidden'); 
+            issueSection.classList.add('hidden'); 
+            headerFields.classList.add('hidden'); 
+            companyMeta.classList.add('hidden'); 
+            submitBtnContainer.style.display = 'none';
+            seeMoreContainer.classList.add('hidden');
+            return; 
+          }
           currentCompany = companies.find(c => c.id === id);
           cameras = buildCameras(currentCompany);
           selectedCameras.clear();
+          showAllCameras = false;
+          isSearchActive = false;
+          searchCamera.value = ''; // Clear search when company changes
           document.getElementById('vendorField').value = currentCompany.vendor || '';
           document.getElementById('departmentField').value = '';
           document.getElementById('bsidField').value = '';
@@ -861,6 +918,7 @@
           headerFields.classList.remove('hidden');
           cameraSection.classList.remove('hidden');
           const sel = $('issueCamera'); sel.innerHTML = '<option value="">— Select —</option>'; cameras.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = `${c.id} (${c.location})`; sel.appendChild(o); });
+          
           renderCameraCards();
           populateFilters();
           if (inspectionType.value === 'monthly') {
@@ -877,7 +935,7 @@
         }
 
         function getFilteredCameras() {
-          const search = $('searchCamera').value.toLowerCase();
+          const search = searchCamera.value.toLowerCase();
           const dept = $('deptFilter').value;
           const loc = $('locFilter').value;
           return cameras.filter(c => {
@@ -891,10 +949,31 @@
         // ===== RENDER CAMERA CARDS =====
         function renderCameraCards() {
           const filtered = getFilteredCameras();
-          camCountText.textContent = filtered.length;
+          const totalVisible = filtered.length;
+          
+          // Check if search is active
+          isSearchActive = searchCamera.value.trim().length > 0;
+          
+          // Determine how many cameras to show
+          let displayCameras = filtered;
+          if (!showAllCameras && !isSearchActive && totalVisible > 4) {
+            displayCameras = filtered.slice(0, 4);
+          }
+          // If search is active, show ALL matching cameras (override showAllCameras)
+          else if (isSearchActive) {
+            displayCameras = filtered;
+          }
+          
+          camCountText.textContent = totalVisible;
           cameraCards.innerHTML = '';
-          if (!filtered.length) { cameraCards.innerHTML = '<div class="col-span-2 text-center text-textfaint py-6">No cameras match</div>'; return; }
-          filtered.forEach(cam => {
+          
+          if (!displayCameras.length) { 
+            cameraCards.innerHTML = '<div class="col-span-2 text-center text-textfaint py-6">No cameras match</div>'; 
+            seeMoreContainer.classList.add('hidden');
+            return; 
+          }
+          
+          displayCameras.forEach(cam => {
             const sel = selectedCameras.has(cam.id);
             const statusClass = cam.working === true ? 'badge-working' : cam.working === false ? 'badge-faulty' : 'bg-gray-100 text-gray-600';
             const statusLabel = cam.working === true ? 'Working' : cam.working === false ? 'Faulty' : 'Not Checked';
@@ -914,7 +993,28 @@
             card.querySelector('.cam-detail-btn').addEventListener('click', (e) => { e.stopPropagation(); openCameraDetail(cam.id); });
             cameraCards.appendChild(card);
           });
+          
+          // Update "See More" button visibility
+          if (totalVisible > 4 && !isSearchActive) {
+            seeMoreContainer.classList.remove('hidden');
+            const hiddenCount = totalVisible - 4;
+            if (showAllCameras) {
+              seeMoreText.textContent = 'Show Less';
+              seeMoreBtn.classList.add('expanded');
+            } else {
+              seeMoreText.textContent = `See More (${hiddenCount} hidden)`;
+              seeMoreBtn.classList.remove('expanded');
+            }
+          } else {
+            seeMoreContainer.classList.add('hidden');
+          }
         }
+
+        // ===== SEE MORE BUTTON HANDLER =====
+        seeMoreBtn.addEventListener('click', function() {
+          showAllCameras = !showAllCameras;
+          renderCameraCards();
+        });
 
         // ===== CAMERA DETAIL MODAL =====
         function openCameraDetail(camId) {
@@ -969,8 +1069,36 @@
         });
 
         // ===== FILTER EVENTS =====
-        ['searchCamera', 'deptFilter', 'locFilter'].forEach(id => { document.getElementById(id).addEventListener('input', renderCameraCards); });
-        document.getElementById('resetFilters').addEventListener('click', () => { document.getElementById('searchCamera').value = ''; document.getElementById('deptFilter').value = 'all'; document.getElementById('locFilter').value = 'all'; renderCameraCards(); });
+        searchCamera.addEventListener('input', function() {
+          // When user starts typing in search, automatically show all matching cameras
+          if (this.value.trim().length > 0) {
+            showAllCameras = true; // Force show all when searching
+          } else {
+            showAllCameras = false; // Reset when search is cleared
+          }
+          renderCameraCards();
+        });
+        
+        ['deptFilter', 'locFilter'].forEach(id => { 
+          document.getElementById(id).addEventListener('change', function() {
+            // When filter changes, if there's a search term, keep showing all
+            if (searchCamera.value.trim().length > 0) {
+              showAllCameras = true;
+            } else {
+              showAllCameras = false;
+            }
+            renderCameraCards();
+          }); 
+        });
+        
+        document.getElementById('resetFilters').addEventListener('click', () => { 
+          document.getElementById('searchCamera').value = ''; 
+          document.getElementById('deptFilter').value = 'all'; 
+          document.getElementById('locFilter').value = 'all'; 
+          showAllCameras = false;
+          isSearchActive = false;
+          renderCameraCards(); 
+        });
 
         // ===== INSPECTION TYPE SWITCH =====
         inspectionType.addEventListener('change', function () {
