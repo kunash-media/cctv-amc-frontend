@@ -443,6 +443,57 @@
       background: #ddd5cb;
     }
 
+    /* Navigation styles */
+    .nav-link {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #6b5a48;
+      transition: all 0.15s;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      background: rgba(0, 0, 0, 0.06);
+      color: #3a332b;
+    }
+
+    .nav-link.active {
+      background: #5a4a3a;
+      color: white;
+    }
+
+    .nav-link.active:hover {
+      background: #776B5D;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      
+      .mobile-nav-toggle {
+        display: block !important;
+      }
+      
+      .nav-links.mobile-open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 12px 16px;
+        border-radius: 0 0 12px 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+        border: 1px solid #e0d5c4;
+        border-top: none;
+      }
+    }
+
     @media (max-width: 640px) {
       .filter-bar {
         flex-direction: column;
@@ -476,11 +527,28 @@
 
   <!-- ===== HEADER ===== -->
   <header
-    class="flex items-center justify-between px-4 py-2.5 bg-white/80 backdrop-blur-sm border-b border-bordersoft sticky top-0 z-30">
-    <div class="flex items-center gap-2.5">
+    class="flex flex-wrap items-center justify-between px-4 py-2.5 bg-white/80 backdrop-blur-sm border-b border-bordersoft sticky top-0 z-30">
+    <!-- Left: Logo -->
+    <div class="flex items-center gap-3">
       <img src="/page/image/kunash-logo.png" alt="CCTV AMC" class="h-8 w-auto">
     </div>
+
+    <!-- Center: Navigation Links -->
+    <nav class="hidden md:flex items-center gap-1" id="navLinks">
+      <a href="/page/dashboard.html" class="nav-link">Dashboard</a>
+      <a href="/page/company-management.html" class="nav-link">Company Management</a>
+      <a href="/page/monthly-inspection.html" class="nav-link active">Monthly Visits</a>
+      <a href="/page/reports.html" class="nav-link">Reports</a>
+      <a href="/page/staff-management.html" class="nav-link">Staff Management</a>
+    </nav>
+
+    <!-- Right: User Profile & Mobile Toggle -->
     <div class="flex items-center gap-3">
+      <!-- Mobile nav toggle -->
+      <button id="mobileNavToggle" class="md:hidden p-1.5 hover:bg-surface3 rounded-lg transition">
+        <i class="fa-solid fa-bars text-xl text-textdim"></i>
+      </button>
+
       <div class="relative">
         <button id="userMenuBtn" class="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface3 transition">
           <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=2d6a2d&color=fff&size=32" alt="User"
@@ -496,6 +564,15 @@
               class="fa-solid fa-right-from-bracket mr-2"></i>Logout</a>
         </div>
       </div>
+    </div>
+
+    <!-- Mobile navigation -->
+    <div id="mobileNav" class="hidden w-full md:hidden flex-col gap-1 mt-2 pt-2 border-t border-bordersoft">
+      <a href="/page/dashboard.html" class="nav-link block">Dashboard</a>
+      <a href="/page/company-management.html" class="nav-link block">Company Management</a>
+      <a href="/page/monthly-inspection.html" class="nav-link active block">Monthly Visits</a>
+      <a href="/page/reports.html" class="nav-link block">Reports</a>
+      <a href="/page/staff-management.html" class="nav-link block">Staff Management</a>
     </div>
   </header>
 
@@ -750,8 +827,14 @@
         const simpleSubmitBtn = $('simpleSubmitBtn');
         const submitBtnContainer = $('submitBtnContainer');
 
-        // ===== HELPERS =====
-        function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2800); }
+        // ===== MOBILE NAV TOGGLE =====
+        const mobileNavToggle = document.getElementById('mobileNavToggle');
+        const mobileNav = document.getElementById('mobileNav');
+        mobileNavToggle.addEventListener('click', () => {
+          mobileNav.classList.toggle('hidden');
+        });
+
+        // ===== HELPERS =====        function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2800); }
 
         function buildCameras(company) {
           const cams = []; let c = 1;
@@ -1085,9 +1168,7 @@
         // ===== LOGOUT FUNCTIONALITY =====
         document.getElementById('logoutMenuItem').addEventListener('click', (e) => {
           e.preventDefault();
-          // Clear session storage
           sessionStorage.removeItem('amc_session');
-          // Redirect to login page
           window.location.href = '/page/login.html';
         });
 

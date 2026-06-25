@@ -331,13 +331,13 @@
             </div>
 
             <div class="relative">
-                <button id="profileBtn" class="flex items-center gap-2.5 p-1.5 rounded-md border border-[#B0A695] transition group hover:bg-[#776B5D]">
+                <button id="profileBtn" class="flex items-center gap-2.5 p-1.5 transition group ">
                     <div class="w-[34px] h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[12px] font-semibold">AD</div>
                     <div class="hidden sm:block text-left">
-                        <div class="text-[13px] font-semibold text-[#5a4a3a] group-hover:text-white">Admin User</div>
-                        <div class="text-[11px] text-[#8a7a68] group-hover:text-white">Administrator</div>
+                        <div class="text-[13px] font-semibold text-[#5a4a3a] ">Admin User</div>
+        
                     </div>
-                    <svg class="w-4 h-4 text-[#5a4a3a] group-hover:text-white transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-[#5a4a3a] transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
                 </button>
@@ -347,12 +347,12 @@
                         <div class="text-[13px] font-semibold text-[#5a4a3a]">Admin User</div>
                         <div class="text-[11px] text-[#8a7a68]">admin@cctvmanager.com</div>
                     </div>
-                    <div class="py-1">
+                    <!-- <div class="py-1">
                         <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[#5a4a3a] hover:bg-[#F3EEEA] transition">
                             <i class="fa-regular fa-user"></i>
                             My Profile
                         </a>
-                    </div>
+                    </div> -->
                     <div class="border-t border-[#e0d5c4] py-1">
                         <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition">
                             <i class="fa-solid fa-right-from-bracket"></i>
@@ -375,8 +375,8 @@
                 </a>
                 <a href="/page/company-management.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active" data-nav="companies">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
-                    <span class="sidebar-nav-text">Companies</span>
-                    <span id="navCompanyCount" class="ml-auto font-mono text-[11px] bg-white/20 text-white rounded-full px-2 py-0.5 min-w-[22px] text-center sidebar-company-count">0</span>
+                    <span class="sidebar-nav-text">Company Management</span>
+                    <!-- <span id="navCompanyCount" class="ml-auto font-mono text-[11px] bg-white/20 text-white rounded-full px-2 py-0.5 min-w-[22px] text-center sidebar-company-count">0</span> -->
                 </a>
                 <a href="/page/monthly-inspection.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="monthly-inspection">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
@@ -384,11 +384,11 @@
                 </a>
                 <a href="/page/reports.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="reports">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
-                    <span class="sidebar-nav-text">Reports</span>
+                    <span class="sidebar-nav-text">Monthly Inspection Reports</span>
                 </a>
-                <a href="/page/excel-import-export.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item" data-nav="import">
+                <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                    <span class="sidebar-nav-text">Excel Import / Export</span>
+                    <span class="sidebar-nav-text">Staff Management</span>
                 </a>
             </nav>
         </aside>

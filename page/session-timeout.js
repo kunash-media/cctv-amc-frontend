@@ -2,12 +2,6 @@
    AMC Manager — Session Timeout Watcher
    Include this script on every authenticated page (after login):
    <script src="session-timeout.js"></script>
-
-   Behavior:
-   - Reads `amc_session` from sessionStorage (set at login).
-   - Tracks last activity (mouse, keyboard, touch, scroll).
-   - If idle for SESSION_TIMEOUT_MS, clears session and redirects to login,
-     setting a flag so the login page can show the "Session Expired" modal.
    ========================================================================== */
 
 (function () {
