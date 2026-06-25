@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>Reports — CCTV AMC</title>
     <script src="https://cdn.tailwindcss.com">
     </script>
@@ -154,6 +154,7 @@
             transition: background 0.15s, transform 0.1s;
             cursor: pointer;
             text-decoration: none;
+            min-height: 44px;
         }
         .btn-primary:hover {
             background: #776B5D;
@@ -177,6 +178,7 @@
             transition: background 0.15s, transform 0.1s;
             cursor: pointer;
             text-decoration: none;
+            min-height: 44px;
         }
         .btn-secondary:hover {
             background: #ddd5cb;
@@ -200,6 +202,7 @@
             transition: background 0.15s, transform 0.1s;
             cursor: pointer;
             text-decoration: none;
+            min-height: 44px;
         }
         .btn-reset:hover {
             background: #6b5a48;
@@ -223,6 +226,7 @@
             transition: background 0.15s, transform 0.1s;
             cursor: pointer;
             text-decoration: none;
+            min-height: 40px;
         }
         .btn-export-excel:hover {
             background: #0f502a;
@@ -246,6 +250,7 @@
             transition: background 0.15s, transform 0.1s;
             cursor: pointer;
             text-decoration: none;
+            min-height: 40px;
         }
         .btn-email:hover {
             background: #1d4ed8;
@@ -268,6 +273,7 @@
             border: none;
             transition: background 0.15s;
             cursor: pointer;
+            min-height: 34px;
         }
         .btn-approve:hover {
             background: #1f4f1f;
@@ -512,6 +518,7 @@
             background: transparent;
             color: #8a7a68;
             border-bottom: 3px solid transparent;
+            min-height: 44px;
         }
         .tab-btn.active {
             color: #5a4a3a;
@@ -536,6 +543,7 @@
             cursor: pointer;
             transition: all 0.2s;
             background: #faf7f2;
+            min-height: 100px;
         }
         .image-upload-area:hover {
             border-color: #5a4a3a;
@@ -592,6 +600,44 @@
             transform: translateY(0);
         }
 
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid #e0d5c4;
+        }
+        .filter-bar select,
+        .filter-bar input {
+            background: #f9f7f5;
+            border: 1px solid #d6cdc0;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 13px;
+            min-width: 120px;
+            min-height: 40px;
+        }
+        .filter-bar button {
+            background: #5a4a3a;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            min-height: 40px;
+        }
+        .filter-bar button:hover {
+            background: #776B5D;
+        }
+
+        /* ===== RESPONSIVE STYLES ===== */
         @media (max-width: 900px) {
             .sidebar {
                 position: fixed;
@@ -628,16 +674,258 @@
             }
         }
 
-        @media (max-width: 640px) {
-            .tab-btn {
-                padding: 8px 16px;
+        @media (max-width: 768px) {
+            .modal-card {
+                margin: 12px;
+                padding: 16px;
+                max-height: 95vh;
+            }
+            .profile-field {
+                flex-direction: column;
+                gap: 2px;
+                padding: 8px 0;
+            }
+            .profile-field .label {
+                width: 100%;
+                font-size: 12px;
+            }
+            .profile-field .value {
                 font-size: 13px;
             }
+            .stat-card {
+                padding: 12px;
+            }
+            .stat-card .stat-value {
+                font-size: 22px;
+            }
+            .month-group {
+                padding: 12px;
+            }
+            .month-group .month-title {
+                font-size: 14px;
+            }
+            .report-card, .issue-card {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            /* Filter bar - full width on mobile */
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 12px;
+                gap: 8px;
+            }
+            .filter-bar select,
+            .filter-bar input {
+                min-width: unset;
+                width: 100%;
+                font-size: 14px;
+                padding: 10px 16px;
+                min-height: 44px;
+            }
+            .filter-bar button {
+                width: 100%;
+                justify-content: center;
+                padding: 10px 16px;
+                font-size: 14px;
+                min-height: 44px;
+            }
+
+            /* Tabs */
+            .tab-btn {
+                padding: 8px 12px;
+                font-size: 12px;
+                min-height: 38px;
+            }
+            .tab-btn i {
+                margin-right: 4px;
+            }
+
+            /* Action buttons in cards */
             .report-card .actions {
                 flex-wrap: wrap;
             }
+            .report-card .actions button {
+                flex: 1;
+                min-width: 60px;
+                font-size: 11px;
+                padding: 6px 10px;
+                min-height: 34px;
+            }
             .issue-card .actions {
                 flex-wrap: wrap;
+            }
+            .issue-card .actions button {
+                flex: 1;
+                min-width: 60px;
+                font-size: 11px;
+                padding: 6px 10px;
+                min-height: 34px;
+            }
+
+            /* Buttons */
+            .btn-primary, .btn-secondary, .btn-reset {
+                font-size: 14px;
+                padding: 12px 16px;
+                width: 100%;
+                min-height: 48px;
+            }
+
+            /* Modal */
+            .modal-card .btn-primary,
+            .modal-card .btn-secondary,
+            .modal-card .btn-reset {
+                width: 100%;
+            }
+            .modal-card .flex.gap-3 {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .modal-card .flex.gap-3 button {
+                width: 100%;
+            }
+            .modal-card {
+                padding: 16px;
+                margin: 8px;
+            }
+            .modal-card h3 {
+                font-size: 18px;
+            }
+
+            /* Grid */
+            .grid-cols-2 {
+                grid-template-columns: 1fr;
+            }
+
+            /* Toast */
+            .toast {
+                bottom: 16px;
+                right: 16px;
+                left: 16px;
+                max-width: 400px;
+                margin: 0 auto;
+                font-size: 12px;
+                padding: 10px 14px;
+                text-align: center;
+            }
+
+            /* Header */
+            header .text-left {
+                display: none;
+            }
+            header .flex.items-center.gap-2.5 {
+                gap: 6px;
+            }
+
+            /* Dropdown */
+            .dropdown-menu {
+                min-width: 180px;
+                right: -10px;
+            }
+            .dropdown-menu .px-4 {
+                padding: 10px 14px;
+            }
+            .dropdown-menu .text-[13px] {
+                font-size: 12px;
+            }
+
+            /* Chips */
+            .chip {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+            .chip::before {
+                width: 5px;
+                height: 5px;
+            }
+
+            /* Small buttons in cards */
+            .btn-export-excel, .btn-email {
+                font-size: 11px;
+                padding: 6px 12px;
+                min-height: 34px;
+            }
+            .btn-approve {
+                font-size: 10px;
+                padding: 4px 10px;
+                min-height: 30px;
+            }
+
+            /* Report/Issue card text */
+            .report-card .text-lg {
+                font-size: 16px;
+            }
+            .issue-card .text-lg {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-card {
+                padding: 10px;
+            }
+            .stat-card .stat-value {
+                font-size: 18px;
+            }
+            .stat-card .stat-label {
+                font-size: 9px;
+            }
+            .tab-btn {
+                font-size: 11px;
+                padding: 6px 8px;
+                min-height: 34px;
+            }
+            .report-card, .issue-card {
+                padding: 10px;
+            }
+            .modal-card {
+                padding: 12px;
+                margin: 6px;
+            }
+            .modal-card h3 {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 900px) {
+            .grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) {
+            .report-card:hover {
+                box-shadow: none;
+            }
+            .issue-card:hover {
+                box-shadow: none;
+            }
+            .btn-primary:hover, .btn-secondary:hover, .btn-reset:hover,
+            .btn-export-excel:hover, .btn-email:hover {
+                transform: none;
+                background: inherit;
+            }
+            .btn-primary:hover { background: #5a4a3a; }
+            .btn-secondary:hover { background: #e8e0d8; }
+            .btn-reset:hover { background: #8a7a68; }
+            .btn-export-excel:hover { background: #1a6d3a; }
+            .btn-email:hover { background: #2563eb; }
+            .tab-btn:hover {
+                background: transparent;
+            }
+            .sidebar a:hover {
+                background: transparent;
+                color: #5a4a3a;
+            }
+            .sidebar a.active {
+                background-color: #5a4a3a !important;
+                color: white !important;
+            }
+            .filter-bar button:hover {
+                background: #5a4a3a;
             }
         }
     </style>
@@ -649,8 +937,17 @@
     <header class="bg-[#F3EEEA] border-b border-[#B0A695] sticky top-0 z-30">
         <div class="flex items-center justify-between px-4 md:px-6 py-3">
             <div class="flex items-center gap-3">
+                <button id="sidebarToggleBtn"
+                    class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition md:hidden">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
                 <button id="sidebarCollapseBtn"
-                    class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition">
+                    class="hidden md:flex w-10 h-10 items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition">
                     <svg id="collapseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round">
                         <polyline points="15 18 9 12 15 6" />
@@ -759,15 +1056,15 @@
             </div>
 
             <!-- Tabs -->
-            <div class="flex border-b border-bordersoft mb-6">
+            <div class="flex flex-wrap border-b border-bordersoft mb-6">
                 <button class="tab-btn active" data-tab="reports"><i class="fa-regular fa-calendar-check mr-2"></i>Monthly Inspection Report</button>
                 <button class="tab-btn" data-tab="issues"><i class="fa-regular fa-circle-exclamation mr-2"></i>Issues Report</button>
             </div>
 
             <!-- Tab: Reports -->
             <div id="tab-reports" class="tab-content active">
-                <div class="flex flex-col md:flex-row gap-3 mb-4">
-                    <div class="relative flex-1">
+                <div class="filter-bar mb-4">
+                    <div class="relative flex-1 w-full">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#8a7a68] text-sm"></i>
                         <input type="text" id="searchReport" placeholder="Search by company, engineer..."
                             class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none focus:border-[#5a4a3a]">
@@ -791,8 +1088,8 @@
 
             <!-- Tab: Issues -->
             <div id="tab-issues" class="tab-content">
-                <div class="flex flex-col md:flex-row gap-3 mb-4">
-                    <div class="relative flex-1">
+                <div class="filter-bar mb-4">
+                    <div class="relative flex-1 w-full">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#8a7a68] text-sm"></i>
                         <input type="text" id="searchIssues" placeholder="Search by company, camera..."
                             class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none focus:border-[#5a4a3a]">
@@ -839,7 +1136,7 @@
                         <p class="mt-1 text-xs">File will be saved as: <span id="exportFileName" class="font-semibold text-[#5a4a3a]">CompanyName_MonthYear.xlsx</span></p>
                     </div>
                 </div>
-                <div class="flex justify-end gap-3 mt-6">
+                <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                     <button type="button" id="cancelExport" class="btn-secondary px-6 py-2">Cancel</button>
                     <button type="submit" class="btn-export-excel px-6 py-2">
                         <i class="fa-solid fa-download"></i> Download Excel
@@ -895,7 +1192,7 @@
                         <p><i class="fa-regular fa-circle-info mr-1"></i> This will open your default email client with a pre-filled template including camera status, issue updates, Excel attachment, and images.</p>
                     </div>
                 </div>
-                <div class="flex justify-end gap-3 mt-6">
+                <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                     <button type="button" id="cancelEmail" class="btn-secondary px-6 py-2">Cancel</button>
                     <button type="submit" class="btn-email px-6 py-2">
                         <i class="fa-regular fa-paper-plane"></i> Send Email
@@ -954,16 +1251,16 @@
             <form id="editReportForm">
                 <input type="hidden" id="editReportId">
                 <input type="hidden" id="editReportType" value="report">
-                <div class="grid grid-cols-2 gap-3 mb-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Company</label><input type="text" id="editCompany" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Engineer</label><input type="text" id="editEngineer" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Date</label><input type="date" id="editDate" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Total Cameras</label><input type="number" id="editTotal" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Working</label><input type="number" id="editWorking" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Faulty</label><input type="number" id="editFaulty" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
-                    <div class="col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Remarks</label><input type="text" id="editRemarks" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div class="sm:col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Remarks</label><input type="text" id="editRemarks" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                 </div>
-                <div class="flex justify-end gap-3">
+                <div class="flex flex-col sm:flex-row justify-end gap-3">
                     <button type="button" id="cancelEditReport" class="btn-secondary px-6 py-2">Cancel</button>
                     <button type="submit" class="btn-primary px-6 py-2">Save Changes</button>
                 </div>
@@ -979,7 +1276,7 @@
             </div>
             <h3 class="font-display text-xl font-bold text-[#5a4a3a] mb-2">Delete Report?</h3>
             <p class="text-[#8a7a68] text-sm mb-1">This action cannot be undone.</p>
-            <div class="flex justify-center gap-3 mt-6">
+            <div class="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                 <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
                 <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
             </div>
@@ -992,7 +1289,7 @@
             <div class="w-11 h-11 rounded-full bg-red-500 text-white text-xl mx-auto flex items-center justify-center">!</div>
             <h3 class="font-display text-[16px] text-[#5a4a3a] mb-1 mt-3">Confirm Logout</h3>
             <p class="text-[#8a7a68] text-[13px]">Are you sure you want to logout?</p>
-            <div class="flex justify-center gap-2.5 mt-6">
+            <div class="flex flex-col sm:flex-row justify-center gap-2.5 mt-6">
                 <button id="cancelLogout" class="btn-secondary px-6 py-2">Cancel</button>
                 <button id="confirmLogout" class="btn-primary px-6 py-2 bg-red-500 hover:bg-red-600">Logout</button>
             </div>
@@ -1286,7 +1583,7 @@
                     Object.keys(grouped).forEach(function(month) {
                         var records = grouped[month];
                         html +=
-                            '<div class="month-group"><div class="month-title"><i class="fa-regular fa-circle-exclamation text-redc"></i>' +
+                            '<div class="month-group"><div class="month-title"><i></i>' +
                             month +
                             '<span class="count-badge">' + records.length + ' ' + (records.length > 1 ?
                                 'issues' : 'issue') +
@@ -1409,7 +1706,7 @@
                 if (type === 'report') {
                     var status = item.faulty === 0 ? 'All Working' : item.faulty + ' Faulty';
                     detailsHtml =
-                        '<div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-medium text-[#8a7a68]">Company</label><div class="font-semibold text-[#5a4a3a]">' +
+                        '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="text-xs font-medium text-[#8a7a68]">Company</label><div class="font-semibold text-[#5a4a3a]">' +
                         item.company +
                         '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Engineer</label><div class="font-semibold text-[#5a4a3a]">' +
                         item.engineer +
@@ -1421,12 +1718,12 @@
                         item.total +
                         '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Working / Faulty</label><div class="font-semibold text-[#5a4a3a]">' +
                         item.working + ' / ' + item.faulty +
-                        '</div></div><div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Remarks</label><div class="text-[#5a4a3a]">' +
+                        '</div></div><div class="sm:col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Remarks</label><div class="text-[#5a4a3a]">' +
                         (item.remarks || '—') +
-                        '</div></div><div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approval Status</label><div><span class="chip ' +
+                        '</div></div><div class="sm:col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approval Status</label><div><span class="chip ' +
                         (item.approved ? 'chip-approved' : 'chip-pending') + '">' + approveLabel +
                         '</span></div></div>' + (item.approved ?
-                            '<div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approved By</label><div class="text-[#5a4a3a]">' +
+                            '<div class="sm:col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approved By</label><div class="text-[#5a4a3a]">' +
                             item.approved_by + ' on ' + item.approved_date + '</div></div>' : '') +
                         '</div>';
                 } else {
@@ -1437,7 +1734,7 @@
                     var resolvedDate = item.resolved_date ? new Date(item.resolved_date).toLocaleDateString(
                         'en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
                     detailsHtml =
-                        '<div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-medium text-[#8a7a68]">Company</label><div class="font-semibold text-[#5a4a3a]">' +
+                        '<div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><div><label class="text-xs font-medium text-[#8a7a68]">Company</label><div class="font-semibold text-[#5a4a3a]">' +
                         item.company +
                         '</div></div><div><label class="text-xs font-medium text-[#8a7a68]">Camera</label><div class="font-semibold text-[#5a4a3a]">' +
                         item.camera +
@@ -1453,12 +1750,12 @@
                             resolvedDate + '</div></div>' : '') + (item.resolved_by ?
                             '<div><label class="text-xs font-medium text-[#8a7a68]">Resolved By</label><div class="font-semibold text-[#5a4a3a]">' +
                             item.resolved_by + '</div></div>' : '') +
-                        '<div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Description</label><div class="text-[#5a4a3a]">' +
+                        '<div class="sm:col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Description</label><div class="text-[#5a4a3a]">' +
                         item.description +
-                        '</div></div><div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approval Status</label><div><span class="chip ' +
+                        '</div></div><div class="sm:col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approval Status</label><div><span class="chip ' +
                         (item.approved ? 'chip-approved' : 'chip-pending') + '">' + approveLabel +
                         '</span></div></div>' + (item.approved ?
-                            '<div class="col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approved By</label><div class="text-[#5a4a3a]">' +
+                            '<div class="sm:col-span-2"><label class="text-xs font-medium text-[#8a7a68]">Approved By</label><div class="text-[#5a4a3a]">' +
                             item.approved_by + ' on ' + item.approved_date + '</div></div>' : '') +
                         '</div>';
                 }
@@ -1729,16 +2026,37 @@
             // ===== SIDEBAR =====
             var sidebar = document.getElementById('sidebar');
             var sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+            var sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+            var overlay = document.getElementById('overlay');
             var isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+            
             if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+            
             sidebarCollapseBtn.onclick = function() {
                 sidebar.classList.toggle('collapsed');
                 localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
             };
 
+            // Mobile sidebar toggle
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.onclick = function() {
+                    sidebar.classList.toggle('open');
+                    overlay.classList.toggle('open');
+                };
+            }
+
+            if (overlay) {
+                overlay.onclick = function() {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('open');
+                };
+            }
+
             // ===== PROFILE DROPDOWN =====
             var profileBtn = document.getElementById('profileBtn');
             var profileDropdown = document.getElementById('profileDropdown');
+            var profileModal = document.getElementById('profileModal');
+            
             profileBtn.onclick = function(e) {
                 e.stopPropagation();
                 profileDropdown.classList.toggle('open');
@@ -1750,7 +2068,6 @@
             });
 
             // ===== PROFILE MODAL =====
-            var profileModal = document.getElementById('profileModal');
             document.getElementById('profileMenuItem')?.addEventListener('click', function(e) {
                 e.preventDefault();
                 profileDropdown.classList.remove('open');
@@ -1784,7 +2101,5 @@
 
         })();
     </script>
-
 </body>
-
 </html>

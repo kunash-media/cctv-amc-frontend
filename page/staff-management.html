@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Staff Management — CCTV AMC</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -30,18 +30,29 @@
     </script>
     <style>
         * { box-sizing: border-box; margin: 0; }
-        html, body { background: #F3EEEA; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        html, body { 
+            background: #F3EEEA; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #c0b5a4; border-radius: 10px; }
         ::selection { background: #2d5a2d; color: #F7F1DE; }
 
+        /* ===== SIDEBAR ===== */
         .sidebar {
             background: #f0e1ca;
             transition: width 0.25s ease, transform 0.25s ease;
             width: 260px;
             overflow-x: hidden;
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
         }
         .sidebar.collapsed { width: 72px; }
         .sidebar.collapsed .sidebar-logo-text,
@@ -68,165 +79,395 @@
         .sidebar a.active svg { stroke: white !important; }
         .sidebar { border-right-color: #d4c4b0; }
 
+        /* ===== BUTTONS ===== */
         .btn-primary {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px;
             background: #5a4a3a; color: white; border: none;
             transition: background 0.15s, transform 0.1s; cursor: pointer; text-decoration: none;
+            min-height: 44px;
+            touch-action: manipulation;
         }
         .btn-primary:hover { background: #776B5D; }
-        .btn-primary:active { transform: scale(0.99); }
+        .btn-primary:active { transform: scale(0.98); }
 
         .btn-secondary {
             display: inline-flex; align-items: center; justify-content: center; gap: 8px;
             font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px;
             background: #e8e0d8; color: #3a332b; border: 1px solid #c0b5a4;
             transition: background 0.15s, transform 0.1s; cursor: pointer; text-decoration: none;
+            min-height: 44px;
+            touch-action: manipulation;
         }
         .btn-secondary:hover { background: #ddd5cb; }
-        .btn-secondary:active { transform: scale(0.99); }
+        .btn-secondary:active { transform: scale(0.98); }
 
+        .btn-danger {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px;
+            background: #b53b3b; color: white; border: none;
+            transition: background 0.15s, transform 0.1s; cursor: pointer; text-decoration: none;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        .btn-danger:hover { background: #8a2a2a; }
+        .btn-danger:active { transform: scale(0.98); }
+
+        /* ===== CHIPS ===== */
         .chip {
             display: inline-flex; align-items: center; gap: 6px;
-            font-size: 11.5px; font-weight: 600; padding: 4px 10px;
+            font-size: 11px; font-weight: 600; padding: 4px 10px;
             border-radius: 999px; font-family: 'JetBrains Mono', monospace; letter-spacing: .02em;
         }
         .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
         .chip-active { background: #e8f0e8; color: #2d6a2d; }
-        .chip-expired { background: #f0e0e0; color: #b53b3b; }
         .chip-soon { background: #f5e8cc; color: #c47a1a; }
         .chip-neutral { background: #e8e0d8; color: #6b5a48; }
         .chip-active-user { background: #dce8dc; color: #1f4f1f; }
         .chip-inactive { background: #f0e0e0; color: #b53b3b; }
 
+        /* ===== TOAST ===== */
         .toast {
-            position: fixed; bottom: 24px; right: 24px; max-width: 400px;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+            max-width: 90%; width: 400px;
             background: #1c252b; border-left: 3px solid #2d6a2d; color: #e7edf0;
             padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
             box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); z-index: 100;
-            transform: translateY(20px); opacity: 0; transition: all .25s ease; pointer-events: none;
+            opacity: 0; transition: all .25s ease; pointer-events: none;
+            text-align: center;
         }
-        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         .toast.danger { border-left-color: #b53b3b; }
 
-        .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 60; align-items: center; justify-content: center; padding: 16px; }
+        /* ===== MODALS ===== */
+        .modal-backdrop { 
+            display: none; 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(4px); 
+            z-index: 60; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 16px; 
+        }
         .modal-backdrop.open { display: flex; }
-        .modal-card { background: white; border-radius: 24px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.4); }
-        .profile-field { display: flex; padding: 10px 0; border-bottom: 1px solid #f0ebe5; }
-        .profile-field .label { width: 120px; flex-shrink: 0; font-size: 13px; color: #8a7a68; font-weight: 500; }
-        .profile-field .value { flex: 1; font-size: 14px; color: #3a332b; font-weight: 500; }
+        .modal-card { 
+            background: white; 
+            border-radius: 24px; 
+            max-width: 700px; 
+            width: 100%; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            padding: 20px; 
+            box-shadow: 0 24px 48px -12px rgba(0,0,0,0.4);
+            margin: 16px;
+        }
+        
+        .profile-field { 
+            display: flex; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #f0ebe5; 
+            flex-wrap: wrap;
+        }
+        .profile-field .label { 
+            width: 120px; 
+            flex-shrink: 0; 
+            font-size: 13px; 
+            color: #8a7a68; 
+            font-weight: 500; 
+        }
+        .profile-field .value { 
+            flex: 1; 
+            font-size: 14px; 
+            color: #3a332b; 
+            font-weight: 500; 
+            word-break: break-word;
+        }
 
+        /* ===== STAT CARDS ===== */
         .stat-card {
-            background: #F6F1F1; border: 1px solid #B0A695; border-radius: 12px; padding: 16px;
+            background: #F6F1F1; border: 1px solid #B0A695; border-radius: 12px; padding: 14px;
         }
         .stat-card .stat-value {
-            font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 28px; color: #5a4a3a;
+            font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 24px; color: #5a4a3a;
         }
         .stat-card .stat-label {
-            font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
-            text-transform: uppercase; letter-spacing: 0.14em; color: #8a7a68; margin-bottom: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.14em; color: #8a7a68; margin-bottom: 2px;
         }
 
+        /* ===== STAFF CARDS ===== */
         .staff-card {
             background: white; border: 1px solid #e0d5c4; border-radius: 12px;
-            padding: 16px; transition: all 0.15s;
+            padding: 14px; transition: all 0.15s;
             cursor: pointer;
+            touch-action: manipulation;
         }
-        .staff-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); transform: translateY(-2px); }
+        .staff-card:active { transform: scale(0.98); }
+        .staff-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
 
         .staff-avatar {
-            width: 48px; height: 48px; border-radius: 50%;
+            width: 44px; height: 44px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 18px; color: white;
+            font-weight: 700; font-size: 16px; color: white;
             flex-shrink: 0;
         }
 
+        /* ===== FILTER BAR ===== */
         .filter-bar {
-            display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
-            background: white; padding: 10px 14px; border-radius: 16px;
+            display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+            background: white; padding: 12px; border-radius: 16px;
             border: 1px solid #e0d5c4;
         }
         .filter-bar select, .filter-bar input {
             background: #f9f7f5; border: 1px solid #d6cdc0;
-            border-radius: 30px; padding: 8px 16px; font-size: 13px;
-            min-width: 120px;
+            border-radius: 30px; padding: 8px 14px; font-size: 13px;
+            min-width: 100px; flex: 1;
+            min-height: 40px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .filter-bar select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b5a48' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
         }
         .filter-bar button {
             background: #5a4a3a; color: white; border: none;
-            border-radius: 30px; padding: 8px 18px; font-weight: 600;
+            border-radius: 30px; padding: 8px 16px; font-weight: 600;
             font-size: 13px; cursor: pointer; white-space: nowrap;
+            min-height: 40px;
+            touch-action: manipulation;
         }
-        .filter-bar button:hover { background: #776B5D; }
+        .filter-bar button:active { transform: scale(0.97); }
 
-        @media (max-width: 900px) {
+        /* ===== DROPDOWN ===== */
+        .dropdown-menu {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all 0.2s ease;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            min-width: 200px;
+            background: white;
+            border: 1px solid #B0A695;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            overflow: hidden;
+            z-index: 50;
+        }
+        .dropdown-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
             .sidebar {
-                position: fixed; left: 0; top: 0; height: 100vh;
-                transform: translateX(-100%); z-index: 40;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                transform: translateX(-100%);
+                z-index: 40;
                 box-shadow: 0 16px 48px -12px rgba(0, 0, 0, .15);
-                background: #EEE0CC; width: 260px;
+                background: #EEE0CC;
+                width: 280px;
+                transition: transform 0.3s ease;
             }
             .sidebar.open { transform: translateX(0); }
-            .sidebar.collapsed { width: 260px; }
+            .sidebar.collapsed { width: 280px; }
             .sidebar.collapsed .sidebar-logo-text,
             .sidebar.collapsed .sidebar-nav-text,
             .sidebar.collapsed .sidebar-user-text,
             .sidebar.collapsed .sidebar-company-count { display: inline-block; }
             .sidebar.collapsed .sidebar-nav-item { justify-content: flex-start; padding: 0.625rem 0.75rem; }
             .sidebar.collapsed .sidebar-toggle-btn { transform: none; }
-            .overlay.open { display: block; }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 35;
+            }
+            .sidebar-overlay.open { display: block; }
         }
 
-        @media (max-width: 640px) {
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .filter-bar select, .filter-bar input { min-width: unset; width: 100%; }
-            .filter-bar button { width: 100%; justify-content: center; }
-            .profile-field { flex-direction: column; gap: 4px; }
-            .profile-field .label { width: 100%; }
+        @media (max-width: 768px) {
+            .modal-card { 
+                margin: 12px; 
+                padding: 16px; 
+                max-height: 95vh;
+                border-radius: 20px;
+            }
+            .profile-field { 
+                flex-direction: column; 
+                gap: 2px; 
+                padding: 8px 0;
+            }
+            .profile-field .label { 
+                width: 100%; 
+                font-size: 12px; 
+            }
+            .profile-field .value { 
+                font-size: 13px; 
+            }
+            .stat-card .stat-value { font-size: 20px; }
+            .staff-card { padding: 12px; }
+            .staff-avatar { width: 38px; height: 38px; font-size: 14px; }
+            .filter-bar { 
+                flex-direction: column; 
+                align-items: stretch; 
+                padding: 10px;
+            }
+            .filter-bar select, 
+            .filter-bar input { 
+                min-width: unset; 
+                width: 100%; 
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            .filter-bar button { 
+                width: 100%; 
+                justify-content: center; 
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+            .btn-primary, .btn-secondary, .btn-danger {
+                font-size: 14px;
+                padding: 12px 16px;
+                width: 100%;
+                min-height: 48px;
+            }
+            .modal-card .btn-primary,
+            .modal-card .btn-secondary,
+            .modal-card .btn-danger {
+                width: 100%;
+            }
+            .modal-card .flex.gap-3 {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .modal-card .flex.gap-3 button {
+                width: 100%;
+            }
+            .toast {
+                width: 92%;
+                bottom: 16px;
+                font-size: 12px;
+                padding: 10px 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header .flex.items-center.gap-2.5 { gap: 6px; }
+            header .text-left { display: none; }
+            .stat-card { padding: 10px; }
+            .stat-card .stat-value { font-size: 18px; }
+            .stat-card .stat-label { font-size: 9px; }
+            .staff-card { padding: 10px; }
+            .staff-avatar { width: 34px; height: 34px; font-size: 12px; }
+            .sidebar { width: 260px; }
+            .modal-card { padding: 14px; margin: 8px; }
+            .modal-card h3 { font-size: 18px; }
+            .grid.grid-cols-2 { gap: 6px; }
+            .profile-field .label { font-size: 11px; }
+            .profile-field .value { font-size: 12px; }
+            .chip { font-size: 10px; padding: 3px 8px; }
+            .chip::before { width: 5px; height: 5px; }
+            .dropdown-menu { 
+                min-width: 180px; 
+                right: -10px;
+            }
+            .dropdown-menu .px-4 { padding: 10px 14px; }
+            .dropdown-menu .text-[13px] { font-size: 12px; }
+        }
+
+        @media (max-width: 360px) {
+            .stat-card .stat-value { font-size: 16px; }
+            .staff-avatar { width: 30px; height: 30px; font-size: 10px; }
+            .staff-card .text-xs { font-size: 10px; }
+            .staff-card .font-semibold { font-size: 13px; }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .grid.grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
+            .stat-card .stat-value { font-size: 22px; }
+        }
+
+        @media (min-width: 1025px) {
+            .grid.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) {
+            .staff-card:hover { transform: none; box-shadow: none; }
+            .btn-primary:hover, .btn-secondary:hover, .btn-danger:hover { transform: none; }
+            .filter-bar button:hover { background: #5a4a3a; }
+            .sidebar a:hover { background: transparent; color: #5a4a3a; }
+            .sidebar a.active { background-color: #5a4a3a !important; color: white !important; }
         }
     </style>
 </head>
 <body>
 
+    <!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
     <!-- ===== HEADER ===== -->
     <header class="bg-[#F3EEEA] border-b border-[#B0A695] sticky top-0 z-30">
-        <div class="flex items-center justify-between px-4 md:px-6 py-3">
-            <div class="flex items-center gap-3">
-                <button id="sidebarCollapseBtn"
-                    class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition">
-                    <svg id="collapseIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        <div class="flex items-center justify-between px-3 md:px-6 py-2.5 md:py-3">
+            <div class="flex items-center gap-2 md:gap-3">
+                <button id="sidebarToggleBtn"
+                    class="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition touch-manipulation">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <button id="sidebarCollapseBtn" class="hidden md:flex w-9 h-9 md:w-10 md:h-10 items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white hover:border-[#776B5D] transition touch-manipulation">
+                    <svg id="collapseIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2" stroke-linecap="round">
                         <polyline points="15 18 9 12 15 6" />
                     </svg>
                 </button>
-                <div class="flex items-center gap-2">
-                    <img src="/page/image/kunash-logo.png" alt="CCTV AMC Manager Logo" class="w-15 h-8">
+                <div class="flex items-center gap-1.5 md:gap-2">
+                    <img src="/page/image/kunash-logo.png" alt="CCTV AMC Manager Logo" class="h-7 md:h-8 w-auto">
                 </div>
             </div>
 
             <div class="relative">
-                <button id="userMenuBtn" class="flex items-center gap-2.5 p-1.5 rounded-md border border-[#B0A695] transition group hover:bg-[#776B5D]">
-                    <div class="w-[34px] h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[12px] font-semibold">VJ</div>
+                <button id="userMenuBtn" class="flex items-center gap-1.5 md:gap-2.5 p-1.5 transition group ">
+                    <div class="w-[30px] h-[30px] md:w-[34px] md:h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[10px] md:text-[12px] font-semibold">VJ</div>
                     <div class="hidden sm:block text-left">
-                        <div class="text-[13px] font-semibold text-[#5a4a3a] group-hover:text-white">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#8a7a68] group-hover:text-white">Senior Engineer</div>
+                        <div class="text-[12px] md:text-[13px] font-semibold text-[#5a4a3a] ">Vikram Joshi</div>
+                        <div class="text-[10px] md:text-[11px] text-[#8a7a68] ">Senior Engineer</div>
                     </div>
-                    <svg class="w-4 h-4 text-[#5a4a3a] group-hover:text-white transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3.5 h-3.5 md:w-4 md:h-4 text-[#5a4a3a] transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <polyline points="6 9 12 15 18 9" />
                     </svg>
                 </button>
 
-                <div id="userDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#B0A695] rounded-lg shadow-lg overflow-hidden z-50">
-                    <div class="px-4 py-3 border-b border-[#e0d5c4]">
-                        <div class="text-[13px] font-semibold text-[#5a4a3a]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#8a7a68]">vikram@cctvmanager.com</div>
+                <div id="userDropdown" class="dropdown-menu">
+                    <div class="px-3 py-2.5 md:px-4 md:py-3 border-b border-[#e0d5c4]">
+                        <div class="text-[12px] md:text-[13px] font-semibold text-[#5a4a3a]">Vikram Joshi</div>
+                        <div class="text-[10px] md:text-[11px] text-[#8a7a68]">vikram@cctvmanager.com</div>
                     </div>
                     <div class="py-1">
-                        <a href="#" id="profileMenuItem" class="flex items-center gap-3 px-4 py-2.5 text-[13px] text-[#5a4a3a] hover:bg-[#F3EEEA] transition">
+                        <a href="#" id="profileMenuItem" class="flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-2.5 text-[12px] md:text-[13px] text-[#5a4a3a] hover:bg-[#F3EEEA] transition touch-manipulation">
                             <i class="fa-regular fa-user"></i> My Profile
                         </a>
                     </div>
                     <div class="border-t border-[#e0d5c4] py-1">
-                        <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition">
+                        <button id="logoutBtn" class="flex items-center gap-3 w-full px-3 py-2.5 md:px-4 md:py-2.5 text-[12px] md:text-[13px] text-red-600 hover:bg-red-50 transition touch-manipulation">
                             <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </button>
                     </div>
@@ -238,55 +479,50 @@
     <div class="flex min-h-screen" style="background-color: #F3EEEA;">
 
         <!-- ===== SIDEBAR ===== -->
-        <aside id="sidebar" class="sidebar border-r border-[#d4c4b0] flex flex-col h-screen sticky top-0 overflow-y-auto">
-            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2" id="sidebarNav">
-                <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+        <aside id="sidebar" class="sidebar border-r border-[#d4c4b0] flex flex-col">
+            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2 px-2" id="sidebarNav">
+                <a href="/page/dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item touch-manipulation">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
                     <span class="sidebar-nav-text">Dashboard</span>
                 </a>
-                <a href="/page/company-management.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                <a href="/page/company-management.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item touch-manipulation">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
                     <span class="sidebar-nav-text">Company Management</span>
                 </a>
-                <a href="/page/monthly-inspection.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                <a href="/page/monthly-inspection.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item touch-manipulation">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                     <span class="sidebar-nav-text">Monthly Visits</span>
                 </a>
-                <a href="/page/reports.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
+                <a href="/page/reports.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item touch-manipulation">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
                     <span class="sidebar-nav-text">Monthly Inspection Reports</span>
                 </a>
-                <a href="/page/staff-management.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active">
+                <a href="/page/staff-management.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active touch-manipulation">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>
                     <span class="sidebar-nav-text">Staff Management</span>
                 </a>
-                <!-- <a href="/page/excel-import-export.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                    <span class="sidebar-nav-text">Excel Import / Export</span>
-                </a> -->
             </nav>
             <div class="p-3 border-t border-[#d4c4b0]">
                 <div class="text-[10px] text-[#8a7a68] font-mono text-center">v2.0.0</div>
             </div>
         </aside>
 
-        <div id="overlay" class="overlay hidden fixed inset-0 bg-black/50 z-[35]"></div>
-
         <!-- ===== MAIN CONTENT ===== -->
-        <main class="flex-1 px-4 md:px-9 pt-5 md:pt-8 pb-16 max-w-[1400px]">
+        <main class="flex-1 px-3 md:px-6 lg:px-9 pt-4 md:pt-6 lg:pt-8 pb-16 max-w-[1400px] w-full">
 
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <!-- Page Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 mb-5 md:mb-6">
                 <div>
-                    <h1 class="font-display font-bold text-2xl text-[#5a4a3a]"><i class="fa-regular"></i>Staff Management</h1>
-                    <p class="text-[#8a7a68] text-sm mt-1">Manage all employees and their details</p>
+                    <h1 class="font-display font-bold text-xl md:text-2xl text-[#5a4a3a]">Staff Management</h1>
+                    <p class="text-[#8a7a68] text-xs md:text-sm mt-0.5">Manage all employees and their details</p>
                 </div>
-                <button id="addStaffBtn" class="btn-primary">
+                <button id="addStaffBtn" class="btn-primary w-full sm:w-auto">
                     <i class="fa-solid fa-plus"></i> Add Staff
                 </button>
             </div>
 
             <!-- ===== STAT CARDS ===== -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-3.5 mb-6">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3 mb-5 md:mb-6">
                 <div class="stat-card">
                     <div class="stat-label">Total Staff</div>
                     <div id="statTotal" class="stat-value">0</div>
@@ -307,7 +543,7 @@
 
             <!-- ===== FILTERS ===== -->
             <div class="filter-bar mb-4">
-                <input type="text" id="searchStaff" placeholder="Search by name, email, mobile..." class="flex-1 min-w-[160px]">
+                <input type="text" id="searchStaff" placeholder="Search by name, email, mobile..." class="flex-1 min-w-[120px]">
                 <select id="filterRole">
                     <option value="">All Roles</option>
                     <option value="Admin">Admin</option>
@@ -325,9 +561,9 @@
             </div>
 
             <!-- ===== STAFF LIST ===== -->
-            <div id="staffContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-            <div id="emptyState" class="hidden text-center py-12 text-[#8a7a68]">
-                <i class="fa-regular fa-users text-4xl block mb-3"></i>
+            <div id="staffContainer" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4"></div>
+            <div id="emptyState" class="hidden text-center py-10 md:py-12 text-[#8a7a68]">
+                <i class="fa-regular fa-users text-3xl md:text-4xl block mb-3"></i>
                 <p>No staff members found</p>
                 <button id="emptyAddBtn" class="btn-primary mt-4">Add Staff</button>
             </div>
@@ -342,19 +578,19 @@
     <div id="staffModal" class="modal-backdrop">
         <div class="modal-card">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="modalTitle" class="font-display font-bold text-xl text-[#5a4a3a]"><i class="fa-regular fa-user-plus mr-2"></i>Add Staff</h3>
-                <button id="closeStaffModal" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 id="modalTitle" class="font-display font-bold text-lg md:text-xl text-[#5a4a3a]"><i class="fa-regular fa-user-plus mr-2"></i>Add Staff</h3>
+                <button id="closeStaffModal" class="p-2 hover:bg-surface3 rounded-full transition touch-manipulation"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <form id="staffForm">
                 <input type="hidden" id="staffId">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">First Name *</label><input type="text" id="firstName" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Middle Name</label><input type="text" id="middleName" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Last Name *</label><input type="text" id="lastName" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Mobile Number *</label><input type="tel" id="mobileNo" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Email *</label><input type="email" id="email" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">First Name *</label><input type="text" id="firstName" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Middle Name</label><input type="text" id="middleName" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Last Name *</label><input type="text" id="lastName" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Mobile Number *</label><input type="tel" id="mobileNo" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Email *</label><input type="email" id="email" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Role *</label>
-                        <select id="role" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                        <select id="role" required class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]">
                             <option value="">Select Role</option>
                             <option value="Admin">Admin</option>
                             <option value="Engineer">Engineer</option>
@@ -363,9 +599,9 @@
                             <option value="Technician">Technician</option>
                         </select>
                     </div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Date of Birth</label><input type="date" id="dob" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Date of Birth</label><input type="date" id="dob" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Gender</label>
-                        <select id="gender" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                        <select id="gender" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]">
                             <option value="">Select</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
@@ -373,7 +609,7 @@
                         </select>
                     </div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Blood Group</label>
-                        <select id="bloodGroup" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                        <select id="bloodGroup" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]">
                             <option value="">Select</option>
                             <option value="A+">A+</option>
                             <option value="A-">A-</option>
@@ -385,17 +621,17 @@
                             <option value="O-">O-</option>
                         </select>
                     </div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Joining Date</label><input type="date" id="joiningDate" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
+                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Joining Date</label><input type="date" id="joiningDate" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></div>
                     <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Status</label>
-                        <select id="status" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]">
+                        <select id="status" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]">
                             <option value="Active">Active</option>
                             <option value="Inactive">Inactive</option>
                         </select>
                     </div>
-                    <div class="md:col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Address</label><textarea id="address" rows="2" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#5a4a3a]"></textarea></div>
-                    <div class="md:col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Employee ID</label><input type="text" id="empId" placeholder="Auto-generated" readonly class="w-full bg-[#f6f1f1] border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm text-[#8a7a68]"></div>
+                    <div class="sm:col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Address</label><textarea id="address" rows="2" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#5a4a3a]"></textarea></div>
+                    <div class="sm:col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Employee ID</label><input type="text" id="empId" placeholder="Auto-generated" readonly class="w-full bg-[#f6f1f1] border border-[#e0d5c4] rounded-lg px-3 py-2.5 text-sm text-[#8a7a68]"></div>
                 </div>
-                <div class="flex justify-end gap-3 mt-6">
+                <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
                     <button type="button" id="cancelStaff" class="btn-secondary px-6 py-2">Cancel</button>
                     <button type="submit" class="btn-primary px-6 py-2">Save</button>
                 </div>
@@ -407,8 +643,8 @@
     <div id="viewStaffModal" class="modal-backdrop">
         <div class="modal-card">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-display font-bold text-xl text-[#5a4a3a]"><i class="fa-regular fa-user mr-2"></i>Staff Details</h3>
-                <button id="closeViewStaff" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 class="font-display font-bold text-lg md:text-xl text-[#5a4a3a]"><i class="fa-regular fa-user mr-2"></i>Staff Details</h3>
+                <button id="closeViewStaff" class="p-2 hover:bg-surface3 rounded-full transition touch-manipulation"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div id="viewStaffContent"></div>
         </div>
@@ -417,14 +653,14 @@
     <!-- ===== DELETE CONFIRMATION MODAL ===== -->
     <div id="deleteBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
         <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
-            <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 text-3xl flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 md:w-16 md:h-16 rounded-full bg-red-100 text-red-600 text-2xl md:text-3xl flex items-center justify-center mx-auto mb-4">
                 <i class="fa-regular fa-trash-can"></i>
             </div>
-            <h3 class="font-display text-xl font-bold text-[#5a4a3a] mb-2">Delete Staff?</h3>
+            <h3 class="font-display text-lg md:text-xl font-bold text-[#5a4a3a] mb-2">Delete Staff?</h3>
             <p class="text-[#8a7a68] text-sm mb-1">This action cannot be undone.</p>
-            <div class="flex justify-center gap-3 mt-6">
+            <div class="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                 <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
-                <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
+                <button id="confirmDelete" class="btn-danger px-6 py-2">Delete</button>
             </div>
         </div>
     </div>
@@ -433,12 +669,15 @@
     <div id="profileModal" class="modal-backdrop">
         <div class="modal-card">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-display font-bold text-xl"><i class="fa-regular fa-user mr-2"></i> Employee Profile</h3>
-                <button id="closeProfileModal" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 class="font-display font-bold text-lg md:text-xl"><i class="fa-regular fa-user mr-2"></i> Employee Profile</h3>
+                <button id="closeProfileModal" class="p-2 hover:bg-surface3 rounded-full transition touch-manipulation"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="flex items-center gap-4 mb-4 pb-4 border-b border-bordersoft">
-                <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=2d6a2d&color=fff&size=64" alt="Profile" class="w-16 h-16 rounded-full border-2 border-accent">
-                <div><div class="font-display font-bold text-lg">Vikram Joshi</div><div class="text-sm text-textfaint">ENG-021 · Senior Engineer</div></div>
+                <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=2d6a2d&color=fff&size=64" alt="Profile" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-accent">
+                <div>
+                    <div class="font-display font-bold text-lg">Vikram Joshi</div>
+                    <div class="text-sm text-textfaint">ENG-021 · Senior Engineer</div>
+                </div>
             </div>
             <div class="profile-field"><span class="label">First Name</span><span class="value">Vikram</span></div>
             <div class="profile-field"><span class="label">Middle Name</span><span class="value">R.</span></div>
@@ -449,7 +688,9 @@
             <div class="profile-field"><span class="label">Address</span><span class="value">42, Green Park Colony, Pune - 411001</span></div>
             <div class="profile-field"><span class="label">Designation</span><span class="value">Senior CCTV Engineer</span></div>
             <div class="profile-field"><span class="label">Joining Date</span><span class="value">1 April 2020</span></div>
-            <div class="mt-4 pt-4 border-t border-bordersoft"><button id="closeProfileModalBtn" class="btn-primary"><i class="fa-regular fa-circle-check mr-2"></i>Close</button></div>
+            <div class="mt-4 pt-4 border-t border-bordersoft">
+                <button id="closeProfileModalBtn" class="btn-primary w-full"><i class="fa-regular fa-circle-check mr-2"></i>Close</button>
+            </div>
         </div>
     </div>
 
@@ -459,9 +700,9 @@
             <div class="w-11 h-11 rounded-full bg-red-500 text-white text-xl mx-auto flex items-center justify-center">!</div>
             <h3 class="font-display text-[16px] text-[#5a4a3a] mb-1 mt-3">Confirm Logout</h3>
             <p class="text-[#8a7a68] text-[13px]">Are you sure you want to logout?</p>
-            <div class="flex justify-center gap-2.5 mt-6">
-                <button id="cancelLogout" class="px-4 py-2 bg-gray-500 text-white rounded-md text-sm">Cancel</button>
-                <button id="confirmLogout" class="px-4 py-2 bg-red-500 text-white rounded-md text-sm">Logout</button>
+            <div class="flex flex-col sm:flex-row justify-center gap-2.5 mt-6">
+                <button id="cancelLogout" class="btn-secondary px-6 py-2">Cancel</button>
+                <button id="confirmLogout" class="btn-danger px-6 py-2">Logout</button>
             </div>
         </div>
     </div>
@@ -538,16 +779,16 @@
                     html += '<div class="flex items-start gap-3">';
                     html += '<div class="staff-avatar" style="background:' + color + '">' + initials + '</div>';
                     html += '<div class="flex-1 min-w-0">';
-                    html += '<div class="font-semibold text-[#5a4a3a]">' + fullName + '</div>';
-                    html += '<div class="text-xs text-[#8a7a68]"><i class="fa-regular fa-envelope mr-1"></i>' + s.email + '</div>';
+                    html += '<div class="font-semibold text-[#5a4a3a] text-sm md:text-base">' + fullName + '</div>';
+                    html += '<div class="text-xs text-[#8a7a68] truncate"><i class="fa-regular fa-envelope mr-1"></i>' + s.email + '</div>';
                     html += '<div class="text-xs text-[#8a7a68]"><i class="fa-regular fa-phone mr-1"></i>' + s.mobile + '</div>';
-                    html += '<div class="flex flex-wrap gap-2 mt-1">';
-                    html += '<span class="chip chip-neutral text-[10px]">' + s.role + '</span>';
-                    html += '<span class="chip ' + statusCls + ' text-[10px]">' + s.status + '</span>';
+                    html += '<div class="flex flex-wrap gap-1.5 mt-1">';
+                    html += '<span class="chip chip-neutral text-[9px] md:text-[10px]">' + s.role + '</span>';
+                    html += '<span class="chip ' + statusCls + ' text-[9px] md:text-[10px]">' + s.status + '</span>';
                     html += '</div></div>';
-                    html += '<div class="flex gap-1">';
-                    html += '<button onclick="event.stopPropagation();editStaff(' + s.id + ')" class="text-[#5a4a3a] hover:text-accenttext p-1"><i class="fa-regular fa-pen-to-square text-sm"></i></button>';
-                    html += '<button onclick="event.stopPropagation();deleteStaff(' + s.id + ')" class="text-redc hover:text-red-700 p-1"><i class="fa-regular fa-trash-can text-sm"></i></button>';
+                    html += '<div class="flex gap-1 flex-shrink-0">';
+                    html += '<button onclick="event.stopPropagation();editStaff(' + s.id + ')" class="text-[#5a4a3a] hover:text-accenttext p-1.5 touch-manipulation"><i class="fa-regular fa-pen-to-square text-sm"></i></button>';
+                    html += '<button onclick="event.stopPropagation();deleteStaff(' + s.id + ')" class="text-redc hover:text-red-700 p-1.5 touch-manipulation"><i class="fa-regular fa-trash-can text-sm"></i></button>';
                     html += '</div></div></div>';
                 });
                 staffContainer.innerHTML = html;
@@ -564,12 +805,12 @@
                 var statusCls = staff.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
 
                 document.getElementById('viewStaffContent').innerHTML = 
-                    '<div class="flex items-center gap-4 mb-4 pb-4 border-b border-bordersoft">' +
-                    '<div class="staff-avatar" style="background:' + ['#2d6a2d','#5a4a3a','#b53b3b','#c47a1a','#2563eb','#8b5cf6'][(staff.id-1)%6] + ';width:64px;height:64px;font-size:24px;">' + (staff.first_name.charAt(0) + staff.last_name.charAt(0)).toUpperCase() + '</div>' +
+                    '<div class="flex items-center gap-3 md:gap-4 mb-4 pb-4 border-b border-bordersoft">' +
+                    '<div class="staff-avatar" style="background:' + ['#2d6a2d','#5a4a3a','#b53b3b','#c47a1a','#2563eb','#8b5cf6'][(staff.id-1)%6] + ';width:56px;height:56px;md:width:64px;md:height:64px;font-size:20px;md:font-size:24px;">' + (staff.first_name.charAt(0) + staff.last_name.charAt(0)).toUpperCase() + '</div>' +
                     '<div><div class="font-display font-bold text-lg text-[#5a4a3a]">' + fullName + '</div>' +
                     '<div class="text-sm text-[#8a7a68]">' + staff.emp_id + ' · ' + staff.role + '</div>' +
                     '<span class="chip ' + statusCls + ' text-[10px]">' + staff.status + '</span></div></div>' +
-                    '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+                    '<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-3">' +
                     '<div class="profile-field"><span class="label">First Name</span><span class="value">' + staff.first_name + '</span></div>' +
                     '<div class="profile-field"><span class="label">Middle Name</span><span class="value">' + (staff.middle_name || '—') + '</span></div>' +
                     '<div class="profile-field"><span class="label">Last Name</span><span class="value">' + staff.last_name + '</span></div>' +
@@ -580,7 +821,7 @@
                     '<div class="profile-field"><span class="label">Gender</span><span class="value">' + (staff.gender || '—') + '</span></div>' +
                     '<div class="profile-field"><span class="label">Blood Group</span><span class="value">' + (staff.blood_group || '—') + '</span></div>' +
                     '<div class="profile-field"><span class="label">Joining Date</span><span class="value">' + joining + '</span></div>' +
-                    '<div class="md:col-span-2 profile-field"><span class="label">Address</span><span class="value">' + (staff.address || '—') + '</span></div>' +
+                    '<div class="sm:col-span-2 profile-field"><span class="label">Address</span><span class="value">' + (staff.address || '—') + '</span></div>' +
                     '</div>' +
                     '<div class="flex justify-end mt-4"><button onclick="document.getElementById(\'viewStaffModal\').classList.remove(\'open\')" class="btn-primary px-6 py-2">Close</button></div>';
                 
@@ -703,12 +944,40 @@
             // ===== SIDEBAR =====
             var sidebar = document.getElementById('sidebar');
             var sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+            var sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+            var sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            // Desktop collapse
             var isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+            if (isSidebarCollapsed && window.innerWidth > 900) {
+                sidebar.classList.add('collapsed');
+            }
+            
             sidebarCollapseBtn.onclick = function() {
-                sidebar.classList.toggle('collapsed');
-                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                if (window.innerWidth > 900) {
+                    sidebar.classList.toggle('collapsed');
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                }
             };
+
+            // Mobile toggle
+            sidebarToggleBtn.onclick = function() {
+                sidebar.classList.toggle('open');
+                sidebarOverlay.classList.toggle('open');
+            };
+
+            sidebarOverlay.onclick = function() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('open');
+            };
+
+            // Close sidebar on window resize to desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 900) {
+                    sidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('open');
+                }
+            });
 
             // ===== USER DROPDOWN =====
             var userMenuBtn = document.getElementById('userMenuBtn');
@@ -718,20 +987,28 @@
 
             userMenuBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
+                userDropdown.classList.toggle('open');
             });
+            
             document.addEventListener('click', function(e) {
-                if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden');
+                if (!e.target.closest('#userMenuBtn') && !e.target.closest('#userDropdown')) {
+                    userDropdown.classList.remove('open');
+                }
             });
 
+            // ===== PROFILE MODAL =====
             document.getElementById('profileMenuItem').addEventListener('click', function(e) {
                 e.preventDefault();
-                userDropdown.classList.add('hidden');
+                userDropdown.classList.remove('open');
                 profileModal.classList.add('open');
             });
 
-            document.getElementById('closeProfileModal').addEventListener('click', function() { profileModal.classList.remove('open'); });
-            document.getElementById('closeProfileModalBtn').addEventListener('click', function() { profileModal.classList.remove('open'); });
+            document.getElementById('closeProfileModal').addEventListener('click', function() { 
+                profileModal.classList.remove('open'); 
+            });
+            document.getElementById('closeProfileModalBtn').addEventListener('click', function() { 
+                profileModal.classList.remove('open'); 
+            });
             profileModal.addEventListener('click', function(e) {
                 if (e.target === profileModal) profileModal.classList.remove('open');
             });
@@ -741,7 +1018,9 @@
                 userDropdown.classList.remove('open');
                 logoutBackdrop.classList.add('open');
             };
-            document.getElementById('cancelLogout').onclick = function() { logoutBackdrop.classList.remove('open'); };
+            document.getElementById('cancelLogout').onclick = function() { 
+                logoutBackdrop.classList.remove('open'); 
+            };
             document.getElementById('confirmLogout').onclick = function() {
                 sessionStorage.removeItem('amc_session');
                 setTimeout(function() {
@@ -756,4 +1035,4 @@
         })();
     </script>
 </body>
-</html> 
+</html>
