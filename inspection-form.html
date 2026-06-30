@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Inspection Hub — CCTV AMC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#F3EEEA', surface: '#F6F1F1', surface2: '#FFFFFF', surface3: '#eef1fa',
+            borderc: '#cdd5ea', bordersoft: '#e1e6f3', textdim: '#3d4763', textfaint: '#7b85a3',
+            primary: '#1A328D', primarylight: '#1AA1E1', sapphire: '#234FAA',
+            navy: '#081350', shadow: '#151929', indigo: '#7834B8',
+            accentdim: '#e8f0e8', accenttext: '#1f8a4c',
+            redc: '#c0392b', reddim: '#fbe4e1', redtext: '#c0392b',
+          },
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body { background: #F0F3FB; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #b9c3e0; border-radius: 10px; }
+    ::selection { background: #1A328D; color: #fff; }
+
+    .grad-primary { background: linear-gradient(135deg, #1A328D 0%, #234FAA 60%, #1AA1E1 100%); }
+    .grad-dark { background: linear-gradient(135deg, #151929 0%, #081350 100%); }
+
+    .badge-status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 40px; font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
+    .badge-working { background: #e3f6ea; color: #1f8a4c; }
+    .badge-faulty { background: #fbe4e1; color: #c0392b; }
+    .badge-open { background: #f5e8cc; color: #b07d1a; }
+    .badge-resolved { background: #dce8dc; color: #1f4f1f; }
+    .badge-progress { background: #d6e4f0; color: #1a4b6a; }
+
+    .cam-card { transition: all 0.15s; border: 1px solid #e1e6f3; border-radius: 16px; background: #fff; padding: 14px 16px; }
+    .cam-card.selected { border-color: #1A328D; background: #f3f6fd; box-shadow: 0 0 0 2px rgba(26,50,141,0.15); }
+    .cam-card .checkbox { width: 20px; height: 20px; accent-color: #1A328D; flex-shrink: 0; }
+
+    .cam-detail-fields { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e1e6f3; }
+    .cam-detail-fields.open { display: block; }
+    .cam-detail-fields select, .cam-detail-fields input, .cam-detail-fields textarea {
+      width: 100%; padding: 8px 10px; border: 1px solid #d8deef; border-radius: 8px; font-size: 13px; margin-bottom: 8px; background: #f9fafd;
+    }
+    .cam-detail-fields select:focus, .cam-detail-fields input:focus, .cam-detail-fields textarea:focus { outline: none; border-color: #1AA1E1; box-shadow: 0 0 0 3px rgba(26,161,225,0.15); }
+    .cam-detail-fields label { font-size: 11px; font-weight: 600; color: #7b85a3; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: white; padding: 10px 14px; border-radius: 16px; border: 1px solid #e1e6f3; }
+    .filter-bar input { background: #f9fafd; border: 1px solid #d8deef; border-radius: 30px; padding: 9px 16px; font-size: 13px; }
+    .filter-bar .bulk-select { background: white; border: 1px solid #d8deef; border-radius: 30px; padding: 9px 16px; font-size: 13px; }
+
+    .btn-grad { background: linear-gradient(135deg, #1A328D, #234FAA); color: white; border: none; transition: filter .15s, transform .1s; }
+    .btn-grad:hover { filter: brightness(1.1); }
+    .btn-grad:active { transform: scale(0.98); }
+
+    .toast { position: fixed; bottom: 96px; right: 16px; left: 16px; max-width: 400px; margin: 0 auto; background: #151929; border-left: 4px solid #1AA1E1; color: #e7edf0; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); z-index: 100; transform: translateY(20px); opacity: 0; transition: all .25s ease; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.danger { border-left-color: #c0392b; }
+
+    .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(8,19,80,0.55); backdrop-filter: blur(4px); z-index: 60; align-items: center; justify-content: center; padding: 16px; }
+    .modal-backdrop.open { display: flex; }
+    .modal-card { background: white; border-radius: 24px; max-width: 460px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.4); }
+
+    .issue-card { border-left: 4px solid #cdd5ea; padding: 12px 14px; background: white; border-radius: 12px; margin-bottom: 10px; border: 1px solid #e1e6f3; transition: all 0.15s; }
+    .issue-card.priority-high { border-left-color: #c0392b; }
+    .issue-card.priority-critical { border-left-color: #7834B8; background: #faf5fd; }
+    .issue-card .issue-actions { display: flex; gap: 8px; margin-top: 6px; }
+    .issue-card .issue-actions button { background: transparent; border: none; color: #3d4763; font-size: 13px; cursor: pointer; padding: 2px 8px; border-radius: 4px; transition: background 0.15s; }
+    .issue-card .issue-actions button:hover { background: #eef1fa; }
+    .issue-card .issue-actions button.delete-btn { color: #c0392b; }
+
+    .btn-primary { display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: 600; font-size: 14px; padding: 12px 20px; border-radius: 10px; background: linear-gradient(135deg, #1A328D, #234FAA); color: white; border: none; transition: filter 0.15s, transform 0.1s; cursor: pointer; width: 100%; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 12px 20px; border-radius: 10px; background: #eef1fa; color: #1A328D; border: 1px solid #cdd5ea; transition: background 0.15s; cursor: pointer; width: 100%; }
+    .btn-secondary:hover { background: #dfe6f7; }
+
+    .profile-field { display: flex; padding: 10px 0; border-bottom: 1px solid #eef1fa; }
+    .profile-field .label { width: 110px; flex-shrink: 0; font-size: 13px; color: #7b85a3; font-weight: 500; }
+    .profile-field .value { flex: 1; font-size: 14px; color: #151929; font-weight: 500; }
+
+    .simple-submit-btn { display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 600; font-size: 15px; padding: 14px 24px; border-radius: 12px; background: linear-gradient(135deg, #1A328D, #234FAA); color: white; border: none; transition: filter 0.15s; cursor: pointer; width: 100%; margin-top: 20px; box-shadow: 0 8px 20px -6px rgba(26,50,141,0.45); }
+    .simple-submit-btn:hover { filter: brightness(1.1); }
+
+    .status-toggle { display: flex; gap: 6px; margin-top: 8px; }
+    .status-btn { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid #e1e6f3; background: #f9fafd; cursor: pointer; transition: all 0.15s; }
+    .status-btn.working-btn.active { background: #e3f6ea; color: #1f8a4c; border-color: #1f8a4c; }
+    .status-btn.faulty-btn.active { background: #fbe4e1; color: #c0392b; border-color: #c0392b; }
+    .status-btn:not(.active) { color: #7b85a3; }
+
+    .pg-btn { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; font-size: 13px; font-weight: 600; border: 1px solid #d8deef; background: white; color: #3d4763; cursor: pointer; transition: all .15s; }
+    .pg-btn:hover:not(:disabled) { background: #eef1fa; }
+    .pg-btn.active { background: linear-gradient(135deg, #1A328D, #234FAA); color: white; border-color: transparent; }
+    .pg-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .img-thumb { position: relative; width: 64px; height: 64px; border-radius: 10px; overflow: hidden; border: 1px solid #e1e6f3; flex-shrink: 0; }
+    .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .img-thumb .rm-img { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; background: rgba(8,19,80,0.8); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; }
+
+    .upload-zone { border: 1.5px dashed #b9c3e0; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; transition: all .15s; background: #f9fafd; }
+    .upload-zone:hover { border-color: #1AA1E1; background: #f0f7fd; }
+
+    @media (max-width: 640px) {
+      .filter-bar { flex-direction: column; align-items: stretch; }
+      .filter-bar input { width: 100%; }
+      .profile-field { flex-direction: column; gap: 4px; }
+      .profile-field .label { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER (logo + profile only) -->
+  <header class="flex items-center justify-between px-4 py-2.5 bg-white/90 backdrop-blur-sm border-b border-bordersoft sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3">
+      <img src="/page/image/logo.png" alt="CCTV AMC" class="h-14 w-auto">
+    </div>
+    <div class="relative">
+      <button id="userMenuBtn" class="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface3 transition">
+        <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=1A328D&color=fff&size=32" alt="User" class="w-8 h-8 rounded-full border border-borderc">
+        <span class="hidden sm:inline text-sm font-medium text-textdim">Vikram</span>
+        <i class="fa-solid fa-chevron-down text-xs text-textfaint"></i>
+      </button>
+      <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-bordersoft rounded-xl shadow-lg py-1.5 z-40">
+        <a href="#" id="profileMenuItem" class="block px-4 py-2 text-sm hover:bg-surface3"><i class="fa-regular fa-user mr-2"></i>Profile</a>
+        <a href="#" id="logoutMenuItem" class="block px-4 py-2 text-sm hover:bg-surface3 text-redc"><i class="fa-solid fa-right-from-bracket mr-2"></i>Logout</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-4">
+
+    <!-- INSPECTION TYPE -->
+    <div class="bg-white border border-bordersoft rounded-2xl p-4 mb-4 shadow-sm">
+      <label class="block text-sm font-semibold text-textdim mb-1.5"><i class="fa-solid fa-clipboard-list mr-1 text-primary"></i> Inspection Type</label>
+      <select id="inspectionType" class="w-full bg-surface2 border border-borderc rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primarylight/20">
+        <option value="monthly">Monthly Inspection</option>
+        <option value="complaint">Complaint Issue</option>
+        <option value="other">Other Issue</option>
+      </select>
+    </div>
+
+    <!-- COMPANY SELECT -->
+    <div class="bg-white border border-bordersoft rounded-2xl p-4 mb-4 shadow-sm">
+      <label class="block text-sm font-semibold text-textdim mb-1.5"><i class="fa-solid fa-building mr-1 text-primary"></i> Select Company</label>
+      <select id="companySelect" class="w-full bg-surface2 border border-borderc rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primarylight/20">
+        <option value="">— Choose —</option>
+      </select>
+      <div id="companyMeta" class="hidden mt-2 text-xs text-textfaint flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-primary"></i>
+        <span id="companyMetaText"></span>
+      </div>
+    </div>
+
+    <!-- INSPECTION HEADER FIELDS -->
+    <div id="headerFields" class="hidden bg-white border border-bordersoft rounded-2xl p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3 shadow-sm">
+      <div><label class="text-xs font-medium text-textdim">Vendor</label><input type="text" id="vendorField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" value="Akansha Enterprises" readonly></div>
+      <div>
+        <label class="text-xs font-medium text-textdim">Department</label>
+        <select id="departmentField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm">
+          <option value="">— Select Company First —</option>
+        </select>
+        <div id="lastVisitInfo" class="hidden mt-2 text-xs rounded-lg px-3 py-2 flex items-start gap-2"></div>
+      </div>
+      <div><label class="text-xs font-medium text-textdim">Visit Date</label><input type="date" id="visitDateField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"></div>
+      <div><label class="text-xs font-medium text-textdim">Checked By</label><input type="text" id="checkedByField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
+      <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">BSID PIC</label><input type="text" id="bsidField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="Auto-filled from department" readonly></div>
+    </div>
+
+    <!-- CAMERA INSPECTION SECTION -->
+    <section id="cameraSection" class="hidden">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div>
+          <span class="font-mono text-xs uppercase tracking-wider text-primary"><i class="fa-solid fa-video mr-1"></i> Cameras</span>
+          <span id="camCountText" class="text-sm text-textfaint ml-1">0</span>
+        </div>
+        <div class="flex gap-2">
+          <button id="markAllWorkingBtn" class="bg-[#1f8a4c] text-white text-xs font-bold px-4 py-2 rounded-full hover:brightness-110 transition">
+            <i class="fa-regular fa-circle-check mr-1"></i> Mark All Working
+          </button>
+          <button id="markAllFaultyBtn" class="bg-[#c0392b] text-white text-xs font-bold px-4 py-2 rounded-full hover:brightness-110 transition">
+            <i class="fa-regular fa-circle-xmark mr-1"></i> Mark All Faulty
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-bar mb-4">
+        <input type="text" id="searchCamera" placeholder="Search camera, type, angle..." class="flex-1 min-w-[160px]">
+        <div class="flex items-center gap-2 ml-auto">
+          <select id="bulkActionSelect" class="bulk-select">
+            <option value="">Bulk Action (selected)</option>
+            <option value="working">Mark Working</option>
+            <option value="faulty">Mark Faulty</option>
+          </select>
+          <button id="applyBulkAction" class="btn-grad px-4 py-1.5 rounded-full text-sm font-semibold">
+            <i class="fa-solid fa-check mr-1"></i> Apply
+          </button>
+        </div>
+      </div>
+
+      <div id="cameraCards" class="flex flex-col gap-3"></div>
+
+      <div id="paginationBar" class="hidden mt-4 flex items-center justify-center gap-1.5 flex-wrap"></div>
+
+      <!-- IMAGE UPLOAD -->
+      <div class="mt-4 bg-white border border-bordersoft rounded-2xl p-4 shadow-sm">
+        <label class="text-sm font-medium text-textdim block mb-2"><i class="fa-regular fa-image mr-1"></i> Upload Site Photos</label>
+        <div id="uploadZone" class="upload-zone">
+          <i class="fa-solid fa-cloud-arrow-up text-2xl text-primary mb-1"></i>
+          <div class="text-sm text-textdim font-medium">Tap to upload images</div>
+          <div class="text-xs text-textfaint">JPG, PNG up to 10MB each</div>
+          <input type="file" id="imageUploadInput" accept="image/*" multiple class="hidden">
+        </div>
+        <div id="imagePreviewList" class="flex flex-wrap gap-2 mt-3"></div>
+      </div>
+
+      <div class="mt-4 bg-white border border-bordersoft rounded-2xl p-4 shadow-sm">
+        <label class="text-sm font-medium text-textdim"><i class="fa-regular fa-comment mr-1"></i> General Remarks</label>
+        <textarea id="generalRemarks" rows="2" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm resize-y mt-1" placeholder="Overall observations..."></textarea>
+      </div>
+    </section>
+
+    <!-- ISSUE SECTION -->
+    <section id="issueSection" class="hidden bg-white border border-bordersoft rounded-2xl p-4 mb-5 shadow-sm">
+      <h3 class="font-display font-bold text-lg mb-3" id="issueSectionTitle">
+        <i class="fa-regular fa-pen-to-square mr-2"></i> Report Issue
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div><label class="text-xs font-medium text-textdim">Issue Type</label><select id="issueType" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option>Hardware</option><option>Software</option><option>Network</option><option>Other</option></select></div>
+        <div><label class="text-xs font-medium text-textdim">Camera</label><select id="issueCamera" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option value="">— Select —</option></select></div>
+        <div><label class="text-xs font-medium text-textdim">Department</label><input type="text" id="issueDept" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
+        <div><label class="text-xs font-medium text-textdim">Camera Type</label><input type="text" id="issueLoc" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
+        <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Description</label><textarea id="issueDesc" rows="2" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm resize-y"></textarea></div>
+        <div><label class="text-xs font-medium text-textdim">Priority</label><select id="issuePriority" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></div>
+        <div><label class="text-xs font-medium text-textdim">Status</label><select id="issueStatus" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select></div>
+        <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Resolution Remark</label><input type="text" id="issueResolution" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="If resolved..."></div>
+      </div>
+      <button id="submitIssueBtn" class="btn-primary mt-4"><i class="fa-regular fa-paper-plane"></i> Submit Issue</button>
+      <div id="issueList" class="mt-5 space-y-2"></div>
+    </section>
+
+    <div id="submitBtnContainer" class="mt-6 mb-4" style="display:none;">
+      <button id="simpleSubmitBtn" class="simple-submit-btn">
+        <i class="fa-regular fa-floppy-disk"></i>
+        Submit Inspection
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- PROFILE MODAL -->
+  <div id="profileModal" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-display font-bold text-xl"><i class="fa-regular fa-user mr-2 text-primary"></i> Employee Profile</h3>
+        <button id="closeProfileModal" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+      </div>
+      <div class="flex items-center gap-4 mb-4 pb-4 border-b border-bordersoft">
+        <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=1A328D&color=fff&size=64" alt="Profile" class="w-16 h-16 rounded-full border-2 border-primary">
+        <div><div class="font-display font-bold text-lg">Vikram Joshi</div><div class="text-sm text-textfaint">ENG-021 · Senior Engineer</div></div>
+      </div>
+      <div class="profile-field"><span class="label">First Name</span><span class="value">Vikram</span></div>
+      <div class="profile-field"><span class="label">Last Name</span><span class="value">Joshi</span></div>
+      <div class="profile-field"><span class="label">Designation</span><span class="value">Senior CCTV Engineer</span></div>
+      <div class="profile-field"><span class="label">Joining Date</span><span class="value">1 April 2020</span></div>
+      <div class="mt-4 pt-4 border-t border-bordersoft"><button id="closeProfileModalBtn" class="btn-primary"><i class="fa-regular fa-circle-check mr-2"></i>Close</button></div>
+    </div>
+  </div>
+
+  <!-- SUBMIT CONFIRM MODAL -->
+  <div id="submitConfirmModal" class="modal-backdrop">
+    <div class="modal-card text-center">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-surface3 text-primary"><i class="fa-regular fa-circle-check"></i></div>
+      <h3 class="font-display text-lg mb-1">Submit this Inspection?</h3>
+      <p id="confirmSummary" class="text-textdim text-sm my-2"></p>
+      <div class="flex gap-3 mt-4">
+        <button id="cancelSubmit" class="btn-secondary">No</button>
+        <button id="confirmSubmitBtn" class="btn-primary">Yes, Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BULK MARK ALL CONFIRM MODAL -->
+  <div id="bulkConfirmModal" class="modal-backdrop">
+    <div class="modal-card text-center">
+      <div id="bulkConfirmIcon" class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl"></div>
+      <h3 class="font-display text-lg mb-1" id="bulkConfirmTitle">Are you sure?</h3>
+      <p id="bulkConfirmText" class="text-textdim text-sm my-2"></p>
+      <div class="flex gap-3 mt-4">
+        <button id="bulkConfirmNo" class="btn-secondary">No</button>
+        <button id="bulkConfirmYes" class="btn-primary">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      const REPORTS_KEY = 'cctv_amc_reports';
+      const ISSUES_KEY = 'cctv_amc_issues';
+      const PAGE_SIZE = 10;
+
+      // ===== CLIENT / DEPARTMENT / CAMERA PAYLOAD =====
+      const CLIENTS = [
+        { "clientId": 1, "clientName": "TechVision Solutions", "clientDepartments": [
+          { "depId": 1, "depName": "Headquarters Security", "totalCamera": 45, "picId": "pic-101", "cameraList": [
+            { "camId": 101, "cameraName": "HQ-Main-Entrance-1", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 102, "cameraName": "HQ-Parking-Area", "cameraAngle": "360", "cameraType": "PTZ Cameras" },
+            { "camId": 103, "cameraName": "HQ-Lobby-Recption", "cameraAngle": "FOV", "cameraType": "Dome Cameras" }
+          ]},
+          { "depId": 2, "depName": "Warehouse Division", "totalCamera": 30, "picId": "pic-102" },
+          { "depId": 3, "depName": "Data Center Monitoring", "totalCamera": 25, "picId": "pic-103" }
+        ]},
+        { "clientId": 2, "clientName": "Global Retail Corp", "clientDepartments": [
+          { "depId": 1, "depName": "Main Store Security", "totalCamera": 60, "picId": "pic-201", "cameraList": [
+            { "camId": 201, "cameraName": "Store-Entry-East", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 202, "cameraName": "Store-Entry-West", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 203, "cameraName": "Store-Cashier-1", "cameraAngle": "90", "cameraType": "Dome Cameras" },
+            { "camId": 204, "cameraName": "Store-Parking-Lot", "cameraAngle": "360", "cameraType": "PTZ Cameras" }
+          ]},
+          { "depId": 2, "depName": "Mall Branch Security", "totalCamera": 35, "picId": "pic-202", "cameraList": [
+            { "camId": 205, "cameraName": "Mall-Entry-South", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" }
+          ]},
+          { "depId": 3, "depName": "Warehouse & Logistics", "totalCamera": 20, "picId": "pic-203" }
+        ]},
+        { "clientId": 3, "clientName": "SecureTech Industries", "clientDepartments": [
+          { "depId": 1, "depName": "Manufacturing Plant", "totalCamera": 75, "picId": "pic-301", "cameraList": [
+            { "camId": 301, "cameraName": "Plant-Area-A", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 302, "cameraName": "Plant-Area-B", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 303, "cameraName": "Plant-Conveyor-Belt", "cameraAngle": "45", "cameraType": "Dome Cameras" },
+            { "camId": 304, "cameraName": "Plant-Exterior-Perimeter", "cameraAngle": "360", "cameraType": "PTZ Cameras" }
+          ]},
+          { "depId": 2, "depName": "R&D Center", "totalCamera": 15, "picId": "pic-302", "cameraList": [
+            { "camId": 305, "cameraName": "R&D-Lobby", "cameraAngle": "FOV", "cameraType": "Dome Cameras" }
+          ]},
+          { "depId": 3, "depName": "Administrative Building", "totalCamera": 28, "picId": "pic-303" }
+        ]},
+        { "clientId": 4, "clientName": "City Metro Transport", "clientDepartments": [
+          { "depId": 1, "depName": "Bus Terminal Security", "totalCamera": 50, "picId": "pic-401", "cameraList": [
+            { "camId": 401, "cameraName": "Terminal-Platform-1", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 402, "cameraName": "Terminal-Platform-2", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
+            { "camId": 403, "cameraName": "Terminal-Ticketing", "cameraAngle": "90", "cameraType": "Dome Cameras" },
+            { "camId": 404, "cameraName": "Terminal-Parking-Garage", "cameraAngle": "360", "cameraType": "PTZ Cameras" },
+            { "camId": 405, "cameraName": "Terminal-Entry-Gate", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" }
+          ]},
+          { "depId": 2, "depName": "Train Station Security", "totalCamera": 40, "picId": "pic-402", "cameraList": [
+            { "camId": 406, "cameraName": "Station-Main-Concouse", "cameraAngle": "FOV", "cameraType": "Dome Cameras" },
+            { "camId": 407, "cameraName": "Station-Platform-3", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" }
+          ]},
+          { "depId": 3, "depName": "Fleet Management", "totalCamera": 18, "picId": "pic-403" }
+        ]}
+      ];
+
+      // Mock last-visit data — replace with backend lookup later (key: `${clientId}_${depId}`)
+      const LAST_VISITS = {
+        '1_1': { date: '2026-06-25', time: '11:30 AM' },
+        '2_1': { date: '2026-06-29', time: '03:15 PM' },
+        '3_1': { date: '2026-05-10', time: '10:00 AM' },
+        '4_2': { date: '2026-06-30', time: '09:00 AM' }
+      };
+
+      let session = { employee_id: 'ENG-021', name: 'Vikram Joshi' };
+      try { const s = JSON.parse(sessionStorage.getItem('amc_session')); if (s) session = s; } catch (e) {}
+
+      let currentClient = null;
+      let currentDept = null;
+      let cameras = [];
+      let selectedCameras = new Set();
+      let issues = [];
+      let openDetailId = null;
+      let currentPage = 1;
+      let uploadedImages = [];
+      let pendingBulkAction = null;
+
+      const $ = id => document.getElementById(id);
+      const companySelect = $('companySelect');
+      const departmentField = $('departmentField');
+      const companyMeta = $('companyMeta'), companyMetaText = $('companyMetaText');
+      const headerFields = $('headerFields');
+      const cameraSection = $('cameraSection');
+      const issueSection = $('issueSection');
+      const cameraCards = $('cameraCards');
+      const camCountText = $('camCountText');
+      const inspectionType = $('inspectionType');
+      const toast = $('toast');
+      const simpleSubmitBtn = $('simpleSubmitBtn');
+      const submitBtnContainer = $('submitBtnContainer');
+      const paginationBar = $('paginationBar');
+      const searchCamera = $('searchCamera');
+
+      function showToast(msg, danger = false) {
+        toast.textContent = msg;
+        toast.className = 'toast' + (danger ? ' danger' : '') + ' show';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => toast.classList.remove('show'), 2800);
+      }
+
+      // ===== Populate company dropdown =====
+      CLIENTS.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.clientId;
+        opt.textContent = c.clientName;
+        companySelect.appendChild(opt);
+      });
+
+      function resetCameraState() {
+        cameras = [];
+        selectedCameras.clear();
+        openDetailId = null;
+        currentPage = 1;
+        searchCamera.value = '';
+        cameraSection.classList.add('hidden');
+        submitBtnContainer.style.display = 'none';
+      }
+
+      companySelect.addEventListener('change', function () {
+        const id = Number(this.value);
+        if (!id) {
+          currentClient = null; currentDept = null;
+          resetCameraState();
+          headerFields.classList.add('hidden');
+          companyMeta.classList.add('hidden');
+          departmentField.innerHTML = '<option value="">— Select Company First —</option>';
+          $('bsidField').value = '';
+          $('lastVisitInfo').classList.add('hidden');
+          return;
+        }
+        currentClient = CLIENTS.find(c => c.clientId === id);
+        currentDept = null;
+        resetCameraState();
+
+        $('vendorField').value = 'Akansha Enterprises';
+        $('bsidField').value = '';
+        $('visitDateField').value = new Date().toISOString().split('T')[0];
+        $('checkedByField').value = session.name;
+
+        // Populate department dropdown
+        departmentField.innerHTML = '<option value="">— Select Department —</option>';
+        currentClient.clientDepartments.forEach(d => {
+          const o = document.createElement('option');
+          o.value = d.depId;
+          o.textContent = `${d.depName} (${d.totalCamera} cams)`;
+          departmentField.appendChild(o);
+        });
+
+        companyMetaText.textContent = `${currentClient.clientDepartments.length} departments available`;
+        companyMeta.classList.remove('hidden');
+        headerFields.classList.remove('hidden');
+      });
+
+      departmentField.addEventListener('change', function () {
+        const depId = Number(this.value);
+        if (!depId) {
+          currentDept = null;
+          resetCameraState();
+          $('bsidField').value = '';
+          $('lastVisitInfo').classList.add('hidden');
+          return;
+        }
+        currentDept = currentClient.clientDepartments.find(d => d.depId === depId);
+        $('bsidField').value = currentDept.picId || '';
+        renderLastVisitInfo(depId);
+
+        cameras = (currentDept.cameraList || []).map(cam => ({
+          camId: cam.camId,
+          cameraName: cam.cameraName,
+          cameraAngle: cam.cameraAngle,
+          cameraType: cam.cameraType,
+          working: null,
+          lens_cleaning: '', visual_on_tv: '', focus_angle: '', damage: '', abnormality: '', remark: ''
+        }));
+        selectedCameras.clear();
+        openDetailId = null;
+        currentPage = 1;
+        searchCamera.value = '';
+
+        cameraSection.classList.remove('hidden');
+
+        const sel = $('issueCamera');
+        sel.innerHTML = '<option value="">— Select —</option>';
+        cameras.forEach(c => { const o = document.createElement('option'); o.value = c.camId; o.textContent = `${c.cameraName}`; sel.appendChild(o); });
+
+        renderCameraCards();
+        if (inspectionType.value === 'monthly') submitBtnContainer.style.display = 'block';
+      });
+
+      function renderLastVisitInfo(depId) {
+        const box = $('lastVisitInfo');
+        const key = `${currentClient.clientId}_${depId}`;
+        const lv = LAST_VISITS[key];
+        box.classList.remove('hidden');
+        if (lv) {
+          const d = new Date(lv.date);
+          const day = d.toLocaleDateString('en-IN', { weekday: 'long' });
+          const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+          const today = new Date().toISOString().split('T')[0];
+          const isConflict = lv.date === today;
+          box.className = 'mt-2 text-xs rounded-lg px-3 py-2 flex items-start gap-2 ' + (isConflict ? 'bg-[#fbe4e1] text-[#c0392b] border border-[#f3c6c0]' : 'bg-surface3 text-textdim border border-bordersoft');
+          box.innerHTML = `<i class="fa-solid ${isConflict ? 'fa-triangle-exclamation' : 'fa-clock-rotate-left'} mt-0.5"></i><span><strong>Last Visit:</strong> ${dateStr} (${day}) at ${lv.time}${isConflict ? ' — <strong>Same-day visit already logged!</strong>' : ''}</span>`;
+        } else {
+          box.className = 'mt-2 text-xs rounded-lg px-3 py-2 flex items-start gap-2 bg-surface3 text-textfaint border border-bordersoft';
+          box.innerHTML = `<i class="fa-regular fa-clock mt-0.5"></i><span>No previous visit on record for this department.</span>`;
+        }
+      }
+
+      function getFilteredCameras() {
+        const search = searchCamera.value.toLowerCase().trim();
+        if (!search) return cameras;
+        return cameras.filter(c =>
+          String(c.camId).toLowerCase().includes(search) ||
+          (c.cameraName || '').toLowerCase().includes(search) ||
+          (c.cameraType || '').toLowerCase().includes(search) ||
+          (c.cameraAngle || '').toLowerCase().includes(search)
+        );
+      }
+
+      function renderCameraCards() {
+        const filtered = getFilteredCameras();
+        const totalCount = currentDept ? currentDept.totalCamera : 0;
+        camCountText.textContent = `${cameras.length} listed of ${totalCount} total`;
+
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+        if (currentPage > totalPages) currentPage = totalPages;
+        const startIdx = (currentPage - 1) * PAGE_SIZE;
+        const pageCameras = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+        cameraCards.innerHTML = '';
+
+        if (!pageCameras.length) {
+          cameraCards.innerHTML = '<div class="text-center text-textfaint py-8 bg-white rounded-2xl border border-bordersoft"><i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>No cameras match</div>';
+          paginationBar.classList.add('hidden');
+          return;
+        }
+
+        pageCameras.forEach(cam => {
+          const sel = selectedCameras.has(cam.camId);
+          const isOpen = openDetailId === cam.camId;
+
+          const card = document.createElement('div');
+          card.className = `cam-card ${sel ? 'selected' : ''}`;
+          card.innerHTML = `
+            <div class="flex items-start gap-3">
+              <input type="checkbox" class="checkbox cam-check" data-id="${cam.camId}" ${sel ? 'checked' : ''}>
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="font-mono font-bold text-sm">${cam.cameraName}</span>
+                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-surface3 text-primary font-medium">${cam.cameraType || '—'}</span>
+                  <span class="text-[11px] text-textfaint"><i class="fa-solid fa-arrows-rotate mr-0.5"></i>${cam.cameraAngle || '—'}</span>
+                </div>
+                <div class="status-toggle">
+                  <button class="status-btn working-btn ${cam.working === true ? 'active' : ''}" data-id="${cam.camId}" data-val="true">✓ Working</button>
+                  <button class="status-btn faulty-btn ${cam.working === false ? 'active' : ''}" data-id="${cam.camId}" data-val="false">✗ Faulty</button>
+                </div>
+              </div>
+              <button class="cam-detail-toggle text-textfaint hover:text-primary text-xs px-2 py-1.5 border border-bordersoft rounded-lg flex-shrink-0" data-id="${cam.camId}">
+                <i class="fa-regular fa-pen-to-square mr-1"></i>Edit
+              </button>
+            </div>
+            <div class="cam-detail-fields ${isOpen ? 'open' : ''}" id="detail_${cam.camId}">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label>Lens Cleaning</label>
+                  <select class="field-lens" data-id="${cam.camId}">
+                    <option value="">— Select —</option>
+                    <option value="Done" ${cam.lens_cleaning === 'Done' ? 'selected' : ''}>Done</option>
+                    <option value="Pending" ${cam.lens_cleaning === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="N/A" ${cam.lens_cleaning === 'N/A' ? 'selected' : ''}>N/A</option>
+                  </select>
+                </div>
+                <div>
+                  <label>Visual on TV</label>
+                  <select class="field-visual" data-id="${cam.camId}">
+                    <option value="">— Select —</option>
+                    <option value="Yes" ${cam.visual_on_tv === 'Yes' ? 'selected' : ''}>Yes</option>
+                    <option value="No" ${cam.visual_on_tv === 'No' ? 'selected' : ''}>No</option>
+                  </select>
+                </div>
+                <div class="col-span-2">
+                  <label>Focus Angle</label>
+                  <select class="field-focus" data-id="${cam.camId}">
+                    <option value="">— Select —</option>
+                    <option value="Correct" ${cam.focus_angle === 'Correct' ? 'selected' : ''}>Correct</option>
+                    <option value="Adjustment Required" ${cam.focus_angle === 'Adjustment Required' ? 'selected' : ''}>Adjustment Required</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label>Damage (if any)</label>
+                <input type="text" class="field-damage" data-id="${cam.camId}" value="${cam.damage || ''}" placeholder="Describe damage...">
+              </div>
+              <div>
+                <label>Any Abnormality</label>
+                <input type="text" class="field-abnormal" data-id="${cam.camId}" value="${cam.abnormality || ''}" placeholder="Any other issue...">
+              </div>
+              <div class="flex justify-end mt-1">
+                <button class="save-close-detail btn-grad px-4 py-2 rounded-lg text-xs font-semibold" data-id="${cam.camId}">
+                  <i class="fa-solid fa-check mr-1"></i>Save &amp; Close
+                </button>
+              </div>
+            </div>
+          `;
+
+          card.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const c = cameras.find(x => x.camId === Number(btn.dataset.id));
+              if (!c) return;
+              const val = btn.dataset.val === 'true';
+              if (c.working === val) {
+                c.working = null;
+              } else {
+                c.working = val;
+                if (val === true) {
+                  c.lens_cleaning = c.lens_cleaning || 'Done';
+                  c.visual_on_tv = c.visual_on_tv || 'Yes';
+                  c.focus_angle = c.focus_angle || 'Correct';
+                } else {
+                  c.visual_on_tv = c.visual_on_tv || 'No';
+                }
+              }
+              renderCameraCards();
+            });
+          });
+
+          card.querySelector('.cam-check').addEventListener('change', e => {
+            const id = Number(e.target.dataset.id);
+            if (e.target.checked) selectedCameras.add(id);
+            else selectedCameras.delete(id);
+            renderCameraCards();
+          });
+
+          // Accordion: only one card's details open at a time
+          card.querySelector('.cam-detail-toggle').addEventListener('click', () => {
+            const id = Number(card.querySelector('.cam-detail-toggle').dataset.id);
+            openDetailId = openDetailId === id ? null : id;
+            renderCameraCards();
+          });
+
+          card.querySelector('.field-lens').addEventListener('change', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.lens_cleaning = e.target.value; });
+          card.querySelector('.field-visual').addEventListener('change', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.visual_on_tv = e.target.value; });
+          card.querySelector('.field-focus').addEventListener('change', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.focus_angle = e.target.value; });
+          card.querySelector('.field-damage').addEventListener('input', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.damage = e.target.value; });
+          card.querySelector('.field-abnormal').addEventListener('input', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.abnormality = e.target.value; });
+
+          if (isOpen) {
+            card.querySelector('.save-close-detail').addEventListener('click', () => {
+              openDetailId = null;
+              renderCameraCards();
+              showToast('Camera details saved');
+            });
+          }
+
+          cameraCards.appendChild(card);
+        });
+
+        renderPagination(totalPages, filtered.length);
+      }
+
+      function renderPagination(totalPages, filteredCount) {
+        if (totalPages <= 1) { paginationBar.classList.add('hidden'); return; }
+        paginationBar.classList.remove('hidden');
+        paginationBar.innerHTML = '';
+
+        const prev = document.createElement('button');
+        prev.className = 'pg-btn'; prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        prev.disabled = currentPage === 1;
+        prev.addEventListener('click', () => { currentPage--; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
+        paginationBar.appendChild(prev);
+
+        for (let i = 1; i <= totalPages; i++) {
+          if (totalPages > 7 && i !== 1 && i !== totalPages && Math.abs(i - currentPage) > 1) {
+            if (i === 2 || i === totalPages - 1) {
+              const dots = document.createElement('span');
+              dots.textContent = '…'; dots.className = 'px-1 text-textfaint';
+              paginationBar.appendChild(dots);
+            }
+            continue;
+          }
+          const btn = document.createElement('button');
+          btn.className = 'pg-btn' + (i === currentPage ? ' active' : '');
+          btn.textContent = i;
+          btn.addEventListener('click', () => { currentPage = i; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
+          paginationBar.appendChild(btn);
+        }
+
+        const next = document.createElement('button');
+        next.className = 'pg-btn'; next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        next.disabled = currentPage === totalPages;
+        next.addEventListener('click', () => { currentPage++; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
+        paginationBar.appendChild(next);
+      }
+
+      // Search filters the FULL department camera list, paginated afterward
+      searchCamera.addEventListener('input', function () {
+        currentPage = 1;
+        renderCameraCards();
+      });
+
+      // Selection-based bulk apply (works on checked cameras only)
+      $('applyBulkAction').addEventListener('click', function () {
+        const action = $('bulkActionSelect').value;
+        if (!action) { showToast('Select a bulk action first', true); return; }
+        if (selectedCameras.size === 0) { showToast('No cameras selected', true); return; }
+        cameras.forEach(c => {
+          if (selectedCameras.has(c.camId)) {
+            if (action === 'working') {
+              c.working = true;
+              c.lens_cleaning = c.lens_cleaning || 'Done';
+              c.visual_on_tv = c.visual_on_tv || 'Yes';
+              c.focus_angle = c.focus_angle || 'Correct';
+            } else if (action === 'faulty') {
+              c.working = false;
+            }
+          }
+        });
+        renderCameraCards();
+        showToast(`✅ ${selectedCameras.size} cameras marked`);
+        selectedCameras.clear();
+        $('bulkActionSelect').value = '';
+      });
+
+      // ===== MARK ALL WORKING / FAULTY — with confirm overlay =====
+      const bulkConfirmModal = $('bulkConfirmModal');
+      function openBulkConfirm(type) {
+        if (!cameras.length) { showToast('No cameras in this department', true); return; }
+        pendingBulkAction = type;
+        const icon = $('bulkConfirmIcon');
+        const title = $('bulkConfirmTitle');
+        const text = $('bulkConfirmText');
+        if (type === 'working') {
+          icon.className = 'w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#e3f6ea] text-[#1f8a4c]';
+          icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+          title.textContent = 'Mark all as Working?';
+        } else {
+          icon.className = 'w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#fbe4e1] text-[#c0392b]';
+          icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
+          title.textContent = 'Mark all as Faulty?';
+        }
+        text.textContent = `This will mark all ${cameras.length} cameras in "${currentDept.depName}" as ${type}, and select their checkboxes.`;
+        bulkConfirmModal.classList.add('open');
+      }
+      $('markAllWorkingBtn').addEventListener('click', () => openBulkConfirm('working'));
+      $('markAllFaultyBtn').addEventListener('click', () => openBulkConfirm('faulty'));
+      $('bulkConfirmNo').addEventListener('click', () => { bulkConfirmModal.classList.remove('open'); pendingBulkAction = null; });
+      $('bulkConfirmYes').addEventListener('click', () => {
+        if (!pendingBulkAction) return;
+        const val = pendingBulkAction === 'working';
+        cameras.forEach(c => {
+          c.working = val;
+          if (val) {
+            c.lens_cleaning = c.lens_cleaning || 'Done';
+            c.visual_on_tv = c.visual_on_tv || 'Yes';
+            c.focus_angle = c.focus_angle || 'Correct';
+          } else {
+            c.visual_on_tv = c.visual_on_tv || 'No';
+          }
+          selectedCameras.add(c.camId);
+        });
+        bulkConfirmModal.classList.remove('open');
+        renderCameraCards();
+        showToast(pendingBulkAction === 'working' ? '✅ All cameras marked working' : '⚠️ All cameras marked faulty', pendingBulkAction !== 'working');
+        pendingBulkAction = null;
+      });
+      bulkConfirmModal.addEventListener('click', e => { if (e.target === bulkConfirmModal) { bulkConfirmModal.classList.remove('open'); pendingBulkAction = null; } });
+
+      // ===== IMAGE UPLOAD =====
+      const uploadZone = $('uploadZone');
+      const imageUploadInput = $('imageUploadInput');
+      const imagePreviewList = $('imagePreviewList');
+      uploadZone.addEventListener('click', () => imageUploadInput.click());
+      imageUploadInput.addEventListener('change', e => {
+        Array.from(e.target.files).forEach(file => {
+          const url = URL.createObjectURL(file);
+          uploadedImages.push({ id: Date.now() + Math.random(), url, name: file.name });
+        });
+        renderImagePreviews();
+        imageUploadInput.value = '';
+      });
+      function renderImagePreviews() {
+        imagePreviewList.innerHTML = '';
+        uploadedImages.forEach(img => {
+          const div = document.createElement('div');
+          div.className = 'img-thumb';
+          div.innerHTML = `<img src="${img.url}" alt="${img.name}"><div class="rm-img" data-id="${img.id}"><i class="fa-solid fa-xmark"></i></div>`;
+          div.querySelector('.rm-img').addEventListener('click', () => {
+            uploadedImages = uploadedImages.filter(i => i.id !== img.id);
+            renderImagePreviews();
+          });
+          imagePreviewList.appendChild(div);
+        });
+      }
+
+      // Inspection type switch
+      inspectionType.addEventListener('change', function () {
+        const val = this.value;
+        if (val === 'monthly') {
+          cameraSection.classList.remove('hidden');
+          issueSection.classList.add('hidden');
+          if (currentDept) submitBtnContainer.style.display = 'block';
+        } else {
+          cameraSection.classList.add('hidden');
+          issueSection.classList.remove('hidden');
+          submitBtnContainer.style.display = 'none';
+          $('issueSectionTitle').innerHTML = val === 'complaint' ?
+            '<i class="fa-regular fa-circle-exclamation mr-2"></i>Complaint Issue' :
+            '<i class="fa-regular fa-pen-to-square mr-2"></i>Other Issue';
+        }
+      });
+
+      $('issueCamera').addEventListener('change', function () {
+        const cam = cameras.find(c => c.camId === Number(this.value));
+        $('issueDept').value = currentDept ? currentDept.depName : '';
+        $('issueLoc').value = cam ? cam.cameraType : '';
+      });
+
+      // Issue submit
+      $('submitIssueBtn').addEventListener('click', () => {
+        const camId = $('issueCamera').value;
+        const cam = cameras.find(c => c.camId === Number(camId));
+        const issue = {
+          id: Date.now(),
+          company: currentClient ? currentClient.clientName : '',
+          department: currentDept ? currentDept.depName : '',
+          type: $('issueType').value,
+          camera: cam ? cam.cameraName : '',
+          dept: $('issueDept').value || (currentDept ? currentDept.depName : ''),
+          location: $('issueLoc').value || (cam ? cam.cameraType : ''),
+          desc: $('issueDesc').value,
+          priority: $('issuePriority').value,
+          status: $('issueStatus').value,
+          resolution: $('issueResolution').value,
+          created: new Date().toISOString().split('T')[0],
+          resolvedBy: null,
+          resolvedDate: null,
+          approved: false,
+          approved_by: null,
+          approved_date: null
+        };
+        if (issue.status === 'Resolved') {
+          issue.resolvedBy = session.name;
+          issue.resolvedDate = new Date().toISOString().split('T')[0];
+        }
+        issues.push(issue);
+
+        const savedIssues = JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]');
+        savedIssues.push(issue);
+        localStorage.setItem(ISSUES_KEY, JSON.stringify(savedIssues));
+
+        renderIssueList();
+        showToast('Issue submitted & saved ✓');
+        $('issueDesc').value = '';
+        $('issueResolution').value = '';
+        $('issueStatus').value = 'Open';
+        $('issueCamera').value = '';
+        $('issueDept').value = '';
+        $('issueLoc').value = '';
+      });
+
+      function renderIssueList() {
+        const container = $('issueList');
+        container.innerHTML = '';
+        if (issues.length === 0) {
+          container.innerHTML = '<div class="text-center text-textfaint text-sm py-4">No issues reported yet</div>';
+          return;
+        }
+        issues.slice().reverse().forEach(iss => {
+          const priorityClass = iss.priority === 'High' ? 'priority-high' : iss.priority === 'Critical' ? 'priority-critical' : '';
+          const statusClass = iss.status === 'Resolved' ? 'badge-resolved' : iss.status === 'Open' ? 'badge-open' : iss.status === 'In Progress' ? 'badge-progress' : 'bg-gray-100';
+          const createdDate = new Date(iss.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+          const div = document.createElement('div');
+          div.className = `issue-card ${priorityClass}`;
+          div.innerHTML = `
+            <div class="flex flex-wrap justify-between items-start gap-1">
+              <div><span class="font-mono text-sm font-semibold">${iss.camera || 'N/A'}</span><span class="text-xs text-textfaint ml-2">${iss.type || ''}</span></div>
+              <span class="badge-status ${statusClass}">${iss.status}</span>
+            </div>
+            <div class="text-sm mt-1">${iss.desc || ''}</div>
+            <div class="flex flex-wrap gap-2 text-xs text-textfaint mt-1">
+              <span><i class="fa-regular fa-flag mr-1"></i>${iss.priority}</span>
+              <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
+            </div>
+            <div class="issue-actions">
+              <button class="delete-btn" data-id="${iss.id}"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+            </div>
+          `;
+          div.querySelector('.delete-btn').addEventListener('click', () => {
+            if (confirm('Delete this issue?')) {
+              issues = issues.filter(i => i.id !== iss.id);
+              const saved = JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]');
+              localStorage.setItem(ISSUES_KEY, JSON.stringify(saved.filter(i => i.id !== iss.id)));
+              renderIssueList();
+              showToast('Issue deleted');
+            }
+          });
+          container.appendChild(div);
+        });
+      }
+
+      // ===== SUBMIT INSPECTION =====
+      simpleSubmitBtn.addEventListener('click', () => {
+        if (!currentClient || !currentDept) { showToast('Select company & department', true); return; }
+        const unchecked = cameras.filter(c => c.working === null).length;
+        if (unchecked > 0) { showToast(`${unchecked} cameras not checked yet`, true); return; }
+        const total = cameras.length;
+        const working = cameras.filter(c => c.working === true).length;
+        const faulty = total - working;
+        $('confirmSummary').textContent = `${total} cameras · ${working} working · ${faulty} faulty`;
+        $('submitConfirmModal').classList.add('open');
+      });
+
+      $('cancelSubmit').addEventListener('click', () => $('submitConfirmModal').classList.remove('open'));
+
+      $('confirmSubmitBtn').addEventListener('click', () => {
+        const reportId = Date.now();
+        const visitDate = $('visitDateField').value;
+        const vendor = $('vendorField').value;
+        const bsid = $('bsidField').value;
+        const engineer = $('checkedByField').value;
+        const remarks = $('generalRemarks').value;
+
+        const cameraDetails = cameras.map((cam, idx) => ({
+          sr_no: idx + 1,
+          camera_name: cam.cameraName,
+          camera_type: cam.cameraType,
+          camera_angle: cam.cameraAngle,
+          working: cam.working === true ? 'Yes' : 'No',
+          lens_cleaning: cam.lens_cleaning || (cam.working ? 'Done' : 'Pending'),
+          visual_on_tv: cam.visual_on_tv || (cam.working ? 'Yes' : 'No'),
+          focus_angle: cam.focus_angle || (cam.working ? 'Correct' : 'Adjustment Required'),
+          damage: cam.damage || '',
+          abnormality: cam.abnormality || ''
+        }));
+
+        const newReport = {
+          id: reportId,
+          company: currentClient.clientName,
+          department: currentDept.depName,
+          vendor: vendor,
+          bsid_pic: bsid,
+          date: visitDate,
+          engineer: engineer,
+          total: cameras.length,
+          working: cameras.filter(c => c.working === true).length,
+          faulty: cameras.filter(c => c.working === false).length,
+          remarks: remarks,
+          photos: uploadedImages.map(i => i.name),
+          approved: false,
+          approved_by: null,
+          approved_date: null,
+          cameraDetails: cameraDetails
+        };
+
+        const savedReports = JSON.parse(localStorage.getItem(REPORTS_KEY) || '[]');
+        savedReports.push(newReport);
+        localStorage.setItem(REPORTS_KEY, JSON.stringify(savedReports));
+
+        $('submitConfirmModal').classList.remove('open');
+        showToast('✅ Inspection submitted & saved to Reports!');
+
+        setTimeout(() => {
+          uploadedImages = [];
+          renderImagePreviews();
+          companySelect.value = '';
+          companySelect.dispatchEvent(new Event('change'));
+          $('generalRemarks').value = '';
+        }, 500);
+      });
+
+      // User dropdown
+      const userMenuBtn = $('userMenuBtn');
+      const userDropdown = $('userDropdown');
+      const profileModal = $('profileModal');
+      userMenuBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
+      document.addEventListener('click', e => { if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden'); });
+      $('profileMenuItem').addEventListener('click', e => { e.preventDefault(); userDropdown.classList.add('hidden'); profileModal.classList.add('open'); });
+      $('logoutMenuItem').addEventListener('click', e => { e.preventDefault(); sessionStorage.removeItem('amc_session'); window.location.href = '/page/login.html'; });
+      $('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('open'));
+      $('closeProfileModalBtn').addEventListener('click', () => profileModal.classList.remove('open'));
+      profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('open'); });
+
+      // Init
+      $('checkedByField').value = session.name;
+      $('visitDateField').value = new Date().toISOString().split('T')[0];
+    })();
+  </script>
+</body>
+</html>
