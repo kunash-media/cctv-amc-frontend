@@ -3,14 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login — CCTV AMC Manager</title>
+<title>Login — Inspection</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>
   tailwind.config = {
     theme: {
       extend: {
+        colors: {
+          primary: '#1A328D', primarylight: '#1AA1E1', sapphire: '#234FAA',
+          navy: '#081350', shadow: '#151929', indigo: '#7834B8',
+          borderc: '#cdd5ea', bordersoft: '#e1e6f3', textdim: '#3d4763', textfaint: '#7b85a3',
+          surface3: '#eef1fa', redc: '#c0392b', reddim: '#fbe4e1',
+        },
         fontFamily: {
           display: ['Space Grotesk', 'sans-serif'],
           body: ['Inter', 'sans-serif'],
@@ -22,31 +29,52 @@
 </script>
 <style>
   * { box-sizing: border-box; }
-  html, body { background-color: #F3EEEA; min-height: 100vh; }
+  html, body { min-height: 100vh; }
   body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
+    background: radial-gradient(circle at 15% 10%, #1AA1E1 0%, transparent 35%),
+                radial-gradient(circle at 85% 90%, #7834B8 0%, transparent 35%),
+                linear-gradient(160deg, #081350 0%, #151929 55%, #1A328D 100%);
+    background-attachment: fixed;
   }
-  ::selection { background: #2d6a2d; color: #F7F1DE; }
+  ::selection { background: #1AA1E1; color: #fff; }
   ::-webkit-scrollbar { width: 10px; height: 10px; display: none; }
 
-  input::placeholder { color: #a89884; }
-
-  .toggle-pill { transition: all .15s ease; }
+  input::placeholder { color: #a6aec6; }
 
   .field-glow:focus-within {
-    box-shadow: 0 0 0 3px rgba(45,106,45,0.12);
-    border-color: #2d6a2d !important;
+    box-shadow: 0 0 0 3px rgba(26,161,225,0.18);
+    border-color: #1A328D !important;
+  }
+
+  .grad-btn {
+    background: linear-gradient(135deg, #1A328D, #234FAA, #1AA1E1);
+    transition: filter .15s ease, transform .1s ease;
+  }
+  .grad-btn:hover { filter: brightness(1.1); }
+  .grad-btn:active { transform: scale(0.99); }
+
+  .card-glass {
+    background: rgba(255,255,255,0.97);
+    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 30px 60px -20px rgba(8,19,80,0.55);
   }
 
   .toast {
     position: fixed; bottom: 24px; right: 24px; left: 24px; max-width: 380px; margin-left: auto;
-    background: #1c252b; border: 1px solid #2a363e; border-left: 3px solid #b53b3b;
-    color: #e7edf0; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    background: #151929; border: 1px solid #2a3050; border-left: 3px solid #c0392b;
+    color: #e7edf0; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500;
     box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); z-index: 100;
     transform: translateY(20px); opacity: 0; transition: all .25s ease; pointer-events: none;
   }
   .toast.show { transform: translateY(0); opacity: 1; }
+
+  .logo-badge {
+    width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(135deg, #1A328D, #1AA1E1);
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 28px -8px rgba(26,50,141,0.55);
+    overflow: hidden;
+  }
 
   @media (max-width: 480px) { .toast { right: 16px; left: 16px; } }
 </style>
@@ -55,75 +83,62 @@
 
 <div class="w-full max-w-[420px]">
 
-  <!-- Brand -->
-  <div class="flex items-center justify-center gap-3 mb-8">
-    <!-- <img src="image/kunash-logo.png" width="150" height="150"> -->
-    <!-- <div class="text-left">
-      <div class="font-display font-bold text-[18px] tracking-tight text-[#776B5D]">AMC Manager</div>
-      <div class="text-[11px] text-[#8a7a68] font-mono uppercase tracking-widest -mt-0.5">CCTV Service Console</div>
-    </div> -->
-  </div>
-
   <!-- Card -->
-  <div class="relative bg-[#F6F1F1] border border-[#B0A695] rounded-2xl shadow-xl overflow-hidden">
+  <div class="relative card-glass rounded-3xl overflow-hidden">
+
+    <div class="h-1.5 w-full grad-btn"></div>
 
     <div class="relative px-6 sm:px-8 pt-8 pb-7">
 
-      <!-- Role toggle -->
-      <div class="flex  items-center justify-center gap-2.5 mb-4">
-         <img src="/page/image/kunash-logo.png" width="150" height="150">
-    
+      <!-- Brand / Logo — inside the form card -->
+      <div class="flex flex-col items-center justify-center gap-2.5 mb-5">
+        <div class="">
+          <img src="/page/image/logo.png" alt="CCTV AMC" class="w-48 h-38 object-contain p-2">
+        </div>
+        
       </div>
 
-      <h1 id="formTitle" class="font-display font-bold text-[20px] m-0 mb-1.5 text-[#3a332b] flex justify-center">Engineer Login</h1>
-
+      <h1 id="formTitle" class="font-display font-bold text-[20px] m-0 mb-1.5 text-shadow flex justify-center text-[#151929]">Engineer Login</h1>
+      
       <!-- Demo credentials hint -->
-      <div id="demoHint" class="mb-5 text-[11.5px] leading-relaxed bg-[#ede4d4] border border-[#e0d5c4] rounded-md px-3.5 py-2.5 text-[#6b5a48] font-mono text-center"></div>
+      <!-- <div id="demoHint" class="mb-5 text-[11.5px] leading-relaxed bg-surface3 border border-bordersoft rounded-lg px-3.5 py-2.5 text-primary font-mono text-center"></div> -->
 
       <form id="loginForm" class="flex flex-col gap-4">
 
-
-
         <!-- Mobile number -->
         <div class="flex flex-col gap-1.5">
-          <label for="mobile" class="text-[12.5px] font-medium text-[#6b5a48]">Mobile Number</label>
-          <div class="field-glow flex items-center gap-2.5 bg-white border border-[#e0d5c4] rounded-md px-3.5 py-3 transition">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-[#a89884] flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            <input type="tel" id="mobile" required placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" class="flex-1 bg-transparent text-[#3a332b] text-[14px] outline-none">
+          <label for="mobile" class="text-[12.5px] font-medium text-textdim">Mobile Number</label>
+          <div class="field-glow flex items-center gap-2.5 bg-white border border-bordersoft rounded-xl px-3.5 py-3 transition">
+            <i class="fa-solid fa-mobile-screen-button text-textfaint flex-shrink-0"></i>
+            <input type="tel" id="mobile" required placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" maxlength="10" class="flex-1 bg-transparent text-[#151929] text-[14px] outline-none">
           </div>
         </div>
 
         <!-- Password -->
         <div class="flex flex-col gap-1.5">
           <div class="flex justify-between items-center">
-            <label for="password" class="text-[12.5px] font-medium text-[#6b5a48]">Password</label>
-            <button type="button" id="forgotPwBtn" class="text-[12px] text-[#2d6a2d] hover:underline">Forgot?</button>
+            <label for="password" class="text-[12.5px] font-medium text-textdim">Password</label>
+            <button type="button" id="forgotPwBtn" class="text-[12px] text-primary hover:underline font-medium">Forgot?</button>
           </div>
-          <div class="field-glow flex items-center gap-2.5 bg-white border border-[#e0d5c4] rounded-md px-3.5 py-3 transition">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-[#a89884] flex-shrink-0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="password" required placeholder="Enter password" autocomplete="current-password" class="flex-1 bg-transparent text-[#3a332b] text-[14px] outline-none">
-            <button type="button" id="togglePw" class="text-[#a89884] hover:text-[#6b5a48] flex-shrink-0" aria-label="Toggle password visibility">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <div class="field-glow flex items-center gap-2.5 bg-white border border-bordersoft rounded-xl px-3.5 py-3 transition">
+            <i class="fa-solid fa-lock text-textfaint flex-shrink-0"></i>
+            <input type="password" id="password" required placeholder="Enter password" autocomplete="current-password" class="flex-1 bg-transparent text-[#151929] text-[14px] outline-none">
+            <button type="button" id="togglePw" class="text-textfaint hover:text-primary flex-shrink-0" aria-label="Toggle password visibility">
+              <i class="fa-regular fa-eye"></i>
             </button>
           </div>
         </div>
+git
 
-        <label class="flex items-center gap-2.5 mt-0.5 cursor-pointer select-none">
-          <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-[#e0d5c4] accent-[#776B5D]">
-          <span class="text-[13px] text-[#6b5a48]">Remember this device</span>
-        </label>
-
-        <button type="submit" class="mt-1 w-full flex items-center justify-center gap-2 font-semibold text-[14px] py-3.5 rounded-md bg-[#5a4a3a] text-white hover:bg-[#776B5D] transition active:scale-[0.99]">
+        <button type="submit" class="grad-btn mt-1 w-full flex items-center justify-center gap-2 font-semibold text-[14px] py-3.5 rounded-xl text-white">
           <span id="submitLabel">Sign In</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <i class="fa-solid fa-arrow-right"></i>
         </button>
       </form>
     </div>
-
-    
   </div>
 
-  <p class="text-center text-[12px] text-[#8a7a68] mt-6">
+  <p class="text-center text-[12px] text-[#b9c3e0] mt-6">
     Having trouble signing in? Contact your office administrator.
   </p>
 </div>
@@ -131,42 +146,42 @@
 <div class="toast" id="toast"></div>
 
 <!-- Forgot Password Modal -->
-<div id="forgotPwBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-5">
-  <div class="bg-[#F6F1F1] border border-[#B0A695] rounded-2xl w-full max-w-[400px] shadow-2xl">
+<div id="forgotPwBackdrop" class="fixed inset-0 bg-[#081350]/70 backdrop-blur-sm z-[60] hidden items-center justify-center p-5">
+  <div class="bg-white border border-bordersoft rounded-2xl w-full max-w-[400px] shadow-2xl">
     <div id="forgotPwStep1" class="px-6 py-6">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="font-display font-bold text-[17px] m-0 text-[#3a332b]">Reset Password</h3>
-        <button type="button" id="closeForgotPw" class="w-8 h-8 flex items-center justify-center rounded-md border border-[#e0d5c4] text-[#776B5D] hover:bg-[#776B5D] hover:text-white transition">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <h3 class="font-display font-bold text-[17px] m-0 text-[#151929]">Reset Password</h3>
+        <button type="button" id="closeForgotPw" class="w-8 h-8 flex items-center justify-center rounded-lg border border-bordersoft text-primary hover:bg-primary hover:text-white transition">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-      <p class="text-[13px] text-[#6b5a48] mb-4">Enter your registered mobile number. We'll send a reset link / OTP to it.</p>
+      <p class="text-[13px] text-textdim mb-4">Enter your registered mobile number. We'll send a reset link / OTP to it.</p>
       <div class="flex flex-col gap-1.5 mb-5">
-        <label for="forgotMobile" class="text-[12.5px] font-medium text-[#6b5a48]">Mobile Number</label>
-        <div class="field-glow flex items-center gap-2.5 bg-white border border-[#e0d5c4] rounded-md px-3.5 py-3 transition">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-[#a89884] flex-shrink-0"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <input type="tel" id="forgotMobile" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" class="flex-1 bg-transparent text-[#3a332b] text-[14px] outline-none">
+        <label for="forgotMobile" class="text-[12.5px] font-medium text-textdim">Mobile Number</label>
+        <div class="field-glow flex items-center gap-2.5 bg-white border border-bordersoft rounded-xl px-3.5 py-3 transition">
+          <i class="fa-solid fa-mobile-screen-button text-textfaint flex-shrink-0"></i>
+          <input type="tel" id="forgotMobile" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" class="flex-1 bg-transparent text-[#151929] text-[14px] outline-none">
         </div>
       </div>
-      <button type="button" id="sendResetBtn" class="w-full font-semibold text-[14px] py-3 rounded-md bg-[#5a4a3a] text-white hover:bg-[#776B5D] transition">Send Reset Link</button>
+      <button type="button" id="sendResetBtn" class="grad-btn w-full font-semibold text-[14px] py-3 rounded-xl text-white">Send Reset Link</button>
     </div>
 
     <div id="forgotPwStep2" class="px-6 py-7 text-center hidden">
-      <div class="w-12 h-12 rounded-full bg-[#e8f0e8] text-[#2d6a2d] font-display font-bold text-xl flex items-center justify-center mx-auto mb-3.5">✓</div>
-      <h3 class="font-display font-bold text-[16px] m-0 mb-2 text-[#3a332b]">Reset link sent</h3>
-      <p class="text-[13px] text-[#6b5a48] mb-5" id="resetSentText">A password reset OTP has been sent to your mobile number.</p>
-      <button type="button" id="closeForgotPwStep2" class="w-full font-semibold text-[14px] py-3 rounded-md bg-[#5a4a3a] text-white hover:bg-[#776B5D] transition">Back to Login</button>
+      <div class="w-12 h-12 rounded-full bg-[#e3f6ea] text-[#1f8a4c] font-display font-bold text-xl flex items-center justify-center mx-auto mb-3.5"><i class="fa-solid fa-check"></i></div>
+      <h3 class="font-display font-bold text-[16px] m-0 mb-2 text-[#151929]">Reset link sent</h3>
+      <p class="text-[13px] text-textdim mb-5" id="resetSentText">A password reset OTP has been sent to your mobile number.</p>
+      <button type="button" id="closeForgotPwStep2" class="grad-btn w-full font-semibold text-[14px] py-3 rounded-xl text-white">Back to Login</button>
     </div>
   </div>
 </div>
 
 <!-- Session Timeout Modal -->
-<div id="sessionTimeoutBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-5">
-  <div class="bg-[#F6F1F1] border border-[#B0A695] rounded-2xl w-full max-w-[400px] shadow-2xl px-6 py-7 text-center">
-    <div class="w-12 h-12 rounded-full bg-[#f0e0e0] text-[#b53b3b] font-display font-bold text-xl flex items-center justify-center mx-auto mb-3.5">!</div>
-    <h3 class="font-display font-bold text-[16px] m-0 mb-2 text-[#3a332b]">Session Expired</h3>
-    <p class="text-[13px] text-[#6b5a48] mb-5">You were logged out due to 30 minutes of inactivity. Please sign in again.</p>
-    <button type="button" id="sessionTimeoutOkBtn" class="w-full font-semibold text-[14px] py-3 rounded-md bg-[#5a4a3a] text-white hover:bg-[#776B5D] transition">Sign In Again</button>
+<div id="sessionTimeoutBackdrop" class="fixed inset-0 bg-[#081350]/70 backdrop-blur-sm z-[70] hidden items-center justify-center p-5">
+  <div class="bg-white border border-bordersoft rounded-2xl w-full max-w-[400px] shadow-2xl px-6 py-7 text-center">
+    <div class="w-12 h-12 rounded-full bg-reddim text-redc font-display font-bold text-xl flex items-center justify-center mx-auto mb-3.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
+    <h3 class="font-display font-bold text-[16px] m-0 mb-2 text-[#151929]">Session Expired</h3>
+    <p class="text-[13px] text-textdim mb-5">You were logged out due to 30 minutes of inactivity. Please sign in again.</p>
+    <button type="button" id="sessionTimeoutOkBtn" class="grad-btn w-full font-semibold text-[14px] py-3 rounded-xl text-white">Sign In Again</button>
   </div>
 </div>
 
@@ -179,8 +194,7 @@
   // Demo accounts (replace with real auth API later)
   // ---------------------------------------------------------------------
   const DEMO_ACCOUNTS = [
-    { mobile: '0000000000', password: '123456', name: 'Vikram Joshi', employee_id: 'ENG-014' },
-    { mobile: '8983448510', password: '123456', name: 'Engineer User', employee_id: 'ENG-021' }
+    { mobile: '0000000000', password: '123456', name: 'Vikram Joshi', employee_id: 'ENG-014' }
   ];
 
   const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes inactivity
@@ -192,11 +206,12 @@
   const toast = document.getElementById('toast');
   const demoHint = document.getElementById('demoHint');
 
-  demoHint.textContent = `Demo → Mobile: ${DEMO_ACCOUNTS[0].mobile} / ${DEMO_ACCOUNTS[1].mobile} · Password: ${DEMO_ACCOUNTS[0].password} / ${DEMO_ACCOUNTS[1].password}`;
+  // demoHint.textContent = `Demo → Mobile: ${DEMO_ACCOUNTS[0].mobile}  · Password: ${DEMO_ACCOUNTS[0].password} `;
 
   togglePw.addEventListener('click', () => {
     const isPw = password.type === 'password';
     password.type = isPw ? 'text' : 'password';
+    togglePw.innerHTML = isPw ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
   });
 
   mobile.addEventListener('input', () => {
