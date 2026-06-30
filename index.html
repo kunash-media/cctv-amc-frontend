@@ -101,7 +101,7 @@
       <h1 id="formTitle" class="font-display font-bold text-[20px] m-0 mb-1.5 text-shadow flex justify-center text-[#151929]">Engineer Login</h1>
       
       <!-- Demo credentials hint -->
-      <!-- <div id="demoHint" class="mb-5 text-[11.5px] leading-relaxed bg-surface3 border border-bordersoft rounded-lg px-3.5 py-2.5 text-primary font-mono text-center"></div> -->
+      <div id="demoHint" class="mb-5 text-[11.5px] leading-relaxed bg-surface3 border border-bordersoft rounded-lg px-3.5 py-2.5 text-primary font-mono text-center"></div>
 
       <form id="loginForm" class="flex flex-col gap-4">
 
@@ -129,6 +129,10 @@
           </div>
         </div>
 
+        <label class="flex items-center gap-2.5 mt-0.5 cursor-pointer select-none">
+          <input type="checkbox" id="rememberMe" class="w-4 h-4 rounded border-bordersoft accent-[#1A328D]">
+          <span class="text-[13px] text-textdim">Remember this device</span>
+        </label>
 
         <button type="submit" class="grad-btn mt-1 w-full flex items-center justify-center gap-2 font-semibold text-[14px] py-3.5 rounded-xl text-white">
           <span id="submitLabel">Sign In</span>
@@ -206,7 +210,7 @@
   const toast = document.getElementById('toast');
   const demoHint = document.getElementById('demoHint');
 
-  // demoHint.textContent = `Demo → Mobile: ${DEMO_ACCOUNTS[0].mobile}  · Password: ${DEMO_ACCOUNTS[0].password} `;
+  demoHint.textContent = `Test → Mobile: ${DEMO_ACCOUNTS[0].mobile}  · Password: ${DEMO_ACCOUNTS[0].password} `;
 
   togglePw.addEventListener('click', () => {
     const isPw = password.type === 'password';
