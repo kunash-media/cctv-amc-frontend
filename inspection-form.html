@@ -114,6 +114,11 @@
     .upload-zone { border: 1.5px dashed #b9c3e0; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; transition: all .15s; background: #f9fafd; }
     .upload-zone:hover { border-color: #1AA1E1; background: #f0f7fd; }
 
+    .sig-pad-wrap { border: 1.5px dashed #b9c3e0; border-radius: 14px; padding: 10px; background: #f9fafd; }
+    .sig-pad-wrap canvas { width: 100%; height: 130px; background: #fff; border-radius: 10px; border: 1px solid #e1e6f3; touch-action: none; cursor: crosshair; }
+    .sig-empty-hint { position: relative; }
+    .sig-empty-hint::after { content: 'Sign here'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 12px; color: #b9c3e0; pointer-events: none; }
+
     @media (max-width: 640px) {
       .filter-bar { flex-direction: column; align-items: stretch; }
       .filter-bar input { width: 100%; }
@@ -291,6 +296,18 @@
       <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-surface3 text-primary"><i class="fa-regular fa-circle-check"></i></div>
       <h3 class="font-display text-lg mb-1">Submit this Inspection?</h3>
       <p id="confirmSummary" class="text-textdim text-sm my-2"></p>
+
+      <div class="text-left mt-3">
+        <label class="text-xs font-semibold text-textdim block mb-1"><i class="fa-solid fa-signature mr-1 text-primary"></i>Engineer Signature</label>
+        <div class="sig-pad-wrap">
+          <canvas id="signaturePad" width="360" height="140"></canvas>
+        </div>
+        <div class="flex justify-between items-center mt-1.5">
+          <span id="sigStatusText" class="text-[11px] text-redc font-medium"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Signature required</span>
+          <button type="button" id="clearSignatureBtn" class="text-[11px] text-primary font-semibold underline">Clear</button>
+        </div>
+      </div>
+
       <div class="flex gap-3 mt-4">
         <button id="cancelSubmit" class="btn-secondary">No</button>
         <button id="confirmSubmitBtn" class="btn-primary">Yes, Submit</button>
@@ -413,6 +430,68 @@
         clearTimeout(toast._t);
         toast._t = setTimeout(() => toast.classList.remove('show'), 2800);
       }
+
+      // ===== SIGNATURE PAD =====
+      const sigCanvas = $('signaturePad');
+      const sigCtx = sigCanvas.getContext('2d');
+      const sigStatusText = $('sigStatusText');
+      let sigDrawing = false, hasSignature = false;
+
+      function resizeSignaturePad() {
+        const rect = sigCanvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        sigCanvas.width = rect.width * ratio;
+        sigCanvas.height = rect.height * ratio;
+        sigCtx.scale(ratio, ratio);
+        sigCtx.lineCap = 'round';
+        sigCtx.lineJoin = 'round';
+        sigCtx.strokeStyle = '#151929';
+        sigCtx.lineWidth = 2.2;
+      }
+
+      function sigPos(e) {
+        const rect = sigCanvas.getBoundingClientRect();
+        const point = e.touches ? e.touches[0] : e;
+        return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+      }
+      function sigStart(e) {
+        sigDrawing = true;
+        const p = sigPos(e);
+        sigCtx.beginPath();
+        sigCtx.moveTo(p.x, p.y);
+        e.preventDefault();
+      }
+      function sigMove(e) {
+        if (!sigDrawing) return;
+        const p = sigPos(e);
+        sigCtx.lineTo(p.x, p.y);
+        sigCtx.stroke();
+        if (!hasSignature) { hasSignature = true; updateSigStatus(); }
+        e.preventDefault();
+      }
+      function sigEnd() { sigDrawing = false; }
+      function updateSigStatus() {
+        if (hasSignature) {
+          sigStatusText.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i>Signature captured';
+          sigStatusText.className = 'text-[11px] text-accenttext font-medium';
+        } else {
+          sigStatusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>Signature required';
+          sigStatusText.className = 'text-[11px] text-redc font-medium';
+        }
+      }
+      function clearSignaturePad() {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+        hasSignature = false;
+        updateSigStatus();
+      }
+
+      sigCanvas.addEventListener('mousedown', sigStart);
+      sigCanvas.addEventListener('mousemove', sigMove);
+      window.addEventListener('mouseup', sigEnd);
+      sigCanvas.addEventListener('touchstart', sigStart, { passive: false });
+      sigCanvas.addEventListener('touchmove', sigMove, { passive: false });
+      sigCanvas.addEventListener('touchend', sigEnd);
+      $('clearSignatureBtn').addEventListener('click', clearSignaturePad);
 
       // ===== Populate company dropdown =====
       CLIENTS.forEach(c => {
@@ -923,18 +1002,23 @@
         const working = cameras.filter(c => c.working === true).length;
         const faulty = total - working;
         $('confirmSummary').textContent = `${total} cameras · ${working} working · ${faulty} faulty`;
+        clearSignaturePad();
+        setTimeout(resizeSignaturePad, 50);
         $('submitConfirmModal').classList.add('open');
       });
 
       $('cancelSubmit').addEventListener('click', () => $('submitConfirmModal').classList.remove('open'));
 
       $('confirmSubmitBtn').addEventListener('click', () => {
+        if (!hasSignature) { showToast('Please sign before submitting', true); return; }
+
         const reportId = Date.now();
         const visitDate = $('visitDateField').value;
         const vendor = $('vendorField').value;
         const bsid = $('bsidField').value;
         const engineer = $('checkedByField').value;
         const remarks = $('generalRemarks').value;
+        const signatureData = sigCanvas.toDataURL('image/png');
 
         const cameraDetails = cameras.map((cam, idx) => ({
           sr_no: idx + 1,
@@ -957,6 +1041,7 @@
           bsid_pic: bsid,
           date: visitDate,
           engineer: engineer,
+          signature: signatureData,
           total: cameras.length,
           working: cameras.filter(c => c.working === true).length,
           faulty: cameras.filter(c => c.working === false).length,
@@ -978,6 +1063,7 @@
         setTimeout(() => {
           uploadedImages = [];
           renderImagePreviews();
+          clearSignaturePad();
           companySelect.value = '';
           companySelect.dispatchEvent(new Event('change'));
           $('generalRemarks').value = '';
@@ -999,6 +1085,7 @@
       // Init
       $('checkedByField').value = session.name;
       $('visitDateField').value = new Date().toISOString().split('T')[0];
+      resizeSignaturePad();
     })();
   </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <title>Reports — CCTV AMC</title>
+    <title>Reports — CCTV AMC Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,11 +14,11 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: '#F3EEEA', surface: '#F6F1F1', surface2: '#FFFFFF', surface3: '#ede4d4',
-                        borderc: '#B0A695', bordersoft: '#e0d5c4', textdim: '#6b5a48', textfaint: '#8a7a68',
-                        accent: '#2d6a2d', accentdim: '#e8f0e8', accenttext: '#2d6a2d',
-                        amber: '#c47a1a', amberdim: '#f5e8cc', ambertext: '#c47a1a',
-                        redc: '#b53b3b', reddim: '#f0e0e0', redtext: '#b53b3b',
+                        bg: '#F0F3FB', surface: '#FFFFFF', surface2: '#FFFFFF', surface3: '#eef1fa',
+                        borderc: '#cdd5ea', bordersoft: '#e1e6f3', textdim: '#3d4763', textfaint: '#7b85a3',
+                        accent: '#1A328D', accentdim: '#e3f6ea', accenttext: '#1A328D',
+                        amber: '#b07d1a', amberdim: '#f5e8cc', ambertext: '#b07d1a',
+                        redc: '#c0392b', reddim: '#fbe4e1', redtext: '#c0392b',
                     },
                     fontFamily: {
                         display: ['Space Grotesk', 'sans-serif'],
@@ -31,105 +31,97 @@
     </script>
     <style>
         * { box-sizing: border-box; }
-        html, body { background: #F3EEEA; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        html, body { background: #F0F3FB; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #c0b5a4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cdd5ea; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9aa6c9; }
 
-        .sidebar { background: #f0e1ca; transition: width 0.25s ease, transform 0.25s ease; width: 260px; overflow-x: hidden; flex-shrink: 0; }
+        .sidebar { background: #FFFFFF; transition: width 0.25s ease, transform 0.25s ease; width: 260px; overflow-x: hidden; flex-shrink: 0; }
         .sidebar.collapsed { width: 72px; }
         .sidebar.collapsed .sidebar-nav-text { display: none; }
         .sidebar.collapsed .sidebar-nav-item { justify-content: center; padding: 0.625rem; }
         .sidebar a:hover { background: rgba(0,0,0,0.06); color: #1a1a1a; }
-        .sidebar a.active { background-color: #5a4a3a !important; color: white !important; width: 90%; margin-left: 10px; border-radius: 8px; }
+        .sidebar a.active { background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; margin-left: 10px; border-radius: 10px; }
         .sidebar a.active svg { stroke: white !important; }
-        .sidebar { border-right-color: #d4c4b0; }
+        .sidebar { border-right-color: #e1e6f3; }
 
-        .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px; background: #5a4a3a; color: white; border: none; transition: background 0.15s; cursor: pointer; text-decoration: none; min-height: 44px; }
-        .btn-primary:hover { background: #776B5D; }
-        .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px; background: #e8e0d8; color: #3a332b; border: 1px solid #c0b5a4; transition: background 0.15s; cursor: pointer; text-decoration: none; min-height: 44px; }
-        .btn-secondary:hover { background: #ddd5cb; }
-        .btn-reset { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 8px; background: #8a7a68; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 44px; }
-        .btn-reset:hover { background: #6b5a48; }
+        .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 10px; background: linear-gradient(135deg, #1A328D, #234FAA); color: white; border: none; transition: filter 0.15s; cursor: pointer; text-decoration: none; min-height: 44px; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 10px; background: #eef1fa; color: #1A328D; border: 1px solid #cdd5ea; transition: background 0.15s; cursor: pointer; text-decoration: none; min-height: 44px; }
+        .btn-secondary:hover { background: #dfe6f7; }
+        .btn-reset { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 10px; background: #7b85a3; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 44px; }
+        .btn-reset:hover { background: #3d4763; }
 
-        .btn-export-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #1a6d3a; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
-        .btn-export-excel:hover { background: #0f502a; }
-        .btn-export-issue-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #7c3a1a; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
-        .btn-export-issue-excel:hover { background: #5a2a10; }
-        .btn-email { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #2563eb; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
-        .btn-email:hover { background: #1d4ed8; }
-        .btn-approve { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12px; padding: 6px 14px; border-radius: 6px; background: #2d6a2d; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 34px; }
-        .btn-approve:hover { background: #1f4f1f; }
-        .btn-approve.approved { background: #8a7a68; cursor: default; }
-        .btn-approve.approved:hover { background: #8a7a68; }
+        .btn-export-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #1f8a4c; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
+        .btn-export-excel:hover { background: #166538; }
+        .btn-export-issue-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #b07d1a; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
+        .btn-export-issue-excel:hover { background: #8a5f12; }
+        .btn-approve { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12px; padding: 6px 14px; border-radius: 6px; background: #1A328D; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 34px; }
+        .btn-approve:hover { background: #234FAA; }
+        .btn-approve.approved { background: #7b85a3; cursor: default; }
+        .btn-approve.approved:hover { background: #7b85a3; }
 
         .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; letter-spacing: .02em; }
         .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-        .chip-active { background: #e8f0e8; color: #2d6a2d; }
-        .chip-soon { background: #f5e8cc; color: #c47a1a; }
-        .chip-approved { background: #dce8dc; color: #1f4f1f; }
+        .chip-active { background: #e3f6ea; color: #1f8a4c; }
+        .chip-soon { background: #f5e8cc; color: #b07d1a; }
+        .chip-approved { background: #e3f6ea; color: #1f8a4c; }
         .chip-pending { background: #f5e8cc; color: #b07d1a; }
-        .chip-resolved { background: #dce8dc; color: #1f4f1f; }
+        .chip-resolved { background: #e3f6ea; color: #1f8a4c; }
         .chip-open { background: #f5e8cc; color: #b07d1a; }
-        .chip-progress { background: #d6e4f0; color: #1a4b6a; }
-        .chip-closed { background: #e8e0d8; color: #6b5a48; }
+        .chip-progress { background: #dfe6f7; color: #1A328D; }
+        .chip-closed { background: #eef1fa; color: #3d4763; }
 
-        .month-group { background: #F6F1F1; border: 1px solid #e0d5c4; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-        .month-group .month-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; color: #5a4a3a; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
-        .month-group .month-title .count-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #ede4d4; padding: 2px 10px; border-radius: 20px; color: #5a4a3a; }
+        .month-group { background: #FFFFFF; border: 1px solid #cdd5ea; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+        .month-group .month-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; color: #1A328D; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        .month-group .month-title .count-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: #eef1fa; padding: 2px 10px; border-radius: 20px; color: #1A328D; }
 
-        .report-card { background: white; border: 1px solid #e0d5c4; border-radius: 12px; padding: 16px; transition: all 0.15s; }
-        .report-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .issue-card-r { background: white; border: 1px solid #e0d5c4; border-radius: 12px; padding: 16px; transition: all 0.15s; border-left: 4px solid #b53b3b; }
-        .issue-card-r:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .issue-card-r.resolved { border-left-color: #2d6a2d; }
+        .report-card { background: white; border: 1px solid #cdd5ea; border-radius: 12px; padding: 16px; transition: all 0.15s; }
+        .report-card:hover { box-shadow: 0 4px 12px rgba(26,50,141,0.08); }
+        .issue-card-r { background: white; border: 1px solid #cdd5ea; border-radius: 12px; padding: 16px; transition: all 0.15s; border-left: 4px solid #c0392b; }
+        .issue-card-r:hover { box-shadow: 0 4px 12px rgba(26,50,141,0.08); }
+        .issue-card-r.resolved { border-left-color: #1f8a4c; }
 
-        .toast { position: fixed; bottom: 24px; right: 24px; background: #1c252b; border: 1px solid #2a363e; border-left: 3px solid #2d6a2d; color: #e7edf0; padding: 12px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); z-index: 100; transform: translateY(20px); opacity: 0; transition: all .25s ease; pointer-events: none; }
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #151929; border-left: 4px solid #1A328D; color: #e7edf0; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); z-index: 100; transform: translateY(20px); opacity: 0; transition: all .25s ease; pointer-events: none; }
         .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.toast-danger { border-left-color: #b53b3b; }
+        .toast.toast-danger { border-left-color: #c0392b; }
 
         .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
         .modal-backdrop.open { display: flex; }
         .modal { animation: modalIn .18s ease; }
         @keyframes modalIn { from { opacity: 0; transform: translateY(8px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .modal-card { background: white; border-radius: 24px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.4); }
+        .modal-card { background: white; border: 1px solid #cdd5ea; border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 24px 48px -12px rgba(0,0,0,0.25); }
 
-        .profile-field { display: flex; padding: 10px 0; border-bottom: 1px solid #f0ebe5; }
-        .profile-field .label { width: 110px; flex-shrink: 0; font-size: 13px; color: #8a7a68; font-weight: 500; }
-        .profile-field .value { flex: 1; font-size: 14px; color: #3a332b; font-weight: 500; }
-
-        .tab-btn { padding: 10px 24px; border: none; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; background: transparent; color: #8a7a68; border-bottom: 3px solid transparent; min-height: 44px; }
-        .tab-btn.active { color: #5a4a3a; border-bottom-color: #5a4a3a; background: #f6f1f1; }
-        .tab-btn:hover { background: #f6f1f1; }
+        .tab-btn { padding: 10px 24px; border: none; border-radius: 8px 8px 0 0; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; background: transparent; color: #7b85a3; border-bottom: 3px solid transparent; min-height: 44px; }
+        .tab-btn.active { color: #1A328D; border-bottom-color: #1A328D; background: #eef1fa; }
+        .tab-btn:hover { background: #eef1fa; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
-        .image-upload-area { border: 2px dashed #e0d5c4; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: #faf7f2; min-height: 100px; }
-        .image-upload-area:hover { border-color: #5a4a3a; background: #f6f1f1; }
-        .image-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
-        .image-preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid #e0d5c4; }
-        .image-preview-item img { width: 100%; height: 100%; object-fit: cover; }
-        .image-preview-item .remove-img { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 
         .dropdown-menu { opacity: 0; visibility: hidden; transform: translateY(-8px); transition: all 0.2s ease; }
         .dropdown-menu.open { opacity: 1; visibility: visible; transform: translateY(0); }
 
-        .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: white; padding: 12px 16px; border-radius: 16px; border: 1px solid #e0d5c4; }
-        .filter-bar select, .filter-bar input { background: #f9f7f5; border: 1px solid #d6cdc0; border-radius: 30px; padding: 8px 16px; font-size: 13px; min-width: 120px; min-height: 40px; }
-        .filter-bar button { background: #5a4a3a; color: white; border: none; border-radius: 30px; padding: 8px 18px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; min-height: 40px; }
-        .filter-bar button:hover { background: #776B5D; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: white; padding: 12px 16px; border-radius: 16px; border: 1px solid #cdd5ea; }
+        .filter-bar select, .filter-bar input { background: #ffffff; border: 1px solid #cdd5ea; border-radius: 8px; padding: 8px 16px; font-size: 13px; min-width: 120px; min-height: 40px; color: #1A328D; }
+        .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: #1A328D; }
+        .filter-bar button { background: #1A328D; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; min-height: 40px; }
+        .filter-bar button:hover { filter: brightness(1.1); }
+
+        input, select, textarea { background-color: white; border-color: #e1e6f3; }
+        input:focus, select:focus, textarea:focus { border-color: #1A328D; outline: none; }
 
         /* Camera detail table in view modal */
         .cam-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-        .cam-table th { background: #f0e9df; color: #5a4a3a; font-weight: 600; padding: 7px 10px; text-align: left; border: 1px solid #e0d5c4; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
-        .cam-table td { padding: 6px 10px; border: 1px solid #e0d5c4; color: #3a332b; vertical-align: top; }
-        .cam-table tr:nth-child(even) td { background: #faf7f4; }
-        .cam-table tr:hover td { background: #f3eeea; }
-        .td-working-yes { color: #1f4f1f; font-weight: 600; }
-        .td-working-no { color: #b53b3b; font-weight: 600; }
+        .cam-table th { background: #eef1fa; color: #1A328D; font-weight: 600; padding: 7px 10px; text-align: left; border: 1px solid #e1e6f3; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .cam-table td { padding: 6px 10px; border: 1px solid #e1e6f3; color: #151929; vertical-align: top; }
+        .cam-table tr:nth-child(even) td { background: #f9fafd; }
+        .cam-table tr:hover td { background: #f0f3fb; }
+        .td-working-yes { color: #1f8a4c; font-weight: 600; }
+        .td-working-no { color: #c0392b; font-weight: 600; }
 
         @media (max-width: 900px) {
-            .sidebar { position: fixed; left: 0; top: 0; height: 100vh; transform: translateX(-100%); z-index: 40; background: #EEE0CC; width: 260px; }
+            .sidebar { position: fixed; left: 0; top: 0; height: 100vh; transform: translateX(-100%); z-index: 40; background: #FFFFFF; width: 260px; }
             .sidebar.open { transform: translateX(0); }
             .sidebar.collapsed { width: 260px; }
             .sidebar.collapsed .sidebar-nav-text { display: inline-block; }
@@ -148,35 +140,35 @@
         }
     </style>
 </head>
-<body>
+<body class="text-[#151929]">
 
     <!-- HEADER -->
-    <header class="bg-[#F3EEEA] border-b border-[#B0A695] sticky top-0 z-30">
+    <header class="bg-white/90 backdrop-blur-sm border-b border-[#e1e6f3] sticky top-0 z-30 shadow-sm">
         <div class="flex items-center justify-between px-4 md:px-6 py-3">
             <div class="flex items-center gap-3">
-                <button id="sidebarToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white transition md:hidden">
+                <button id="sidebarToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-md border border-[#cdd5ea] text-[#234FAA] hover:bg-[#234FAA] hover:text-white transition md:hidden">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
                 </button>
-                <button id="sidebarCollapseBtn" class="hidden md:flex w-10 h-10 items-center justify-center rounded-md border border-[#B0A695] text-[#776B5D] hover:bg-[#776B5D] hover:text-white transition">
+                <button id="sidebarCollapseBtn" class="hidden md:flex w-10 h-10 items-center justify-center rounded-md border border-[#cdd5ea] text-[#234FAA] hover:bg-[#234FAA] hover:text-white transition">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
-                <img src="/page/image/kunash-logo.png" alt="CCTV AMC Manager Logo" class="w-15 h-8">
+                <img src="/page/image/logo.png" alt="CCTV AMC Manager Logo" class="w-22 h-12">
             </div>
             <div class="relative">
                 <button id="profileBtn" class="flex items-center gap-2.5 p-1.5 transition">
-                    <div class="w-[34px] h-[34px] rounded-md bg-[#5a4a3a] text-white flex items-center justify-center font-mono text-[12px] font-semibold">VJ</div>
+                    <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold text-white" style="background: linear-gradient(135deg, #1A328D, #234FAA);">VJ</div>
                     <div class="hidden sm:block text-left">
-                        <div class="text-[13px] font-semibold text-[#5a4a3a]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#8a7a68]">Senior Engineer</div>
+                        <div class="text-[13px] font-semibold text-[#1A328D]">Vikram Joshi</div>
+                        <div class="text-[11px] text-[#7b85a3]">Senior Engineer</div>
                     </div>
-                    <svg class="w-4 h-4 text-[#5a4a3a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    <svg class="w-4 h-4 text-[#1A328D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
-                <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#B0A695] rounded-lg shadow-lg overflow-hidden z-50">
-                    <div class="px-4 py-3 border-b border-[#e0d5c4]">
-                        <div class="text-[13px] font-semibold text-[#5a4a3a]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#8a7a68]">vikram@cctvmanager.com</div>
+                <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#cdd5ea] rounded-lg shadow-lg overflow-hidden z-50">
+                    <div class="px-4 py-3 border-b border-[#e1e6f3]">
+                        <div class="text-[13px] font-semibold text-[#1A328D]">Vikram Joshi</div>
+                        <div class="text-[11px] text-[#7b85a3]">vikram@cctvmanager.com</div>
                     </div>
-                    <div class="border-t border-[#e0d5c4] py-1">
+                    <div class="border-t border-[#e1e6f3] py-1">
                         <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
                     </div>
                 </div>
@@ -184,28 +176,28 @@
         </div>
     </header>
 
-    <div class="flex min-h-screen" style="background-color: #F3EEEA;">
+    <div class="flex min-h-screen" style="background-color: #F0F3FB;">
 
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="sidebar border-r border-[#d4c4b0] flex flex-col h-screen sticky top-0 overflow-y-auto">
+        <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col h-screen sticky top-0 overflow-y-auto">
             <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2">
-                <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition sidebar-nav-item">
+                <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                     <span class="sidebar-nav-text">Dashboard</span>
                 </a>
-                <a href="/page/company-management.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition sidebar-nav-item">
+                <a href="/page/company-management.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
                     <span class="sidebar-nav-text">Company Management</span>
                 </a>
-                <a href="/page/monthly-inspection.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition sidebar-nav-item">
+                <a href="/page/monthly-inspection.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     <span class="sidebar-nav-text">Monthly Visits</span>
                 </a>
-                <a href="/page/reports.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#5a4a3a] text-white transition sidebar-nav-item active">
+                <a href="/page/reports.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#1A328D] text-white transition sidebar-nav-item active">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
                     <span class="sidebar-nav-text">Monthly Inspection Reports</span>
                 </a>
-                <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#5a4a3a] hover:bg-[#5a4a3a] hover:text-white transition sidebar-nav-item">
+                <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     <span class="sidebar-nav-text">Staff Management</span>
                 </a>
@@ -218,8 +210,8 @@
         <main class="flex-1 px-4 md:px-9 pt-5 md:pt-8 pb-16 max-w-[1400px]">
             <div class="flex flex-col md:flex-row md:items-start justify-between gap-5 mb-7">
                 <div>
-                    <h1 class="font-display font-semibold text-lg tracking-tight m-0 mb-1.5 text-[#5a4a3a]">Reports</h1>
-                    <p class="text-[#8a7a68] text-sm mt-1">View and manage inspection reports &amp; issues</p>
+                    <h1 class="font-display font-semibold text-lg tracking-tight m-0 mb-1.5 text-[#1A328D]">Reports</h1>
+                    <p class="text-[#7b85a3] text-sm mt-1">View and manage inspection reports &amp; issues</p>
                 </div>
             </div>
 
@@ -232,15 +224,15 @@
             <div id="tab-reports" class="tab-content active">
                 <div class="filter-bar mb-4">
                     <div class="relative flex-1 w-full">
-                        <i class=""></i>
-                        <input type="text" id="searchReport" placeholder="Search by company, engineer..." class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#7b85a3] text-sm"></i>
+                        <input type="text" id="searchReport" placeholder="Search by company, engineer..." class="w-full pl-10 pr-3.5 py-2 border border-[#cdd5ea] rounded-md text-[#1A328D] bg-white focus:outline-none">
                     </div>
-                    <select id="filterApprove" class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                    <select id="filterApprove" class="border border-[#cdd5ea] text-[#1A328D] rounded-md px-3 py-2 text-sm bg-white">
                         <option value="">All Status</option>
                         <option value="Approved">Approved</option>
                         <option value="Pending">Pending</option>
                     </select>
-                    <select id="filterCompany" class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                    <select id="filterCompany" class="border border-[#cdd5ea] text-[#1A328D] rounded-md px-3 py-2 text-sm bg-white">
                         <option value="">All Companies</option>
                     </select>
                     <button id="resetReportFilters" class="btn-reset whitespace-nowrap"><i class="fa-solid fa-rotate-right"></i> Reset</button>
@@ -252,10 +244,10 @@
             <div id="tab-issues" class="tab-content">
                 <div class="filter-bar mb-4">
                     <div class="relative flex-1 w-full">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#8a7a68] text-sm"></i>
-                        <input type="text" id="searchIssues" placeholder="Search by company, camera..." class="w-full pl-10 pr-3.5 py-2 border border-[#B0A695] rounded-md text-[#5a4a3a] bg-white focus:outline-none">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#7b85a3] text-sm"></i>
+                        <input type="text" id="searchIssues" placeholder="Search by company, camera..." class="w-full pl-10 pr-3.5 py-2 border border-[#cdd5ea] rounded-md text-[#1A328D] bg-white focus:outline-none">
                     </div>
-                    <select id="filterIssueStatus" class="border border-[#B0A695] text-[#5a4a3a] rounded-md px-3 py-2 text-sm bg-white">
+                    <select id="filterIssueStatus" class="border border-[#cdd5ea] text-[#1A328D] rounded-md px-3 py-2 text-sm bg-white">
                         <option value="">All Status</option>
                         <option value="Open">Open</option>
                         <option value="In Progress">In Progress</option>
@@ -275,8 +267,8 @@
     <div id="viewReportModal" class="modal-backdrop">
         <div class="modal modal-card" style="max-width:800px;">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i class="fa-regular fa-eye mr-2"></i>Report Details</h3>
-                <button id="closeViewReport" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 class="font-display font-bold text-lg text-[#1A328D]"><i class="fa-regular fa-eye mr-2"></i>Report Details</h3>
+                <button id="closeViewReport" class="w-8 h-8 flex items-center justify-center rounded-full border border-[#cdd5ea] text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition">✕</button>
             </div>
             <div id="viewReportContent"></div>
         </div>
@@ -286,20 +278,20 @@
     <div id="editReportModal" class="modal-backdrop">
         <div class="modal modal-card">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i class="fa-regular fa-pen-to-square mr-2"></i>Edit Report</h3>
-                <button id="closeEditReport" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+                <h3 class="font-display font-bold text-lg text-[#1A328D]"><i class="fa-regular fa-pen-to-square mr-2"></i>Edit Report</h3>
+                <button id="closeEditReport" class="w-8 h-8 flex items-center justify-center rounded-full border border-[#cdd5ea] text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition">✕</button>
             </div>
             <form id="editReportForm">
                 <input type="hidden" id="editReportId">
                 <input type="hidden" id="editReportType" value="report">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Company</label><input type="text" id="editCompany" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Engineer</label><input type="text" id="editEngineer" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Date</label><input type="date" id="editDate" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Total Cameras</label><input type="number" id="editTotal" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Working</label><input type="number" id="editWorking" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
-                    <div><label class="text-xs font-medium text-[#6b5a48] block mb-1">Faulty</label><input type="number" id="editFaulty" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
-                    <div class="sm:col-span-2"><label class="text-xs font-medium text-[#6b5a48] block mb-1">Remarks</label><input type="text" id="editRemarks" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Company</label><input type="text" id="editCompany" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Engineer</label><input type="text" id="editEngineer" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Date</label><input type="date" id="editDate" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Total Cameras</label><input type="number" id="editTotal" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Working</label><input type="number" id="editWorking" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Faulty</label><input type="number" id="editFaulty" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div class="sm:col-span-2"><label class="text-xs font-medium text-[#3d4763] block mb-1">Remarks</label><input type="text" id="editRemarks" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-end gap-3">
                     <button type="button" id="cancelEditReport" class="btn-secondary px-6 py-2">Cancel</button>
@@ -309,44 +301,12 @@
         </div>
     </div>
 
-    <!-- EMAIL MODAL -->
-    <div id="emailModal" class="modal-backdrop">
-        <div class="modal modal-card">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-display font-bold text-lg text-[#5a4a3a]"><i class="fa-regular fa-envelope mr-2"></i>Send Email</h3>
-                <button id="closeEmailModal" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
-            </div>
-            <form id="emailForm">
-                <input type="hidden" id="emailReportId">
-                <input type="hidden" id="emailType" value="report">
-                <div class="space-y-4">
-                    <div><label class="text-sm font-medium text-[#6b5a48] block mb-1">To Email</label><input type="email" id="emailTo" placeholder="Enter recipient email" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm"></div>
-                    <div><label class="text-sm font-medium text-[#6b5a48] block mb-1">Subject</label><input type="text" id="emailSubject" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm"></div>
-                    <div><label class="text-sm font-medium text-[#6b5a48] block mb-1">Message</label><textarea id="emailMessage" rows="8" class="w-full bg-white border border-[#e0d5c4] rounded-lg px-3 py-2 text-sm"></textarea></div>
-                    <div>
-                        <label class="text-sm font-medium text-[#6b5a48] block mb-1">Attach Images</label>
-                        <div class="image-upload-area" id="imageUploadArea">
-                            <i class="fa-regular fa-image text-2xl text-[#8a7a68] block mb-2"></i>
-                            <p class="text-sm text-[#8a7a68]">Click or drag &amp; drop images here</p>
-                            <input type="file" id="imageInput" accept="image/*" multiple class="hidden">
-                        </div>
-                        <div id="imagePreviewContainer" class="image-preview-grid"></div>
-                    </div>
-                </div>
-                <div class="flex flex-col sm:flex-row justify-end gap-3 mt-6">
-                    <button type="button" id="cancelEmail" class="btn-secondary px-6 py-2">Cancel</button>
-                    <button type="submit" class="btn-email px-6 py-2"><i class="fa-regular fa-paper-plane"></i> Send Email</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- DELETE MODAL -->
     <div id="deleteBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
-        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
+        <div class="modal bg-white border border-[#cdd5ea] rounded-2xl w-full max-w-[420px] p-6 text-center">
             <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 text-3xl flex items-center justify-center mx-auto mb-4"><i class="fa-regular fa-trash-can"></i></div>
-            <h3 class="font-display text-xl font-bold text-[#5a4a3a] mb-2">Delete?</h3>
-            <p class="text-[#8a7a68] text-sm mb-1">This action cannot be undone.</p>
+            <h3 class="font-display text-xl font-bold text-[#1A328D] mb-2">Delete?</h3>
+            <p class="text-[#7b85a3] text-sm mb-1">This action cannot be undone.</p>
             <div class="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                 <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
                 <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
@@ -356,10 +316,10 @@
 
     <!-- LOGOUT MODAL -->
     <div id="logoutBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
-        <div class="modal bg-white border border-[#B0A695] rounded-2xl w-full max-w-[420px] p-6 text-center">
+        <div class="modal bg-white border border-[#cdd5ea] rounded-2xl w-full max-w-[420px] p-6 text-center">
             <div class="w-11 h-11 rounded-full bg-red-500 text-white text-xl mx-auto flex items-center justify-center">!</div>
-            <h3 class="font-display text-[16px] text-[#5a4a3a] mb-1 mt-3">Confirm Logout</h3>
-            <p class="text-[#8a7a68] text-[13px]">Are you sure you want to logout?</p>
+            <h3 class="font-display text-[16px] text-[#1A328D] mb-1 mt-3">Confirm Logout</h3>
+            <p class="text-[#7b85a3] text-[13px]">Are you sure you want to logout?</p>
             <div class="flex flex-col sm:flex-row justify-center gap-2.5 mt-6">
                 <button id="cancelLogout" class="btn-secondary px-6 py-2">Cancel</button>
                 <button id="confirmLogout" class="btn-primary px-6 py-2 bg-red-500 hover:bg-red-600">Logout</button>
@@ -430,7 +390,7 @@
         function saveReports() { localStorage.setItem(REPORTS_KEY, JSON.stringify(reports)); }
         function saveIssues() { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); }
 
-        let deleteId = null, deleteType = null, emailImages = [];
+        let deleteId = null, deleteType = null;
         const reportsContainer = document.getElementById('reportsContainer');
         const issuesContainer = document.getElementById('issuesContainer');
 
@@ -476,7 +436,7 @@
             const grouped = groupByMonth(filtered, 'date');
             let html = '';
             if (!Object.keys(grouped).length) {
-                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#B0A695] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#5a4a3a]">No reports found</p><p class="text-sm text-[#8a7a68] mt-1">Submit an inspection from Monthly Visits page</p></div>';
+                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p><p class="text-sm text-[#7b85a3] mt-1">Submit an inspection from Monthly Visits page</p></div>';
             } else {
                 Object.entries(grouped).forEach(([month, records]) => {
                     html += `<div class="month-group"><div class="month-title"><i class="fa-regular fa-calendar-check text-accenttext"></i>${month}<span class="count-badge">${records.length} ${records.length > 1 ? 'reports' : 'report'}</span></div><div class="grid grid-cols-1 gap-3">`;
@@ -484,13 +444,13 @@
                         const status = r.faulty === 0 ? 'All Working' : `${r.faulty} Faulty`;
                         const statusCls = r.faulty === 0 ? 'chip-active' : 'chip-soon';
                         const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
-                        const approveLabel = r.approved ? 'Approved ✓' : 'Pending';
+                        const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
                         const date = new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
                         html += `<div class="report-card">
                             <div class="flex flex-wrap justify-between items-start gap-2">
                                 <div>
-                                    <div class="font-semibold text-[#5a4a3a] text-lg">${r.company}</div>
-                                    <div class="flex flex-wrap gap-3 text-xs text-[#8a7a68] mt-1">
+                                    <div class="font-semibold text-[#1A328D] text-lg">${r.company}</div>
+                                    <div class="flex flex-wrap gap-3 text-xs text-[#7b85a3] mt-1">
                                         <span><i class="fa-regular fa-user mr-1"></i>${r.engineer || ''}</span>
                                         <span><i class="fa-regular fa-calendar mr-1"></i>${date}</span>
                                         ${r.vendor ? `<span><i class="fa-regular fa-building mr-1"></i>${r.vendor}</span>` : ''}
@@ -501,20 +461,19 @@
                                     <span class="chip ${approveCls}">${approveLabel}</span>
                                 </div>
                             </div>
-                            <div class="flex flex-wrap gap-4 text-sm text-[#6b5a48] mt-2">
+                            <div class="flex flex-wrap gap-4 text-sm text-[#3d4763] mt-2">
                                 <span>Total: <b>${r.total}</b></span>
                                 <span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>Working: <b>${r.working}</b></span>
                                 ${r.faulty > 0 ? `<span class="text-redc"><i class="fa-regular fa-circle-xmark mr-1"></i>Faulty: <b>${r.faulty}</b></span>` : ''}
                             </div>
-                            ${r.remarks ? `<div class="text-sm text-[#8a7a68] mt-2 italic">${r.remarks}</div>` : ''}
-                            ${r.approved ? `<div class="text-xs text-[#8a7a68] mt-1">Approved by: ${r.approved_by} on ${r.approved_date}</div>` : ''}
+                            ${r.remarks ? `<div class="text-sm text-[#7b85a3] mt-2 italic">${r.remarks}</div>` : ''}
+                            ${r.approved ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-id-badge mr-1"></i>Approved by: ${r.approved_by} on ${r.approved_date}</div>` : ''}
                             <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions">
                                 <button class="btn-export-excel text-xs py-1.5 px-3" onclick="exportMonthlyExcel(${r.id})"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                                <button class="btn-email text-xs py-1.5 px-3" onclick="openEmailModal(${r.id},'report')"><i class="fa-regular fa-envelope mr-1"></i>Email</button>
                                 <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
-                                <button class="text-[#5a4a3a] text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
-                                <button class="text-[#5a4a3a] text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
-                                <button class="text-redc text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+                                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
+                                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
+                                <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
                             </div>
                         </div>`;
                     });
@@ -536,44 +495,44 @@
             const grouped = groupByMonth(filtered, 'created');
             let html = '';
             if (!Object.keys(grouped).length) {
-                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#B0A695] mb-3"><i class="fa-regular fa-circle-exclamation"></i></div><p class="font-semibold text-[#5a4a3a]">No issues found</p></div>';
+                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-circle-exclamation"></i></div><p class="font-semibold text-[#1A328D]">No issues found</p></div>';
             } else {
                 Object.entries(grouped).forEach(([month, records]) => {
                     html += `<div class="month-group"><div class="month-title">${month}<span class="count-badge">${records.length} ${records.length > 1 ? 'issues' : 'issue'}</span></div><div class="grid grid-cols-1 gap-3">`;
                     records.forEach(r => {
                         const statusCls = r.status === 'Resolved' ? 'chip-resolved' : r.status === 'Open' ? 'chip-open' : r.status === 'In Progress' ? 'chip-progress' : 'chip-closed';
-                        const priorityCls = r.priority === 'Critical' ? 'text-redc font-bold' : r.priority === 'High' ? 'text-amber font-bold' : 'text-[#6b5a48]';
+                        const priorityCls = r.priority === 'Critical' ? 'text-redc font-bold' : r.priority === 'High' ? 'text-amber font-bold' : 'text-[#3d4763]';
                         const createdDate = new Date(r.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
                         const resolvedDate = r.resolvedDate ? new Date(r.resolvedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
                         const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
+                        const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
                         html += `<div class="issue-card-r ${r.status === 'Resolved' ? 'resolved' : ''}">
                             <div class="flex flex-wrap justify-between items-start gap-2">
                                 <div>
-                                    <div class="font-semibold text-[#5a4a3a] text-lg">${r.company}</div>
-                                    <div class="flex flex-wrap gap-3 text-xs text-[#8a7a68] mt-1">
+                                    <div class="font-semibold text-[#1A328D] text-lg">${r.company}</div>
+                                    <div class="flex flex-wrap gap-3 text-xs text-[#7b85a3] mt-1">
                                         <span><i class="fa-regular fa-video mr-1"></i>${r.camera}</span>
                                         <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
                                     </div>
                                 </div>
                                 <div class="flex flex-wrap gap-2">
                                     <span class="chip ${statusCls}">${r.status}</span>
-                                    <span class="chip ${approveCls}">${r.approved ? 'Approved ✓' : 'Pending'}</span>
+                                    <span class="chip ${approveCls}">${approveLabel}</span>
                                 </div>
                             </div>
                             <div class="text-sm mt-1">${r.desc}</div>
-                            <div class="flex flex-wrap gap-2 text-xs text-[#6b5a48] mt-1.5">
+                            <div class="flex flex-wrap gap-2 text-xs text-[#3d4763] mt-1.5">
                                 <span class="${priorityCls}"><i class="fa-regular fa-flag mr-1"></i>${r.priority}</span>
                                 <span><i class="fa-regular fa-tag mr-1"></i>${r.type}</span>
                                 ${resolvedDate ? `<span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>${resolvedDate}</span>` : ''}
                             </div>
-                            ${r.resolvedBy ? `<div class="text-xs text-[#8a7a68] mt-1">Resolved by: ${r.resolvedBy}</div>` : ''}
-                            ${r.approved ? `<div class="text-xs text-[#8a7a68] mt-1">Approved by: ${r.approved_by} on ${r.approved_date}</div>` : ''}
+                            ${r.resolvedBy ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-user mr-1"></i>Resolved by: ${r.resolvedBy}</div>` : ''}
+                            ${r.approved ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-id-badge mr-1"></i>Approved by: ${r.approved_by} on ${r.approved_date}</div>` : ''}
                             <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions">
                                 <button class="btn-export-issue-excel text-xs py-1.5 px-3" onclick="exportIssueExcel(${r.id})"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                                <button class="btn-email text-xs py-1.5 px-3" onclick="openEmailModal(${r.id},'issue')"><i class="fa-regular fa-envelope mr-1"></i>Email</button>
                                 <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'issue')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
-                                <button class="text-[#5a4a3a] text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-[#f6f1f1] transition" onclick="viewReport(${r.id},'issue')"><i class="fa-regular fa-eye mr-1"></i>View</button>
-                                <button class="text-redc text-sm px-3 py-1 border border-[#B0A695] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'issue')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+                                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'issue')"><i class="fa-regular fa-eye mr-1"></i>View</button>
+                                <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'issue')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
                             </div>
                         </div>`;
                     });
@@ -595,24 +554,12 @@
 
             const cameras = r.cameraDetails || [];
 
-            // ===== EXACT FORMAT matching "Monthly_camera_checksheet" =====
-            // Row 1: Title + Vendor value
-            // Row 2: empty + Dept value
-            // Row 3: Column headers
-            // Row 4+: Camera rows
-            // Blank rows to fill to 40
-            // Last row: Signatures
-
             const excelData = [
-                // Row 1 — Title + Vendor (right side)
                 ['Monthly camera checksheet', '', '', '', '', '', '', '', '', 'Vendor', r.vendor || ''],
-                // Row 2 — Dept
                 ['', '', '', '', '', '', '', '', '', 'Dept', r.department || ''],
-                // Row 3 — Headers (exactly matching your original file)
                 ['Sr.No', 'Camera Name', 'Location', 'Working(Yes/No)', 'Lens cleaning', 'Visual on TV/not', 'Focus angle of camera', 'Damage if any', 'Any other abnormality', 'Date of checking', 'Checked by', 'BSID PIC'],
             ];
 
-            // Camera data rows
             cameras.forEach((cam, idx) => {
                 excelData.push([
                     cam.sr_no || (idx + 1),
@@ -630,45 +577,32 @@
                 ]);
             });
 
-            // Fill blank rows up to row 43 (so total rows from row 1 = header(3) + cameras + blanks = 43)
             const totalDataRows = cameras.length;
             const blankNeeded = Math.max(0, 40 - totalDataRows);
             for (let i = 0; i < blankNeeded; i++) {
                 excelData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
             }
 
-            // Signature row (last row matching original)
             excelData.push(['BSID PIC', '', '', '', 'Area Manager', '', '', '', 'Manager', '', '', '']);
 
             try {
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.aoa_to_sheet(excelData);
 
-                // Column widths matching original
                 ws['!cols'] = [
-                    { wch: 8 },   // Sr.No
-                    { wch: 15 },  // Camera Name
-                    { wch: 18 },  // Location
-                    { wch: 18 },  // Working
-                    { wch: 15 },  // Lens cleaning
-                    { wch: 18 },  // Visual on TV
-                    { wch: 22 },  // Focus angle
-                    { wch: 20 },  // Damage
-                    { wch: 22 },  // Abnormality
-                    { wch: 16 },  // Date
-                    { wch: 18 },  // Checked by
-                    { wch: 15 },  // BSID PIC
+                    { wch: 8 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 15 },
+                    { wch: 18 }, { wch: 22 }, { wch: 20 }, { wch: 22 }, { wch: 16 },
+                    { wch: 18 }, { wch: 15 },
                 ];
 
-                // Merge cells for title "Monthly camera checksheet" across A1:I1
                 ws['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },  // Title merge row 1
-                    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },  // Empty merge row 2
+                    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+                    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
                 ];
 
                 XLSX.utils.book_append_sheet(wb, ws, 'Monthly Checksheet');
                 XLSX.writeFile(wb, fileName);
-                showToast(`✅ Excel exported: ${fileName}`);
+                showToast(`Excel exported: ${fileName}`);
             } catch (err) {
                 showToast('Error: ' + err.message, true);
             }
@@ -684,23 +618,19 @@
             const year = date.getFullYear();
             const fileName = `Issue_${iss.company}_${monthName}_${year}.xlsx`;
 
-            // Collect all issues for same company & month (for full report)
             const sameMonthIssues = issues.filter(i => {
                 const d = new Date(i.created);
                 return i.company === iss.company && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
             });
 
             const excelData = [
-                // Header section
                 ['Issues Report', '', '', '', '', '', '', '', '', '', ''],
                 ['Company', iss.company, '', '', '', '', '', '', '', '', ''],
                 ['Month / Year', `${monthName} ${year}`, '', '', '', '', '', '', '', '', ''],
                 ['', '', '', '', '', '', '', '', '', '', ''],
-                // Column headers
                 ['Sr.No', 'Company', 'Camera', 'Location', 'Issue Type', 'Priority', 'Status', 'Description', 'Created Date', 'Resolved Date', 'Resolved By', 'Resolution', 'Approved'],
             ];
 
-            // Issue rows
             sameMonthIssues.forEach((i, idx) => {
                 excelData.push([
                     idx + 1,
@@ -719,7 +649,6 @@
                 ]);
             });
 
-            // Summary section
             const total = sameMonthIssues.length;
             const resolved = sameMonthIssues.filter(i => i.status === 'Resolved').length;
             const open = sameMonthIssues.filter(i => i.status === 'Open').length;
@@ -742,7 +671,7 @@
                 ];
                 XLSX.utils.book_append_sheet(wb, ws, 'Issues Report');
                 XLSX.writeFile(wb, fileName);
-                showToast(`✅ Issue Excel exported: ${fileName}`);
+                showToast(`Issue Excel exported: ${fileName}`);
             } catch (err) {
                 showToast('Error: ' + err.message, true);
             }
@@ -759,20 +688,20 @@
                 const cameras = item.cameraDetails || [];
                 html = `
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                        <div><div class="text-xs text-[#8a7a68]">Company</div><div class="font-semibold text-[#5a4a3a]">${item.company}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Date</div><div class="font-semibold text-[#5a4a3a]">${date}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Engineer</div><div class="font-semibold text-[#5a4a3a]">${item.engineer||''}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Vendor</div><div class="font-semibold text-[#5a4a3a]">${item.vendor||'—'}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Dept</div><div class="font-semibold text-[#5a4a3a]">${item.department||'—'}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">BSID PIC</div><div class="font-semibold text-[#5a4a3a]">${item.bsid_pic||'—'}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Total Cameras</div><div class="font-semibold text-[#5a4a3a]">${item.total}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Working</div><div class="font-semibold text-accenttext">${item.working}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Faulty</div><div class="font-semibold text-redc">${item.faulty}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold text-[#1A328D]">${item.company}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Date</div><div class="font-semibold text-[#1A328D]">${date}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Engineer</div><div class="font-semibold text-[#1A328D]">${item.engineer||''}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Vendor</div><div class="font-semibold text-[#1A328D]">${item.vendor||'—'}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Dept</div><div class="font-semibold text-[#1A328D]">${item.department||'—'}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">BSID PIC</div><div class="font-semibold text-[#1A328D]">${item.bsid_pic||'—'}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Total Cameras</div><div class="font-semibold text-[#1A328D]">${item.total}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Working</div><div class="font-semibold text-accenttext">${item.working}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Faulty</div><div class="font-semibold text-redc">${item.faulty}</div></div>
                     </div>
-                    ${item.remarks ? `<div class="text-sm text-[#8a7a68] mb-4 italic p-3 bg-[#f6f1f1] rounded-lg">${item.remarks}</div>` : ''}
-                    ${item.approved ? `<div class="text-xs text-[#8a7a68] mb-4">✓ Approved by <b>${item.approved_by}</b> on ${item.approved_date}</div>` : ''}
-                    
-                    <div class="text-sm font-semibold text-[#5a4a3a] mb-2 mt-2"><i class="fa-solid fa-video mr-1 text-accenttext"></i>Camera Details (${cameras.length} cameras)</div>
+                    ${item.remarks ? `<div class="text-sm text-[#7b85a3] mb-4 italic p-3 bg-[#eef1fa] rounded-lg">${item.remarks}</div>` : ''}
+                    ${item.approved ? `<div class="text-xs text-[#7b85a3] mb-4"><i class="fa-solid fa-check mr-1"></i>Approved by <b>${item.approved_by}</b> on ${item.approved_date}</div>` : ''}
+
+                    <div class="text-sm font-semibold text-[#1A328D] mb-2 mt-2"><i class="fa-solid fa-video mr-1 text-accenttext"></i>Camera Details (${cameras.length} cameras)</div>
                     <div class="overflow-x-auto">
                         <table class="cam-table">
                             <thead>
@@ -814,17 +743,17 @@
                 const statusCls = item.status==='Resolved' ? 'chip-resolved' : item.status==='Open' ? 'chip-open' : item.status==='In Progress' ? 'chip-progress' : 'chip-closed';
                 html = `
                     <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div><div class="text-xs text-[#8a7a68]">Company</div><div class="font-semibold">${item.company}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Camera</div><div class="font-mono font-semibold">${item.camera}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Status</div><div><span class="chip ${statusCls}">${item.status}</span></div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Priority</div><div class="font-semibold">${item.priority}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Type</div><div>${item.type}</div></div>
-                        <div><div class="text-xs text-[#8a7a68]">Created</div><div>${date}</div></div>
-                        ${item.resolvedDate ? `<div><div class="text-xs text-[#8a7a68]">Resolved</div><div class="text-accenttext">${new Date(item.resolvedDate).toLocaleDateString('en-IN')}</div></div>` : ''}
-                        ${item.resolvedBy ? `<div><div class="text-xs text-[#8a7a68]">Resolved By</div><div>${item.resolvedBy}</div></div>` : ''}
+                        <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold">${item.company}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Camera</div><div class="font-mono font-semibold">${item.camera}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Status</div><div><span class="chip ${statusCls}">${item.status}</span></div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Priority</div><div class="font-semibold">${item.priority}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Type</div><div>${item.type}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Created</div><div>${date}</div></div>
+                        ${item.resolvedDate ? `<div><div class="text-xs text-[#7b85a3]">Resolved</div><div class="text-accenttext">${new Date(item.resolvedDate).toLocaleDateString('en-IN')}</div></div>` : ''}
+                        ${item.resolvedBy ? `<div><div class="text-xs text-[#7b85a3]">Resolved By</div><div>${item.resolvedBy}</div></div>` : ''}
                     </div>
-                    <div class="text-sm text-[#5a4a3a] p-3 bg-[#f6f1f1] rounded-lg mb-3">${item.desc}</div>
-                    ${item.resolution ? `<div class="text-sm text-accenttext p-3 bg-[#e8f0e8] rounded-lg mb-3">✓ ${item.resolution}</div>` : ''}
+                    <div class="text-sm text-[#1A328D] p-3 bg-[#eef1fa] rounded-lg mb-3">${item.desc}</div>
+                    ${item.resolution ? `<div class="text-sm text-accenttext p-3 bg-[#e3f6ea] rounded-lg mb-3"><i class="fa-solid fa-check mr-1"></i>${item.resolution}</div>` : ''}
                     <div class="flex justify-end gap-2 mt-4">
                         <button onclick="exportIssueExcel(${item.id})" class="btn-export-issue-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
                         <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
@@ -846,7 +775,7 @@
             item.approved_by = name;
             item.approved_date = new Date().toISOString().split('T')[0];
             type === 'report' ? saveReports() : saveIssues();
-            showToast(`${type === 'report' ? 'Report' : 'Issue'} approved ✓`);
+            showToast(`${type === 'report' ? 'Report' : 'Issue'} approved`);
             renderReports(); renderIssues();
         };
 
@@ -870,37 +799,10 @@
             document.getElementById('deleteBackdrop').classList.add('open');
         };
 
-        window.openEmailModal = function(id, type) {
-            emailImages = [];
-            document.getElementById('imagePreviewContainer').innerHTML = '';
-            document.getElementById('imageInput').value = '';
-            document.getElementById('emailReportId').value = id;
-            document.getElementById('emailType').value = type;
-            const item = type === 'report' ? reports.find(r => r.id === id) : issues.find(r => r.id === id);
-            if (!item) return;
-            const date = new Date(item.date || item.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-            document.getElementById('emailSubject').value = `${type === 'report' ? 'Monthly Inspection Report' : 'Issue Report'} - ${item.company} - ${date}`;
-            let body = `Dear Team,\n\nPlease find the ${type === 'report' ? 'Monthly Inspection Report' : 'Issue Report'} for ${item.company} dated ${date}.\n\n`;
-            if (type === 'report') {
-                body += `Total Cameras: ${item.total}\nWorking: ${item.working}\nFaulty: ${item.faulty}\nEngineer: ${item.engineer}\nRemarks: ${item.remarks || 'N/A'}\n\nCamera Details:\n`;
-                (item.cameraDetails || []).forEach(c => {
-                    body += `  ${c.camera_name} (${c.location}) — ${c.working === 'Yes' ? '✓ Working' : '✗ Faulty'}${c.damage ? ' | Damage: '+c.damage : ''}${c.abnormality ? ' | '+c.abnormality : ''}\n`;
-                });
-            } else {
-                body += `Camera: ${item.camera}\nIssue: ${item.desc}\nPriority: ${item.priority}\nStatus: ${item.status}\n`;
-                if (item.resolvedBy) body += `Resolved by: ${item.resolvedBy}\n`;
-            }
-            body += `\nRegards,\n${item.engineer || 'Service Team'}\nCCTV AMC Manager`;
-            document.getElementById('emailMessage').value = body;
-            document.getElementById('emailModal').classList.add('open');
-        };
-
         // Event bindings
         document.getElementById('closeViewReport').onclick = () => document.getElementById('viewReportModal').classList.remove('open');
         document.getElementById('closeEditReport').onclick = () => document.getElementById('editReportModal').classList.remove('open');
         document.getElementById('cancelEditReport').onclick = () => document.getElementById('editReportModal').classList.remove('open');
-        document.getElementById('closeEmailModal').onclick = () => document.getElementById('emailModal').classList.remove('open');
-        document.getElementById('cancelEmail').onclick = () => document.getElementById('emailModal').classList.remove('open');
         document.getElementById('cancelDelete').onclick = () => { deleteId = null; deleteType = null; document.getElementById('deleteBackdrop').classList.remove('open'); };
 
         document.getElementById('confirmDelete').onclick = () => {
@@ -928,37 +830,9 @@
             item.remarks = document.getElementById('editRemarks').value;
             saveReports();
             document.getElementById('editReportModal').classList.remove('open');
-            showToast('Report updated ✓');
+            showToast('Report updated');
             renderReports();
         });
-
-        document.getElementById('emailForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const to = document.getElementById('emailTo').value;
-            if (!to) { showToast('Please enter recipient email', true); return; }
-            let body = document.getElementById('emailMessage').value;
-            window.location.href = `mailto:${to}?subject=${encodeURIComponent(document.getElementById('emailSubject').value)}&body=${encodeURIComponent(body)}`;
-            document.getElementById('emailModal').classList.remove('open');
-            showToast('Email client opened ✓');
-        });
-
-        // Image upload
-        const imageUploadArea = document.getElementById('imageUploadArea');
-        const imageInput = document.getElementById('imageInput');
-        imageUploadArea.addEventListener('click', () => imageInput.click());
-        imageUploadArea.addEventListener('dragover', e => { e.preventDefault(); imageUploadArea.style.borderColor = '#2d6a2d'; });
-        imageUploadArea.addEventListener('dragleave', () => { imageUploadArea.style.borderColor = '#e0d5c4'; });
-        imageUploadArea.addEventListener('drop', e => { e.preventDefault(); imageUploadArea.style.borderColor = '#e0d5c4'; if (e.dataTransfer.files.length) handleImageFiles(e.dataTransfer.files); });
-        imageInput.addEventListener('change', function() { if (this.files.length) handleImageFiles(this.files); });
-        function handleImageFiles(files) {
-            for (let f of files) { if (f.type.startsWith('image/')) { const r = new FileReader(); r.onload = e => { emailImages.push(e.target.result); renderImagePreviews(); }; r.readAsDataURL(f); } }
-        }
-        function renderImagePreviews() {
-            document.getElementById('imagePreviewContainer').innerHTML = emailImages.map((img, i) =>
-                `<div class="image-preview-item"><img src="${img}"><button type="button" class="remove-img" onclick="removeImage(${i})">×</button></div>`
-            ).join('');
-        }
-        window.removeImage = idx => { emailImages.splice(idx, 1); renderImagePreviews(); };
 
         // Filters
         document.getElementById('searchReport').addEventListener('input', renderReports);
