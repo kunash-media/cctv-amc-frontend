@@ -48,12 +48,15 @@
     .badge-resolved { background: #dce8dc; color: #1f4f1f; }
     .badge-progress { background: #d6e4f0; color: #1a4b6a; }
 
-    .cam-card { transition: all 0.15s; border: 1px solid #e1e6f3; border-radius: 16px; background: #fff; padding: 14px 16px; }
+    .cam-card { transition: all 0.15s; border: 1px solid #e1e6f3; border-radius: 14px; background: #fff; padding: 10px 10px 8px; }
     .cam-card.selected { border-color: #1A328D; background: #f3f6fd; box-shadow: 0 0 0 2px rgba(26,50,141,0.15); }
-    .cam-card .checkbox { width: 20px; height: 20px; accent-color: #1A328D; flex-shrink: 0; }
+    .cam-card .checkbox { width: 16px; height: 16px; accent-color: #1A328D; flex-shrink: 0; }
 
-    .cam-detail-fields { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e1e6f3; }
+   .cam-detail-fields { display: none; }
     .cam-detail-fields.open { display: block; }
+    .cam-expand-row { display: none; grid-column: 1 / -1; background: #fff; border: 1px solid #cdd5ea; border-radius: 14px; padding: 14px; margin-top: -4px; }
+    .cam-expand-row.open { display: block; }
+
     .cam-detail-fields select, .cam-detail-fields input, .cam-detail-fields textarea {
       width: 100%; padding: 8px 10px; border: 1px solid #d8deef; border-radius: 8px; font-size: 13px; margin-bottom: 8px; background: #f9fafd;
     }
@@ -96,8 +99,8 @@
     .simple-submit-btn { display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 600; font-size: 15px; padding: 14px 24px; border-radius: 12px; background: linear-gradient(135deg, #1A328D, #234FAA); color: white; border: none; transition: filter 0.15s; cursor: pointer; width: 100%; margin-top: 20px; box-shadow: 0 8px 20px -6px rgba(26,50,141,0.45); }
     .simple-submit-btn:hover { filter: brightness(1.1); }
 
-    .status-toggle { display: flex; gap: 6px; margin-top: 8px; }
-    .status-btn { padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1.5px solid #e1e6f3; background: #f9fafd; cursor: pointer; transition: all 0.15s; }
+   .status-toggle { display: flex; gap: 4px; margin-top: 6px; }
+    .status-btn { flex: 1; padding: 4px 4px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1.5px solid #e1e6f3; background: #f9fafd; cursor: pointer; transition: all 0.15s; text-align: center; }
     .status-btn.working-btn.active { background: #e3f6ea; color: #1f8a4c; border-color: #1f8a4c; }
     .status-btn.faulty-btn.active { background: #fbe4e1; color: #c0392b; border-color: #c0392b; }
     .status-btn:not(.active) { color: #7b85a3; }
@@ -113,6 +116,9 @@
 
     .upload-zone { border: 1.5px dashed #b9c3e0; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; transition: all .15s; background: #f9fafd; }
     .upload-zone:hover { border-color: #1AA1E1; background: #f0f7fd; }
+
+    #cameraCards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 359px) { #cameraCards { grid-template-columns: 1fr; } }
 
     .sig-pad-wrap { border: 1.5px dashed #b9c3e0; border-radius: 14px; padding: 10px; background: #f9fafd; }
     .sig-pad-wrap canvas { width: 100%; height: 130px; background: #fff; border-radius: 10px; border: 1px solid #e1e6f3; touch-action: none; cursor: crosshair; }
@@ -184,7 +190,9 @@
       </div>
       <div><label class="text-xs font-medium text-textdim">Visit Date</label><input type="date" id="visitDateField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"></div>
       <div><label class="text-xs font-medium text-textdim">Checked By</label><input type="text" id="checkedByField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
-      <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">BSID PIC</label><input type="text" id="bsidField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="Auto-filled from department" readonly></div>
+      
+      <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Person to Contact</label><input type="text" id="bsidField" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="Enter contact person name"></div>
+
     </div>
 
     <!-- CAMERA INSPECTION SECTION -->
@@ -218,7 +226,7 @@
         </div>
       </div>
 
-      <div id="cameraCards" class="flex flex-col gap-3"></div>
+      <div id="cameraCards"></div>
 
       <div id="paginationBar" class="hidden mt-4 flex items-center justify-center gap-1.5 flex-wrap"></div>
 
@@ -556,7 +564,7 @@
           return;
         }
         currentDept = currentClient.clientDepartments.find(d => d.depId === depId);
-        $('bsidField').value = currentDept.picId || '';
+        $('bsidField').value = '';
         renderLastVisitInfo(depId);
 
         cameras = (currentDept.cameraList || []).map(cam => ({
@@ -612,7 +620,7 @@
         );
       }
 
-      function renderCameraCards() {
+  function renderCameraCards() {
         const filtered = getFilteredCameras();
         const totalCount = currentDept ? currentDept.totalCamera : 0;
         camCountText.textContent = `${cameras.length} listed of ${totalCount} total`;
@@ -625,130 +633,153 @@
         cameraCards.innerHTML = '';
 
         if (!pageCameras.length) {
-          cameraCards.innerHTML = '<div class="text-center text-textfaint py-8 bg-white rounded-2xl border border-bordersoft"><i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>No cameras match</div>';
+          cameraCards.innerHTML = '<div style="grid-column:1/-1" class="text-center text-textfaint py-8 bg-white rounded-2xl border border-bordersoft"><i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>No cameras match</div>';
           paginationBar.classList.add('hidden');
           return;
         }
 
-        pageCameras.forEach(cam => {
-          const sel = selectedCameras.has(cam.camId);
-          const isOpen = openDetailId === cam.camId;
+        // Render in pairs so expand row spans full width
+        for (let i = 0; i < pageCameras.length; i += 2) {
+          const pair = pageCameras.slice(i, i + 2);
 
-          const card = document.createElement('div');
-          card.className = `cam-card ${sel ? 'selected' : ''}`;
-          card.innerHTML = `
-            <div class="flex items-start gap-3">
-              <input type="checkbox" class="checkbox cam-check" data-id="${cam.camId}" ${sel ? 'checked' : ''}>
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span class="font-mono font-bold text-sm">${cam.cameraName}</span>
-                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-surface3 text-primary font-medium">${cam.cameraType || '—'}</span>
-                  <span class="text-[11px] text-textfaint"><i class="fa-solid fa-arrows-rotate mr-0.5"></i>${cam.cameraAngle || '—'}</span>
+          // Row wrapper spans full grid width
+          const rowWrap = document.createElement('div');
+          rowWrap.style.cssText = 'grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:12px;';
+
+          let expandCamId = null;
+          let expandHTML = '';
+
+          pair.forEach(cam => {
+            const sel = selectedCameras.has(cam.camId);
+            const isOpen = openDetailId === cam.camId;
+            if (isOpen) { expandCamId = cam.camId; }
+
+            const card = document.createElement('div');
+            card.className = `cam-card${sel ? ' selected' : ''}`;
+            card.innerHTML = `
+              <div class="flex items-start justify-between gap-1">
+                <div class="flex items-start gap-1.5 min-w-0 flex-1">
+                  <input type="checkbox" class="checkbox cam-check mt-0.5 flex-shrink-0" data-id="${cam.camId}" ${sel ? 'checked' : ''}>
+                  <span class="font-semibold text-[11.5px] leading-tight text-[#151929] break-all">${cam.cameraName}</span>
                 </div>
-                <div class="status-toggle">
-                  <button class="status-btn working-btn ${cam.working === true ? 'active' : ''}" data-id="${cam.camId}" data-val="true">✓ Working</button>
-                  <button class="status-btn faulty-btn ${cam.working === false ? 'active' : ''}" data-id="${cam.camId}" data-val="false">✗ Faulty</button>
-                </div>
-              </div>
-              <button class="cam-detail-toggle text-textfaint hover:text-primary text-xs px-2 py-1.5 border border-bordersoft rounded-lg flex-shrink-0" data-id="${cam.camId}">
-                <i class="fa-regular fa-pen-to-square mr-1"></i>Edit
-              </button>
-            </div>
-            <div class="cam-detail-fields ${isOpen ? 'open' : ''}" id="detail_${cam.camId}">
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label>Lens Cleaning</label>
-                  <select class="field-lens" data-id="${cam.camId}">
-                    <option value="">— Select —</option>
-                    <option value="Done" ${cam.lens_cleaning === 'Done' ? 'selected' : ''}>Done</option>
-                    <option value="Pending" ${cam.lens_cleaning === 'Pending' ? 'selected' : ''}>Pending</option>
-                    <option value="N/A" ${cam.lens_cleaning === 'N/A' ? 'selected' : ''}>N/A</option>
-                  </select>
-                </div>
-                <div>
-                  <label>Visual on TV</label>
-                  <select class="field-visual" data-id="${cam.camId}">
-                    <option value="">— Select —</option>
-                    <option value="Yes" ${cam.visual_on_tv === 'Yes' ? 'selected' : ''}>Yes</option>
-                    <option value="No" ${cam.visual_on_tv === 'No' ? 'selected' : ''}>No</option>
-                  </select>
-                </div>
-                <div class="col-span-2">
-                  <label>Focus Angle</label>
-                  <select class="field-focus" data-id="${cam.camId}">
-                    <option value="">— Select —</option>
-                    <option value="Correct" ${cam.focus_angle === 'Correct' ? 'selected' : ''}>Correct</option>
-                    <option value="Adjustment Required" ${cam.focus_angle === 'Adjustment Required' ? 'selected' : ''}>Adjustment Required</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label>Damage (if any)</label>
-                <input type="text" class="field-damage" data-id="${cam.camId}" value="${cam.damage || ''}" placeholder="Describe damage...">
-              </div>
-              <div>
-                <label>Any Abnormality</label>
-                <input type="text" class="field-abnormal" data-id="${cam.camId}" value="${cam.abnormality || ''}" placeholder="Any other issue...">
-              </div>
-              <div class="flex justify-end mt-1">
-                <button class="save-close-detail btn-grad px-4 py-2 rounded-lg text-xs font-semibold" data-id="${cam.camId}">
-                  <i class="fa-solid fa-check mr-1"></i>Save &amp; Close
+                <button class="cam-detail-toggle flex-shrink-0 text-primary text-[10px] font-semibold w-7 h-7 flex items-center justify-center border border-borderc rounded-lg bg-surface3 hover:bg-primary hover:text-white transition ${isOpen ? 'bg-primary text-white' : ''}" data-id="${cam.camId}">
+                  <i class="fa-regular fa-pen-to-square"></i>
                 </button>
               </div>
-            </div>
-          `;
+              <div class="status-toggle mt-2">
+                <button class="status-btn working-btn ${cam.working === true ? 'active' : ''}" data-id="${cam.camId}" data-val="true">✓ Working</button>
+                <button class="status-btn faulty-btn ${cam.working === false ? 'active' : ''}" data-id="${cam.camId}" data-val="false">✗ Faulty</button>
+              </div>
+            `;
 
-          card.querySelectorAll('.status-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              const c = cameras.find(x => x.camId === Number(btn.dataset.id));
-              if (!c) return;
-              const val = btn.dataset.val === 'true';
-              if (c.working === val) {
-                c.working = null;
-              } else {
-                c.working = val;
-                if (val === true) {
-                  c.lens_cleaning = c.lens_cleaning || 'Done';
-                  c.visual_on_tv = c.visual_on_tv || 'Yes';
-                  c.focus_angle = c.focus_angle || 'Correct';
-                } else {
-                  c.visual_on_tv = c.visual_on_tv || 'No';
+            card.querySelectorAll('.status-btn').forEach(btn => {
+              btn.addEventListener('click', () => {
+                const c = cameras.find(x => x.camId === Number(btn.dataset.id));
+                if (!c) return;
+                const val = btn.dataset.val === 'true';
+                if (c.working === val) { c.working = null; }
+                else {
+                  c.working = val;
+                  if (val === true) {
+                    c.lens_cleaning = c.lens_cleaning || 'Done';
+                    c.visual_on_tv = c.visual_on_tv || 'Yes';
+                    c.focus_angle = c.focus_angle || 'Correct';
+                  } else {
+                    c.visual_on_tv = c.visual_on_tv || 'No';
+                  }
                 }
-              }
+                renderCameraCards();
+              });
+            });
+
+            card.querySelector('.cam-check').addEventListener('change', e => {
+              const id = Number(e.target.dataset.id);
+              if (e.target.checked) selectedCameras.add(id);
+              else selectedCameras.delete(id);
               renderCameraCards();
             });
-          });
 
-          card.querySelector('.cam-check').addEventListener('change', e => {
-            const id = Number(e.target.dataset.id);
-            if (e.target.checked) selectedCameras.add(id);
-            else selectedCameras.delete(id);
-            renderCameraCards();
-          });
-
-          // Accordion: only one card's details open at a time
-          card.querySelector('.cam-detail-toggle').addEventListener('click', () => {
-            const id = Number(card.querySelector('.cam-detail-toggle').dataset.id);
-            openDetailId = openDetailId === id ? null : id;
-            renderCameraCards();
-          });
-
-          card.querySelector('.field-lens').addEventListener('change', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.lens_cleaning = e.target.value; });
-          card.querySelector('.field-visual').addEventListener('change', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.visual_on_tv = e.target.value; });
-          card.querySelector('.field-focus').addEventListener('change', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.focus_angle = e.target.value; });
-          card.querySelector('.field-damage').addEventListener('input', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.damage = e.target.value; });
-          card.querySelector('.field-abnormal').addEventListener('input', e => { const c = cameras.find(x => x.camId === Number(e.target.dataset.id)); if (c) c.abnormality = e.target.value; });
-
-          if (isOpen) {
-            card.querySelector('.save-close-detail').addEventListener('click', () => {
-              openDetailId = null;
+            card.querySelector('.cam-detail-toggle').addEventListener('click', () => {
+              const id = Number(card.querySelector('.cam-detail-toggle').dataset.id);
+              openDetailId = openDetailId === id ? null : id;
               renderCameraCards();
-              showToast('Camera details saved');
             });
+
+            rowWrap.appendChild(card);
+
+            if (isOpen) {
+              const c = cam;
+              expandHTML = `
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                  <div>
+                    <label class="cam-detail-fields label">Lens Cleaning</label>
+                    <select class="field-lens w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
+                      <option value="">— Select —</option>
+                      <option value="Done" ${c.lens_cleaning==='Done'?'selected':''}>Done</option>
+                      <option value="Pending" ${c.lens_cleaning==='Pending'?'selected':''}>Pending</option>
+                      <option value="N/A" ${c.lens_cleaning==='N/A'?'selected':''}>N/A</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="cam-detail-fields label">Visual on TV</label>
+                    <select class="field-visual w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
+                      <option value="">— Select —</option>
+                      <option value="Yes" ${c.visual_on_tv==='Yes'?'selected':''}>Yes</option>
+                      <option value="No" ${c.visual_on_tv==='No'?'selected':''}>No</option>
+                    </select>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="cam-detail-fields label">Focus Angle</label>
+                    <select class="field-focus w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
+                      <option value="">— Select —</option>
+                      <option value="Correct" ${c.focus_angle==='Correct'?'selected':''}>Correct</option>
+                      <option value="Adjustment Required" ${c.focus_angle==='Adjustment Required'?'selected':''}>Adjustment Required</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="mb-2">
+                  <label class="cam-detail-fields label">Damage (if any)</label>
+                  <input type="text" class="field-damage w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.damage||''}" placeholder="Describe damage...">
+                </div>
+                <div class="mb-3">
+                  <label class="cam-detail-fields label">Any Abnormality</label>
+                  <input type="text" class="field-abnormal w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.abnormality||''}" placeholder="Any other issue...">
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-[11px] text-textfaint font-mono">${c.cameraName}</span>
+                  <button class="save-close-detail btn-grad px-4 py-1.5 rounded-lg text-xs font-semibold" data-id="${c.camId}">
+                    <i class="fa-solid fa-check mr-1"></i>Save &amp; Close
+                  </button>
+                </div>
+              `;
+            }
+          });
+
+          cameraCards.appendChild(rowWrap);
+
+          // Expanded detail row — spans full width below the pair
+          if (expandCamId !== null) {
+            const expandRow = document.createElement('div');
+            expandRow.style.cssText = 'grid-column:1/-1;';
+            expandRow.className = 'cam-expand-row open';
+            expandRow.innerHTML = expandHTML;
+            cameraCards.appendChild(expandRow);
+
+            const expandCam = cameras.find(x => x.camId === expandCamId);
+            if (expandCam) {
+              expandRow.querySelector('.field-lens').addEventListener('change', e => { expandCam.lens_cleaning = e.target.value; });
+              expandRow.querySelector('.field-visual').addEventListener('change', e => { expandCam.visual_on_tv = e.target.value; });
+              expandRow.querySelector('.field-focus').addEventListener('change', e => { expandCam.focus_angle = e.target.value; });
+              expandRow.querySelector('.field-damage').addEventListener('input', e => { expandCam.damage = e.target.value; });
+              expandRow.querySelector('.field-abnormal').addEventListener('input', e => { expandCam.abnormality = e.target.value; });
+              expandRow.querySelector('.save-close-detail').addEventListener('click', () => {
+                openDetailId = null;
+                renderCameraCards();
+                showToast('Camera details saved');
+              });
+            }
           }
-
-          cameraCards.appendChild(card);
-        });
+        }
 
         renderPagination(totalPages, filtered.length);
       }

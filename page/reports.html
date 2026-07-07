@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -55,6 +56,7 @@
 
         .btn-export-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #1f8a4c; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
         .btn-export-excel:hover { background: #166538; }
+        .btn-export-excel:disabled { opacity: .6; cursor: progress; }
         .btn-export-issue-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #b07d1a; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
         .btn-export-issue-excel:hover { background: #8a5f12; }
         .btn-approve { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12px; padding: 6px 14px; border-radius: 6px; background: #1A328D; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 34px; }
@@ -72,6 +74,8 @@
         .chip-open { background: #f5e8cc; color: #b07d1a; }
         .chip-progress { background: #dfe6f7; color: #1A328D; }
         .chip-closed { background: #eef1fa; color: #3d4763; }
+        .chip-engineer { background: #eef1fa; color: #1A328D; font-family: 'Inter', sans-serif; }
+        .chip-engineer::before { display: none; }
 
         .month-group { background: #FFFFFF; border: 1px solid #cdd5ea; border-radius: 16px; padding: 16px; margin-bottom: 16px; }
         .month-group .month-title { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 16px; color: #1A328D; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
@@ -82,6 +86,11 @@
         .issue-card-r { background: white; border: 1px solid #cdd5ea; border-radius: 12px; padding: 16px; transition: all 0.15s; border-left: 4px solid #c0392b; }
         .issue-card-r:hover { box-shadow: 0 4px 12px rgba(26,50,141,0.08); }
         .issue-card-r.resolved { border-left-color: #1f8a4c; }
+
+        .visit-row { background: #f9fafd; border: 1px solid #e1e6f3; border-radius: 10px; padding: 10px 12px; }
+        .visit-row + .visit-row { margin-top: 8px; }
+        .sig-thumb { height: 28px; max-width: 90px; object-fit: contain; background: #fff; border: 1px solid #e1e6f3; border-radius: 6px; padding: 2px; }
+        .no-sig-badge { font-size: 10.5px; color: #c0392b; background: #fbe4e1; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
 
         .toast { position: fixed; bottom: 24px; right: 24px; background: #151929; border-left: 4px solid #1A328D; color: #e7edf0; padding: 12px 18px; border-radius: 12px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); z-index: 100; transform: translateY(20px); opacity: 0; transition: all .25s ease; pointer-events: none; }
         .toast.show { transform: translateY(0); opacity: 1; }
@@ -217,7 +226,7 @@
 
             <div class="flex flex-wrap border-b border-bordersoft mb-6">
                 <button class="tab-btn active" data-tab="reports"><i class="fa-regular fa-calendar-check mr-2"></i>Monthly Inspection Reports</button>
-                <button class="tab-btn" data-tab="issues"><i class="fa-regular fa-circle-exclamation mr-2"></i>Issues Report</button>
+                <button class="tab-btn" data-tab="issues"><i class="fa-regular fa-circle mr-2"></i>Issues Report</button>
             </div>
 
             <!-- TAB: REPORTS -->
@@ -225,12 +234,12 @@
                 <div class="filter-bar mb-4">
                     <div class="relative flex-1 w-full">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#7b85a3] text-sm"></i>
-                        <input type="text" id="searchReport" placeholder="Search by company, engineer..." class="w-full pl-10 pr-3.5 py-2 border border-[#cdd5ea] rounded-md text-[#1A328D] bg-white focus:outline-none">
+                        <input type="text" id="searchReport" placeholder="Search by company, engineer, department..." class="w-full pl-10 pr-3.5 py-2 border border-[#cdd5ea] rounded-md text-[#1A328D] bg-white focus:outline-none">
                     </div>
                     <select id="filterApprove" class="border border-[#cdd5ea] text-[#1A328D] rounded-md px-3 py-2 text-sm bg-white">
                         <option value="">All Status</option>
-                        <option value="Approved">Approved</option>
-                        <option value="Pending">Pending</option>
+                        <option value="Approved">Fully Approved</option>
+                        <option value="Pending">Has Pending</option>
                     </select>
                     <select id="filterCompany" class="border border-[#cdd5ea] text-[#1A328D] rounded-md px-3 py-2 text-sm bg-white">
                         <option value="">All Companies</option>
@@ -286,6 +295,7 @@
                 <input type="hidden" id="editReportType" value="report">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Company</label><input type="text" id="editCompany" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
+                    <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Department</label><input type="text" id="editDepartment" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
                     <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Engineer</label><input type="text" id="editEngineer" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
                     <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Date</label><input type="date" id="editDate" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
                     <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Total Cameras</label><input type="number" id="editTotal" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none"></div>
@@ -335,10 +345,13 @@
         const REPORTS_KEY = 'cctv_amc_reports';
         const ISSUES_KEY = 'cctv_amc_issues';
 
-        // ===== LOAD DATA FROM LOCALSTORAGE =====
-        // Also keep fallback mock data if localStorage is empty
+        // ===== MOCK DATA =====
+        // Note: "Shree Balaji Enterprises" has TWO visits in January 2026 done by
+        // two different engineers for two different departments — this is the
+        // exact scenario the combined monthly report needs to handle correctly.
         const mockReports = [
-            { id: 1, company: "Shree Balaji Enterprises", date: "2026-01-15", engineer: "Vikram Joshi", vendor: "CP Plus", department: "Security", bsid_pic: "Rajesh", total: 6, working: 6, faulty: 0, remarks: "All cameras working fine", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-01-16",
+            { id: 1, company: "Shree Balaji Enterprises", department: "Security", date: "2026-01-10", engineer: "Vikram Joshi", vendor: "CP Plus", bsid_pic: "Rajesh", total: 6, working: 6, faulty: 0, remarks: "All cameras working fine", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-01-11",
+              signature: null,
               cameraDetails: [
                 { sr_no:1, camera_name:'CAM001', location:'Reception 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
                 { sr_no:2, camera_name:'CAM002', location:'Reception 2', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
@@ -348,17 +361,17 @@
                 { sr_no:6, camera_name:'CAM006', location:'Warehouse', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
               ]
             },
-            { id: 2, company: "Shree Balaji Enterprises", date: "2026-02-12", engineer: "Vikram Joshi", vendor: "CP Plus", department: "Security", bsid_pic: "Rajesh", total: 6, working: 5, faulty: 1, remarks: "Camera 2 needs replacement", approved: false, approved_by: null, approved_date: null,
+            { id: 2, company: "Shree Balaji Enterprises", department: "IT & Data Center", date: "2026-01-25", engineer: "Suresh Rana", vendor: "CP Plus", bsid_pic: "Meena", total: 4, working: 3, faulty: 1, remarks: "Camera 2 needs replacement", approved: false, approved_by: null, approved_date: null,
+              signature: null,
               cameraDetails: [
-                { sr_no:1, camera_name:'CAM001', location:'Reception 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:2, camera_name:'CAM002', location:'Reception 2', dept:'Security', working:'No', lens_cleaning:'Pending', visual_on_tv:'No', focus_angle:'Adjustment Required', damage:'Lens cracked', abnormality:'Camera not powering on' },
-                { sr_no:3, camera_name:'CAM003', location:'Parking 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:4, camera_name:'CAM004', location:'Parking 2', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:5, camera_name:'CAM005', location:'Server Room', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:6, camera_name:'CAM006', location:'Warehouse', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
+                { sr_no:1, camera_name:'CAM101', location:'Server Rack 1', dept:'IT', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
+                { sr_no:2, camera_name:'CAM102', location:'Server Rack 2', dept:'IT', working:'No', lens_cleaning:'Pending', visual_on_tv:'No', focus_angle:'Adjustment Required', damage:'Lens cracked', abnormality:'Camera not powering on' },
+                { sr_no:3, camera_name:'CAM103', location:'UPS Room', dept:'IT', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
+                { sr_no:4, camera_name:'CAM104', location:'IT Entry', dept:'IT', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
               ]
             },
-            { id: 3, company: "Patil Traders", date: "2026-01-20", engineer: "Vikram Joshi", vendor: "Hikvision", department: "Security", bsid_pic: "Sunil", total: 4, working: 4, faulty: 0, remarks: "All good", approved: true, approved_by: "Sunil Patil", approved_date: "2026-01-21",
+            { id: 3, company: "Patil Traders", department: "Security", date: "2026-01-20", engineer: "Vikram Joshi", vendor: "Hikvision", bsid_pic: "Sunil", total: 4, working: 4, faulty: 0, remarks: "All good", approved: true, approved_by: "Sunil Patil", approved_date: "2026-01-21",
+              signature: null,
               cameraDetails: [
                 { sr_no:1, camera_name:'CAM001', location:'Cabin 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
                 { sr_no:2, camera_name:'CAM002', location:'Cabin 2', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
@@ -402,11 +415,14 @@
             toast._t = setTimeout(() => toast.classList.remove('show'), 2600);
         }
 
+        function monthYearOf(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        }
+
         function groupByMonth(data, dateKey) {
             const groups = {};
             data.forEach(item => {
-                const date = new Date(item[dateKey]);
-                const monthYear = date.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                const monthYear = monthYearOf(item[dateKey]);
                 if (!groups[monthYear]) groups[monthYear] = [];
                 groups[monthYear].push(item);
             });
@@ -415,72 +431,151 @@
             );
         }
 
-        // ===== RENDER REPORTS =====
+        // Groups visits by company WITHIN a month bucket, so a company with
+        // multiple department-visits (possibly by different engineers) in the
+        // same month is shown — and exported — as ONE combined monthly report.
+        function groupByCompany(monthVisits) {
+            const groups = {};
+            monthVisits.forEach(v => {
+                if (!groups[v.company]) groups[v.company] = [];
+                groups[v.company].push(v);
+            });
+            Object.values(groups).forEach(list => list.sort((a, b) => new Date(a.date) - new Date(b.date)));
+            return groups;
+        }
+
+        // ===== RENDER REPORTS (grouped by Month -> Company, showing every engineer) =====
         function renderReports() {
             const search = document.getElementById('searchReport').value.toLowerCase();
             const filterApprove = document.getElementById('filterApprove').value;
             const filterCompany = document.getElementById('filterCompany').value;
 
             const filtered = reports.filter(r => {
-                const matchSearch = r.company.toLowerCase().includes(search) || (r.engineer||'').toLowerCase().includes(search);
-                const matchApprove = !filterApprove || (filterApprove === 'Approved' ? r.approved : !r.approved);
+                const matchSearch = r.company.toLowerCase().includes(search)
+                    || (r.engineer||'').toLowerCase().includes(search)
+                    || (r.department||'').toLowerCase().includes(search);
                 const matchCompany = !filterCompany || r.company === filterCompany;
-                return matchSearch && matchApprove && matchCompany;
+                return matchSearch && matchCompany;
             });
 
             // Update company filter dropdown
             const compFilter = document.getElementById('filterCompany');
             const companies = [...new Set(reports.map(r => r.company))];
+            const prevCompanyVal = compFilter.value;
             compFilter.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c}">${c}</option>`).join('');
+            compFilter.value = prevCompanyVal;
 
-            const grouped = groupByMonth(filtered, 'date');
+            const groupedByMonth = groupByMonth(filtered, 'date');
             let html = '';
-            if (!Object.keys(grouped).length) {
+
+            if (!Object.keys(groupedByMonth).length) {
                 html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p><p class="text-sm text-[#7b85a3] mt-1">Submit an inspection from Monthly Visits page</p></div>';
             } else {
-                Object.entries(grouped).forEach(([month, records]) => {
-                    html += `<div class="month-group"><div class="month-title"><i class="fa-regular fa-calendar-check text-accenttext"></i>${month}<span class="count-badge">${records.length} ${records.length > 1 ? 'reports' : 'report'}</span></div><div class="grid grid-cols-1 gap-3">`;
-                    records.forEach(r => {
-                        const status = r.faulty === 0 ? 'All Working' : `${r.faulty} Faulty`;
-                        const statusCls = r.faulty === 0 ? 'chip-active' : 'chip-soon';
-                        const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
-                        const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
-                        const date = new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+                Object.entries(groupedByMonth).forEach(([month, visitsInMonth]) => {
+                    const byCompany = groupByCompany(visitsInMonth);
+                    const companyKeys = Object.keys(byCompany);
+
+                    // filterApprove applies at the combined-company level
+                    const visibleCompanyKeys = companyKeys.filter(company => {
+                        if (!filterApprove) return true;
+                        const allApproved = byCompany[company].every(v => v.approved);
+                        return filterApprove === 'Approved' ? allApproved : !allApproved;
+                    });
+
+                    if (!visibleCompanyKeys.length) return;
+
+                    html += `<div class="month-group"><div class="month-title"><i class="fa-regular fa-calendar-check text-accenttext"></i>${month}<span class="count-badge">${visibleCompanyKeys.length} ${visibleCompanyKeys.length > 1 ? 'companies' : 'company'}</span></div><div class="grid grid-cols-1 gap-3">`;
+
+                    visibleCompanyKeys.forEach(company => {
+                        const visits = byCompany[company];
+                        const engineers = [...new Set(visits.map(v => v.engineer).filter(Boolean))];
+                        const totalCams = visits.reduce((s, v) => s + Number(v.total || 0), 0);
+                        const totalWorking = visits.reduce((s, v) => s + Number(v.working || 0), 0);
+                        const totalFaulty = visits.reduce((s, v) => s + Number(v.faulty || 0), 0);
+                        const allApproved = visits.every(v => v.approved);
+                        const pendingCount = visits.filter(v => !v.approved).length;
+                        const statusChip = totalFaulty === 0 ? 'chip-active' : 'chip-soon';
+                        const statusLabel = totalFaulty === 0 ? 'All Working' : `${totalFaulty} Faulty`;
+                        const approveChip = allApproved ? 'chip-approved' : 'chip-pending';
+                        const approveLabel = allApproved ? '<i class="fa-solid fa-check"></i> All Approved' : `${pendingCount} Pending`;
+                        const companyKeySafe = company.replace(/'/g, "\\'");
+
                         html += `<div class="report-card">
                             <div class="flex flex-wrap justify-between items-start gap-2">
                                 <div>
-                                    <div class="font-semibold text-[#1A328D] text-lg">${r.company}</div>
-                                    <div class="flex flex-wrap gap-3 text-xs text-[#7b85a3] mt-1">
-                                        <span><i class="fa-regular fa-user mr-1"></i>${r.engineer || ''}</span>
-                                        <span><i class="fa-regular fa-calendar mr-1"></i>${date}</span>
-                                        ${r.vendor ? `<span><i class="fa-regular fa-building mr-1"></i>${r.vendor}</span>` : ''}
+                                    <div class="font-semibold text-[#1A328D] text-lg">${company}</div>
+                                    <div class="flex flex-wrap gap-2 mt-1.5">
+                                        ${engineers.map(e => `<span class="chip chip-engineer"><i class="fa-regular fa-user mr-1"></i>${e}</span>`).join('')}
                                     </div>
+                                    <div class="text-xs text-[#7b85a3] mt-1.5"><i class="fa-regular fa-building mr-1"></i>${visits.length} department visit${visits.length > 1 ? 's' : ''} logged this month</div>
                                 </div>
                                 <div class="flex flex-wrap gap-2 items-center">
-                                    <span class="chip ${statusCls}">${status}</span>
-                                    <span class="chip ${approveCls}">${approveLabel}</span>
+                                    <span class="chip ${statusChip}">${statusLabel}</span>
+                                    <span class="chip ${approveChip}">${approveLabel}</span>
                                 </div>
                             </div>
                             <div class="flex flex-wrap gap-4 text-sm text-[#3d4763] mt-2">
-                                <span>Total: <b>${r.total}</b></span>
-                                <span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>Working: <b>${r.working}</b></span>
-                                ${r.faulty > 0 ? `<span class="text-redc"><i class="fa-regular fa-circle-xmark mr-1"></i>Faulty: <b>${r.faulty}</b></span>` : ''}
+                                <span>Total: <b>${totalCams}</b></span>
+                                <span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>Working: <b>${totalWorking}</b></span>
+                                ${totalFaulty > 0 ? `<span class="text-redc"><i class="fa-regular fa-circle-xmark mr-1"></i>Faulty: <b>${totalFaulty}</b></span>` : ''}
                             </div>
-                            ${r.remarks ? `<div class="text-sm text-[#7b85a3] mt-2 italic">${r.remarks}</div>` : ''}
-                            ${r.approved ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-id-badge mr-1"></i>Approved by: ${r.approved_by} on ${r.approved_date}</div>` : ''}
-                            <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions">
-                                <button class="btn-export-excel text-xs py-1.5 px-3" onclick="exportMonthlyExcel(${r.id})"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                                <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
-                                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
-                                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
-                                <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+
+                            <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft">
+                                <button class="btn-export-excel text-xs py-1.5 px-3" onclick="exportCompanyMonthlyExcel('${companyKeySafe}','${month}')"><i class="fa-regular fa-file-excel mr-1"></i>Export Combined Excel</button>
+                            </div>
+
+                            <div class="mt-3 pt-3 border-t border-bordersoft space-y-2">
+                                ${visits.map(r => renderVisitRow(r)).join('')}
                             </div>
                         </div>`;
                     });
+
                     html += '</div></div>';
                 });
+
+                if (!html) {
+                    html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p></div>';
+                }
             }
             reportsContainer.innerHTML = html;
+        }
+
+        function renderVisitRow(r) {
+            const date = new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
+            const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
+            const sig = r.signature
+                ? `<img src="${r.signature}" class="sig-thumb" alt="signature of ${r.engineer}">`
+                : `<span class="no-sig-badge"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No signature</span>`;
+            return `<div class="visit-row">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex flex-wrap items-center gap-2 text-sm">
+                        <span class="font-semibold text-[#1A328D]"><i class="fa-solid fa-diagram-project mr-1"></i>${r.department || '—'}</span>
+                        <span class="text-[#7b85a3]">·</span>
+                        <span><i class="fa-regular fa-user mr-1"></i>${r.engineer || '—'}</span>
+                        <span class="text-[#7b85a3]">·</span>
+                        <span><i class="fa-regular fa-calendar mr-1"></i>${date}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="chip ${approveCls}">${approveLabel}</span>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
+                    <div class="flex flex-wrap gap-3 text-xs text-[#3d4763]">
+                        <span>Total: <b>${r.total}</b></span>
+                        <span class="text-accenttext">Working: <b>${r.working}</b></span>
+                        ${r.faulty > 0 ? `<span class="text-redc">Faulty: <b>${r.faulty}</b></span>` : ''}
+                        ${r.approved ? `<span class="text-[#7b85a3]">Approved by ${r.approved_by} on ${r.approved_date}</span>` : ''}
+                    </div>
+                    ${sig}
+                </div>
+                <div class="flex flex-wrap gap-2 mt-2.5 actions">
+                    <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
+                    <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
+                    <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
+                    <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+                </div>
+            </div>`;
         }
 
         // ===== RENDER ISSUES =====
@@ -542,73 +637,122 @@
             issuesContainer.innerHTML = html;
         }
 
-        // ===== EXPORT MONTHLY INSPECTION EXCEL (Original Format) =====
-        window.exportMonthlyExcel = function(id) {
-            const r = reports.find(x => x.id === id);
-            if (!r) return;
+        // ===== EXPORT COMBINED COMPANY+MONTH EXCEL (with per-visit engineer & signature) =====
+        window.exportCompanyMonthlyExcel = async function(company, monthYear) {
+            const visits = reports
+                .filter(r => r.company === company && monthYearOf(r.date) === monthYear)
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            const date = new Date(r.date);
-            const monthName = date.toLocaleString('en-US', { month: 'long' });
-            const year = date.getFullYear();
-            const fileName = `${r.company}_${monthName}_${year}.xlsx`;
+            if (!visits.length) { showToast('Nothing to export', true); return; }
 
-            const cameras = r.cameraDetails || [];
-
-            const excelData = [
-                ['Monthly camera checksheet', '', '', '', '', '', '', '', '', 'Vendor', r.vendor || ''],
-                ['', '', '', '', '', '', '', '', '', 'Dept', r.department || ''],
-                ['Sr.No', 'Camera Name', 'Location', 'Working(Yes/No)', 'Lens cleaning', 'Visual on TV/not', 'Focus angle of camera', 'Damage if any', 'Any other abnormality', 'Date of checking', 'Checked by', 'BSID PIC'],
-            ];
-
-            cameras.forEach((cam, idx) => {
-                excelData.push([
-                    cam.sr_no || (idx + 1),
-                    cam.camera_name || '',
-                    cam.location || '',
-                    cam.working || '',
-                    cam.lens_cleaning || '',
-                    cam.visual_on_tv || '',
-                    cam.focus_angle || '',
-                    cam.damage || '',
-                    cam.abnormality || '',
-                    r.date || '',
-                    r.engineer || '',
-                    r.bsid_pic || ''
-                ]);
-            });
-
-            const totalDataRows = cameras.length;
-            const blankNeeded = Math.max(0, 40 - totalDataRows);
-            for (let i = 0; i < blankNeeded; i++) {
-                excelData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
-            }
-
-            excelData.push(['BSID PIC', '', '', '', 'Area Manager', '', '', '', 'Manager', '', '', '']);
+            const btn = event.currentTarget;
+            const originalLabel = btn ? btn.innerHTML : null;
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Exporting...'; }
 
             try {
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(excelData);
-
-                ws['!cols'] = [
-                    { wch: 8 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, { wch: 15 },
-                    { wch: 18 }, { wch: 22 }, { wch: 20 }, { wch: 22 }, { wch: 16 },
-                    { wch: 18 }, { wch: 15 },
+                const wb = new ExcelJS.Workbook();
+                const ws = wb.addWorksheet('Monthly Checksheet');
+                ws.columns = [
+                    { width: 7 }, { width: 16 }, { width: 18 }, { width: 12 },
+                    { width: 14 }, { width: 12 }, { width: 20 }, { width: 18 }, { width: 22 }
                 ];
 
-                ws['!merges'] = [
-                    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
-                    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
-                ];
+                let row = 1;
+                ws.mergeCells(`A${row}:I${row}`);
+                const titleCell = ws.getCell(`A${row}`);
+                titleCell.value = `Monthly Camera Checksheet — ${company} — ${monthYear}`;
+                titleCell.font = { bold: true, size: 14, color: { argb: 'FF1A328D' } };
+                row += 1;
+                ws.mergeCells(`A${row}:I${row}`);
+                ws.getCell(`A${row}`).value = `${visits.length} department visit${visits.length > 1 ? 's' : ''} logged this month`;
+                ws.getCell(`A${row}`).font = { italic: true, size: 10, color: { argb: 'FF7B85A3' } };
+                row += 2;
 
-                XLSX.utils.book_append_sheet(wb, ws, 'Monthly Checksheet');
-                XLSX.writeFile(wb, fileName);
-                showToast(`Excel exported: ${fileName}`);
+                for (const visit of visits) {
+                    // Department / engineer / date sub-header
+                    ws.mergeCells(`A${row}:I${row}`);
+                    const subCell = ws.getCell(`A${row}`);
+                    subCell.value = `Department: ${visit.department || '-'}   |   Date: ${visit.date}   |   Vendor: ${visit.vendor || '-'}   |   BSID PIC: ${visit.bsid_pic || '-'}`;
+                    subCell.font = { bold: true, color: { argb: 'FF1A328D' } };
+                    subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8ECF7' } };
+                    row += 1;
+
+                    // Camera table header
+                    const headerRow = ws.getRow(row);
+                    const headers = ['Sr.No', 'Camera Name', 'Location', 'Working', 'Lens Cleaning', 'Visual on TV', 'Focus Angle', 'Damage', 'Any Abnormality'];
+                    headers.forEach((h, i) => { headerRow.getCell(i + 1).value = h; headerRow.getCell(i + 1).font = { bold: true }; headerRow.getCell(i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F3FB' } }; });
+                    row += 1;
+
+                    const cameras = visit.cameraDetails || [];
+                    cameras.forEach((c, idx) => {
+                        const r = ws.getRow(row);
+                        r.getCell(1).value = c.sr_no || (idx + 1);
+                        r.getCell(2).value = c.camera_name || '';
+                        r.getCell(3).value = c.location || c.camera_type || '';
+                        r.getCell(4).value = c.working || '';
+                        r.getCell(5).value = c.lens_cleaning || '';
+                        r.getCell(6).value = c.visual_on_tv || '';
+                        r.getCell(7).value = c.focus_angle || '';
+                        r.getCell(8).value = c.damage || '';
+                        r.getCell(9).value = c.abnormality || '';
+                        row += 1;
+                    });
+
+                    row += 1; // spacer
+
+                    // Checked-by row + embedded signature image next to the engineer name
+                    const checkedRow = ws.getRow(row);
+                    checkedRow.getCell(1).value = 'Checked by:';
+                    checkedRow.getCell(1).font = { bold: true };
+                    checkedRow.getCell(2).value = visit.engineer || '-';
+                    checkedRow.getCell(2).font = { bold: true, color: { argb: 'FF1A328D' } };
+
+                    ws.getRow(row).height = 34;
+
+                    if (visit.signature) {
+                        try {
+                            const base64 = visit.signature.split(',')[1];
+                            const imgId = wb.addImage({ base64, extension: 'png' });
+                            // anchor image in the cell right next to the engineer's name (column D, 0-indexed col 3)
+                            ws.addImage(imgId, {
+                                tl: { col: 3, row: row - 1 },
+                                ext: { width: 100, height: 32 }
+                            });
+                        } catch (imgErr) {
+                            checkedRow.getCell(5).value = '(signature unavailable)';
+                        }
+                    } else {
+                        checkedRow.getCell(5).value = 'No signature on file';
+                        checkedRow.getCell(5).font = { italic: true, color: { argb: 'FFC0392B' } };
+                    }
+
+                    row += 3; // room for the signature image height + spacing before next visit block
+                }
+
+                // Final sign-off block
+                row += 1;
+                ws.mergeCells(`A${row}:C${row}`); ws.getCell(`A${row}`).value = 'BSID PIC';
+                ws.mergeCells(`E${row}:F${row}`); ws.getCell(`E${row}`).value = 'Area Manager';
+                ws.mergeCells(`H${row}:I${row}`); ws.getCell(`H${row}`).value = 'Manager';
+                ws.getRow(row).font = { bold: true };
+
+                const buffer = await wb.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const fileName = `${company}_${monthYear.replace(/\s+/g, '_')}.xlsx`;
+                a.href = url; a.download = fileName; document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast(`Combined Excel exported: ${fileName}`);
             } catch (err) {
                 showToast('Error: ' + err.message, true);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
             }
         };
 
-        // ===== EXPORT ISSUE EXCEL (Separate Format) =====
+        // ===== EXPORT ISSUE EXCEL (Separate Format, unchanged) =====
         window.exportIssueExcel = function(id) {
             const iss = issues.find(x => x.id === id);
             if (!iss) return;
@@ -677,7 +821,7 @@
             }
         };
 
-        // ===== VIEW REPORT (with camera table) =====
+        // ===== VIEW REPORT (with camera table + signature) =====
         window.viewReport = function(id, type) {
             const item = type === 'report' ? reports.find(r => r.id === id) : issues.find(r => r.id === id);
             if (!item) return;
@@ -689,10 +833,10 @@
                 html = `
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                         <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold text-[#1A328D]">${item.company}</div></div>
+                        <div><div class="text-xs text-[#7b85a3]">Department</div><div class="font-semibold text-[#1A328D]">${item.department||'—'}</div></div>
                         <div><div class="text-xs text-[#7b85a3]">Date</div><div class="font-semibold text-[#1A328D]">${date}</div></div>
                         <div><div class="text-xs text-[#7b85a3]">Engineer</div><div class="font-semibold text-[#1A328D]">${item.engineer||''}</div></div>
                         <div><div class="text-xs text-[#7b85a3]">Vendor</div><div class="font-semibold text-[#1A328D]">${item.vendor||'—'}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Dept</div><div class="font-semibold text-[#1A328D]">${item.department||'—'}</div></div>
                         <div><div class="text-xs text-[#7b85a3]">BSID PIC</div><div class="font-semibold text-[#1A328D]">${item.bsid_pic||'—'}</div></div>
                         <div><div class="text-xs text-[#7b85a3]">Total Cameras</div><div class="font-semibold text-[#1A328D]">${item.total}</div></div>
                         <div><div class="text-xs text-[#7b85a3]">Working</div><div class="font-semibold text-accenttext">${item.working}</div></div>
@@ -701,14 +845,18 @@
                     ${item.remarks ? `<div class="text-sm text-[#7b85a3] mb-4 italic p-3 bg-[#eef1fa] rounded-lg">${item.remarks}</div>` : ''}
                     ${item.approved ? `<div class="text-xs text-[#7b85a3] mb-4"><i class="fa-solid fa-check mr-1"></i>Approved by <b>${item.approved_by}</b> on ${item.approved_date}</div>` : ''}
 
-                    <div class="text-sm font-semibold text-[#1A328D] mb-2 mt-2"><i class="fa-solid fa-video mr-1 text-accenttext"></i>Camera Details (${cameras.length} cameras)</div>
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-sm font-semibold text-[#1A328D]"><i class="fa-solid fa-video mr-1 text-accenttext"></i>Camera Details (${cameras.length} cameras)</div>
+                        ${item.signature
+                            ? `<div class="flex items-center gap-2"><span class="text-xs text-[#7b85a3]">Engineer signature:</span><img src="${item.signature}" class="sig-thumb" style="height:36px;max-width:120px;"></div>`
+                            : `<span class="no-sig-badge">No signature on file</span>`}
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="cam-table">
                             <thead>
                                 <tr>
                                     <th>Sr</th>
-                                    <th>Camera</th>
-                                    <th>Location</th>
+                                    <th>Camera Name</th>
                                     <th>Working</th>
                                     <th>Lens Clean</th>
                                     <th>Visual TV</th>
@@ -722,7 +870,6 @@
                                     <tr>
                                         <td>${c.sr_no}</td>
                                         <td class="font-mono">${c.camera_name}</td>
-                                        <td>${c.location}</td>
                                         <td class="${c.working === 'Yes' ? 'td-working-yes' : 'td-working-no'}">${c.working}</td>
                                         <td>${c.lens_cleaning||''}</td>
                                         <td>${c.visual_on_tv||''}</td>
@@ -735,7 +882,7 @@
                         </table>
                     </div>
                     <div class="flex justify-end mt-5 gap-2">
-                        <button onclick="exportMonthlyExcel(${item.id})" class="btn-export-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
+                        <button onclick="exportCompanyMonthlyExcel('${item.company.replace(/'/g,"\\'")}','${monthYearOf(item.date)}')" class="btn-export-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Combined Excel</button>
                         <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
                     </div>
                 `;
@@ -785,6 +932,7 @@
             document.getElementById('editReportId').value = id;
             document.getElementById('editReportType').value = type;
             document.getElementById('editCompany').value = item.company;
+            document.getElementById('editDepartment').value = item.department || '';
             document.getElementById('editEngineer').value = item.engineer || '';
             document.getElementById('editDate').value = item.date;
             document.getElementById('editTotal').value = item.total;
@@ -822,6 +970,7 @@
             const item = reports.find(r => r.id === id);
             if (!item) return;
             item.company = document.getElementById('editCompany').value;
+            item.department = document.getElementById('editDepartment').value;
             item.engineer = document.getElementById('editEngineer').value;
             item.date = document.getElementById('editDate').value;
             item.total = Number(document.getElementById('editTotal').value);
