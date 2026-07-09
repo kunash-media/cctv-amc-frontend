@@ -63,7 +63,7 @@
             background: linear-gradient(135deg, #1A328D, #234FAA) !important;
             color: white !important;
             width: 90%;
-            margin-left: 10px;
+        
             border-radius: 10px;
         }
         .sidebar a.active svg { stroke: white !important; }
@@ -238,11 +238,13 @@
         </div>
     </header>
 
+
+
     <div class="flex min-h-screen" style="background-color: #F0F3FB;">
 
         <!-- ===== SIDEBAR ===== -->
         <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col h-screen sticky top-0 overflow-y-auto">
-            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
+            <nav class="ml-2 flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
                 <a href="/page/dashboard.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
                     <span class="sidebar-nav-text">Dashboard</span>
@@ -388,7 +390,13 @@
                         </select>
                     </div>
                     <div class="md:col-span-2"><label class="text-xs font-medium text-[#3d4763] block mb-1">Address</label><textarea id="address" rows="2" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A328D]"></textarea></div>
-                    <div class="md:col-span-2"><label class="text-xs font-medium text-[#3d4763] block mb-1">Employee ID</label><input type="text" id="empId" placeholder="Auto-generated" readonly class="w-full bg-[#eef1fa] border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm text-[#7b85a3]"></div>
+                    <div class="md:col-span-2"><label class="text-xs font-medium text-[#3d4763] block mb-1">Staff ID</label><input type="text" id="empId" placeholder="Auto-generated" readonly class="w-full bg-[#eef1fa] border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm text-[#7b85a3]"></div>
+                    
+                    <div class="md:col-span-2" id="passwordField">
+                        <label class="text-xs font-medium text-[#3d4763] block mb-1">Password *</label>
+                        <input type="password" id="password" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="Minimum 6 characters">
+                        <span id="passwordHint" class="text-[11px] text-[#7b85a3] block mt-1">Required when adding a new staff member</span>
+                    </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" id="cancelStaff" class="btn-secondary px-6 py-2">Cancel</button>
@@ -461,291 +469,301 @@
         </div>
     </div>
 
-    <script>
-        (function() {
-            'use strict';
+    <script src="/page/admin-auth.js"></script>
+ <script>
+    (async function() {
+        'use strict';
 
-            // ===== TOAST =====
-            function showToast(msg, danger) {
-                danger = danger || false;
-                var toast = document.getElementById('toastMessage');
-                if (!toast) return;
-                toast.textContent = msg;
-                toast.className = 'toast' + (danger ? ' danger' : '') + ' show';
-                clearTimeout(toast._t);
-                toast._t = setTimeout(function() {
-                    toast.classList.remove('show');
-                }, 2800);
-            }
+           const sessionOk = await Auth.guard();
+            if (!sessionOk) return; // guard() already redirected to admin-login.html
 
-            // ===== MOCK DATA =====
-            var staffData = [
-                { id: 1, emp_id: 'EMP-001', first_name: 'Vikram', middle_name: 'R.', last_name: 'Joshi', mobile: '9876543210', email: 'vikram@cctv.com', role: 'Engineer', dob: '1985-05-15', gender: 'Male', blood_group: 'A+', joining_date: '2020-04-01', address: '42, Green Park Colony, Pune', status: 'Active' },
-                { id: 2, emp_id: 'EMP-002', first_name: 'Suresh', middle_name: '', last_name: 'Patil', mobile: '9823456712', email: 'suresh@cctv.com', role: 'Engineer', dob: '1988-08-20', gender: 'Male', blood_group: 'B+', joining_date: '2021-06-15', address: '15, Shivaji Nagar, Pune', status: 'Active' },
-                { id: 3, emp_id: 'EMP-003', first_name: 'Anita', middle_name: 'S.', last_name: 'Deshmukh', mobile: '9765432109', email: 'anita@cctv.com', role: 'Manager', dob: '1982-03-10', gender: 'Female', blood_group: 'O+', joining_date: '2019-01-20', address: '8, Greenfield Society, Baner', status: 'Active' },
-                { id: 4, emp_id: 'EMP-004', first_name: 'Rajesh', middle_name: '', last_name: 'Kumar', mobile: '9876123456', email: 'rajesh@cctv.com', role: 'Admin', dob: '1979-11-25', gender: 'Male', blood_group: 'AB+', joining_date: '2018-07-01', address: '22, MG Road, Pune', status: 'Inactive' },
-                { id: 5, emp_id: 'EMP-005', first_name: 'Priya', middle_name: 'M.', last_name: 'Sharma', mobile: '9988776655', email: 'priya@cctv.com', role: 'Supervisor', dob: '1990-12-05', gender: 'Female', blood_group: 'A-', joining_date: '2022-03-10', address: '45, FC Road, Pune', status: 'Active' },
-                { id: 6, emp_id: 'EMP-006', first_name: 'Amit', middle_name: '', last_name: 'Verma', mobile: '9876543211', email: 'amit@cctv.com', role: 'Technician', dob: '1992-07-18', gender: 'Male', blood_group: 'O-', joining_date: '2023-01-05', address: '12, Model Colony, Pune', status: 'Active' },
-            ];
 
-            var nextId = 7;
-            var deleteId = null;
+        var API_BASE = 'http://localhost:5000/api/staff';
+        var staffData = [];
+        var deleteId = null;
 
-            var staffContainer = document.getElementById('staffContainer');
-            var emptyState = document.getElementById('emptyState');
+        function showToast(msg, danger) {
+            danger = danger || false;
+            var toast = document.getElementById('toastMessage');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.className = 'toast' + (danger ? ' danger' : '') + ' show';
+            clearTimeout(toast._t);
+            toast._t = setTimeout(function() { toast.classList.remove('show'); }, 2800);
+        }
 
-            // Theme colors for avatars (blue palette, matching company-management theme)
-            var avatarColors = ['#1A328D', '#234FAA', '#c0392b', '#b07d1a', '#1f8a4c', '#7b85a3'];
-
-            // ===== RENDER STAFF =====
-            function renderStaff() {
-                var search = document.getElementById('searchStaff').value.toLowerCase();
-                var filterRole = document.getElementById('filterRole').value;
-                var filterStatus = document.getElementById('filterStatus').value;
-
-                var filtered = staffData.filter(function(s) {
-                    var fullName = (s.first_name + ' ' + (s.middle_name || '') + ' ' + s.last_name).toLowerCase();
-                    var matchSearch = fullName.includes(search) || s.email.toLowerCase().includes(search) || s.mobile.includes(search);
-                    var matchRole = !filterRole || s.role === filterRole;
-                    var matchStatus = !filterStatus || s.status === filterStatus;
-                    return matchSearch && matchRole && matchStatus;
-                });
-
-                // Update stats
-                document.getElementById('statTotal').textContent = staffData.length;
-                document.getElementById('statActive').textContent = staffData.filter(function(s) { return s.status === 'Active'; }).length;
-                document.getElementById('statInactive').textContent = staffData.filter(function(s) { return s.status === 'Inactive'; }).length;
-                document.getElementById('statEngineers').textContent = staffData.filter(function(s) { return s.role === 'Engineer'; }).length;
-
-                if (filtered.length === 0) {
-                    staffContainer.innerHTML = '';
-                    emptyState.classList.remove('hidden');
-                    return;
-                }
-                emptyState.classList.add('hidden');
-
-                var html = '';
-                filtered.forEach(function(s) {
-                    var statusCls = s.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
-                    var initials = (s.first_name.charAt(0) + (s.last_name.charAt(0) || '')).toUpperCase();
-                    var color = avatarColors[(s.id - 1) % avatarColors.length];
-                    var fullName = s.first_name + (s.middle_name ? ' ' + s.middle_name : '') + ' ' + s.last_name;
-
-                    html += '<div class="staff-card" onclick="viewStaff(' + s.id + ')">';
-                    html += '<div class="flex items-start gap-3">';
-                    html += '<div class="staff-avatar" style="background:' + color + '">' + initials + '</div>';
-                    html += '<div class="flex-1 min-w-0">';
-                    html += '<div class="font-semibold text-[#1A328D]">' + fullName + '</div>';
-                    html += '<div class="text-xs text-[#7b85a3]"><i class="fa-regular fa-envelope mr-1"></i>' + s.email + '</div>';
-                    html += '<div class="text-xs text-[#7b85a3]"><i class="fa-regular fa-phone mr-1"></i>' + s.mobile + '</div>';
-                    html += '<div class="flex flex-wrap gap-2 mt-1">';
-                    html += '<span class="chip chip-neutral text-[10px]">' + s.role + '</span>';
-                    html += '<span class="chip ' + statusCls + ' text-[10px]">' + s.status + '</span>';
-                    html += '</div></div>';
-                    html += '<div class="flex gap-1">';
-                    html += '<button onclick="event.stopPropagation();editStaff(' + s.id + ')" class="text-[#1A328D] hover:text-[#234FAA] p-1"><i class="fa-regular fa-pen-to-square text-sm"></i></button>';
-                    html += '<button onclick="event.stopPropagation();deleteStaff(' + s.id + ')" class="text-[#c0392b] hover:text-red-700 p-1"><i class="fa-regular fa-trash-can text-sm"></i></button>';
-                    html += '</div></div></div>';
-                });
-                staffContainer.innerHTML = html;
-            }
-
-            // ===== VIEW STAFF =====
-            window.viewStaff = function(id) {
-                var staff = staffData.find(function(s) { return s.id === id; });
-                if (!staff) return;
-
-                var fullName = staff.first_name + (staff.middle_name ? ' ' + staff.middle_name : '') + ' ' + staff.last_name;
-                var dob = staff.dob ? new Date(staff.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
-                var joining = staff.joining_date ? new Date(staff.joining_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
-                var statusCls = staff.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
-                var color = avatarColors[(staff.id - 1) % avatarColors.length];
-
-                document.getElementById('viewStaffContent').innerHTML =
-                    '<div class="flex items-center gap-4 mb-4 pb-4 border-b border-[#e1e6f3]">' +
-                    '<div class="staff-avatar" style="background:' + color + ';width:64px;height:64px;font-size:24px;">' + (staff.first_name.charAt(0) + staff.last_name.charAt(0)).toUpperCase() + '</div>' +
-                    '<div><div class="font-display font-bold text-lg text-[#1A328D]">' + fullName + '</div>' +
-                    '<div class="text-sm text-[#7b85a3]">' + staff.emp_id + ' · ' + staff.role + '</div>' +
-                    '<span class="chip ' + statusCls + ' text-[10px]">' + staff.status + '</span></div></div>' +
-                    '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
-                    '<div class="profile-field"><span class="label">First Name</span><span class="value">' + staff.first_name + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Middle Name</span><span class="value">' + (staff.middle_name || '—') + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Last Name</span><span class="value">' + staff.last_name + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Mobile</span><span class="value">' + staff.mobile + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Email</span><span class="value">' + staff.email + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Role</span><span class="value">' + staff.role + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Date of Birth</span><span class="value">' + dob + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Gender</span><span class="value">' + (staff.gender || '—') + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Blood Group</span><span class="value">' + (staff.blood_group || '—') + '</span></div>' +
-                    '<div class="profile-field"><span class="label">Joining Date</span><span class="value">' + joining + '</span></div>' +
-                    '<div class="md:col-span-2 profile-field"><span class="label">Address</span><span class="value">' + (staff.address || '—') + '</span></div>' +
-                    '</div>' +
-                    '<div class="flex justify-end mt-4"><button onclick="document.getElementById(\'viewStaffModal\').classList.remove(\'open\')" class="btn-primary px-6 py-2">Close</button></div>';
-
-                document.getElementById('viewStaffModal').classList.add('open');
-            };
-
-            // ===== ADD STAFF =====
-            function openAddModal() {
-                document.getElementById('modalTitle').innerHTML = '<i class="fa-regular fa-user-plus mr-2"></i>Add Staff';
-                document.getElementById('staffForm').reset();
-                document.getElementById('staffId').value = '';
-                document.getElementById('empId').value = 'EMP-' + String(nextId).padStart(3, '0');
-                document.getElementById('staffModal').classList.add('open');
-            }
-
-            // ===== EDIT STAFF =====
-            window.editStaff = function(id) {
-                var staff = staffData.find(function(s) { return s.id === id; });
-                if (!staff) return;
-
-                document.getElementById('modalTitle').innerHTML = '<i class="fa-regular fa-pen-to-square mr-2"></i>Edit Staff';
-                document.getElementById('staffId').value = staff.id;
-                document.getElementById('empId').value = staff.emp_id;
-                document.getElementById('firstName').value = staff.first_name;
-                document.getElementById('middleName').value = staff.middle_name || '';
-                document.getElementById('lastName').value = staff.last_name;
-                document.getElementById('mobileNo').value = staff.mobile;
-                document.getElementById('email').value = staff.email;
-                document.getElementById('role').value = staff.role;
-                document.getElementById('dob').value = staff.dob || '';
-                document.getElementById('gender').value = staff.gender || '';
-                document.getElementById('bloodGroup').value = staff.blood_group || '';
-                document.getElementById('joiningDate').value = staff.joining_date || '';
-                document.getElementById('status').value = staff.status;
-                document.getElementById('address').value = staff.address || '';
-                document.getElementById('staffModal').classList.add('open');
-            };
-
-            // ===== DELETE STAFF =====
-            window.deleteStaff = function(id) {
-                deleteId = id;
-                document.getElementById('deleteBackdrop').classList.add('open');
-            };
-
-            // ===== SAVE STAFF =====
-            document.getElementById('staffForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                var id = document.getElementById('staffId').value;
-                var data = {
-                    first_name: document.getElementById('firstName').value.trim(),
-                    middle_name: document.getElementById('middleName').value.trim(),
-                    last_name: document.getElementById('lastName').value.trim(),
-                    mobile: document.getElementById('mobileNo').value.trim(),
-                    email: document.getElementById('email').value.trim(),
-                    role: document.getElementById('role').value,
-                    dob: document.getElementById('dob').value,
-                    gender: document.getElementById('gender').value,
-                    blood_group: document.getElementById('bloodGroup').value,
-                    joining_date: document.getElementById('joiningDate').value,
-                    status: document.getElementById('status').value,
-                    address: document.getElementById('address').value.trim(),
-                };
-
-                if (!data.first_name || !data.last_name || !data.mobile || !data.email || !data.role) {
-                    showToast('Please fill all required fields', true);
-                    return;
-                }
-
-                if (id) {
-                    var idx = staffData.findIndex(function(s) { return s.id === Number(id); });
-                    if (idx !== -1) {
-                        staffData[idx] = { ...staffData[idx], ...data };
-                    }
-                    showToast('Staff updated ✓');
-                } else {
-                    data.id = nextId++;
-                    data.emp_id = 'EMP-' + String(data.id).padStart(3, '0');
-                    staffData.push(data);
-                    showToast('Staff added ✓');
-                }
-
-                document.getElementById('staffModal').classList.remove('open');
-                renderStaff();
+        function apiGet(path) {
+            return fetch(API_BASE + path).then(function(res) {
+                if (!res.ok) return res.json().catch(function(){return {message:res.statusText};}).then(function(err){throw new Error(err.message||err.error||('Request failed ('+res.status+')'));});
+                return res.json();
             });
+        }
+        function apiPost(path, body) {
+            return fetch(API_BASE + path, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(function(res) {
+                if (!res.ok) return res.json().catch(function(){return {message:res.statusText};}).then(function(err){throw new Error(err.message||err.error||('Request failed ('+res.status+')'));});
+                return res.json();
+            });
+        }
+        function apiPut(path, body) {
+            return fetch(API_BASE + path, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) }).then(function(res) {
+                if (!res.ok) return res.json().catch(function(){return {message:res.statusText};}).then(function(err){throw new Error(err.message||err.error||('Request failed ('+res.status+')'));});
+                return res.json();
+            });
+        }
+        function apiDelete(path) {
+            return fetch(API_BASE + path, { method: 'DELETE' }).then(function(res) {
+                if (!res.ok) return res.json().catch(function(){return {message:res.statusText};}).then(function(err){throw new Error(err.message||err.error||('Request failed ('+res.status+')'));});
+            });
+        }
 
-            // ===== MODAL CONTROLS =====
-            document.getElementById('addStaffBtn').onclick = openAddModal;
-            document.getElementById('emptyAddBtn').onclick = openAddModal;
-            document.getElementById('closeStaffModal').onclick = function() { document.getElementById('staffModal').classList.remove('open'); };
-            document.getElementById('cancelStaff').onclick = function() { document.getElementById('staffModal').classList.remove('open'); };
-            document.getElementById('closeViewStaff').onclick = function() { document.getElementById('viewStaffModal').classList.remove('open'); };
+        var staffContainer = document.getElementById('staffContainer');
+        var emptyState = document.getElementById('emptyState');
+        var avatarColors = ['#1A328D', '#234FAA', '#c0392b', '#b07d1a', '#1f8a4c', '#7b85a3'];
 
-            // ===== DELETE =====
-            document.getElementById('confirmDelete').onclick = function() {
-                if (deleteId !== null) {
-                    staffData = staffData.filter(function(s) { return s.id !== deleteId; });
-                    deleteId = null;
-                    document.getElementById('deleteBackdrop').classList.remove('open');
-                    showToast('Staff deleted', true);
-                    renderStaff();
-                }
+        function loadStaff() {
+            var search = document.getElementById('searchStaff').value;
+            var role = document.getElementById('filterRole').value;
+            var status = document.getElementById('filterStatus').value;
+            var params = new URLSearchParams();
+            if (search) params.set('search', search);
+            if (role) params.set('role', role);
+            if (status) params.set('status', status);
+            var qs = params.toString();
+
+            apiGet(qs ? '?' + qs : '').then(function(data) {
+                staffData = data;
+                renderStaff();
+                loadStats();
+            }).catch(function(err) {
+                showToast('Failed to load staff: ' + err.message, true);
+            });
+        }
+
+        function loadStats() {
+            apiGet('/stats').then(function(stats) {
+                document.getElementById('statTotal').textContent = stats.totalStaff;
+                document.getElementById('statActive').textContent = stats.active;
+                document.getElementById('statInactive').textContent = stats.inactive;
+                document.getElementById('statEngineers').textContent = stats.engineers;
+            }).catch(function(err) {
+                console.warn('Failed to load stats:', err.message);
+            });
+        }
+
+        function renderStaff() {
+            if (staffData.length === 0) {
+                staffContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            var html = '';
+            staffData.forEach(function(s) {
+                var statusCls = s.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
+                var initials = (s.firstName.charAt(0) + (s.lastName ? s.lastName.charAt(0) : '')).toUpperCase();
+                var color = avatarColors[s.employeePrimeId % avatarColors.length];
+                var fullName = s.firstName + (s.middleName ? ' ' + s.middleName : '') + ' ' + s.lastName;
+
+                html += '<div class="staff-card" onclick="viewStaff(' + s.employeePrimeId + ')">';
+                html += '<div class="flex items-start gap-3">';
+                html += '<div class="staff-avatar" style="background:' + color + '">' + initials + '</div>';
+                html += '<div class="flex-1 min-w-0">';
+                html += '<div class="font-semibold text-[#1A328D]">' + fullName + '</div>';
+                html += '<div class="text-xs text-[#7b85a3]"><i class="fa-regular fa-envelope mr-1"></i>' + s.email + '</div>';
+                html += '<div class="text-xs text-[#7b85a3]"><i class="fa-regular fa-phone mr-1"></i>' + s.mobile + '</div>';
+                html += '<div class="flex flex-wrap gap-2 mt-1">';
+                html += '<span class="chip chip-neutral text-[10px]">' + s.role + '</span>';
+                html += '<span class="chip ' + statusCls + ' text-[10px]">' + s.status + '</span>';
+                html += '</div></div>';
+                html += '<div class="flex gap-1">';
+                html += '<button onclick="event.stopPropagation();editStaff(' + s.employeePrimeId + ')" class="text-[#1A328D] hover:text-[#234FAA] p-1"><i class="fa-regular fa-pen-to-square text-sm"></i></button>';
+                html += '<button onclick="event.stopPropagation();deleteStaff(' + s.employeePrimeId + ')" class="text-[#c0392b] hover:text-red-700 p-1"><i class="fa-regular fa-trash-can text-sm"></i></button>';
+                html += '</div></div></div>';
+            });
+            staffContainer.innerHTML = html;
+        }
+
+        window.viewStaff = function(id) {
+            var staff = staffData.find(function(s) { return s.employeePrimeId === id; });
+            if (!staff) return;
+
+            var fullName = staff.firstName + (staff.middleName ? ' ' + staff.middleName : '') + ' ' + staff.lastName;
+            var dob = staff.dob ? new Date(staff.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+            var joining = staff.joiningDate ? new Date(staff.joiningDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
+            var statusCls = staff.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
+            var color = avatarColors[staff.employeePrimeId % avatarColors.length];
+
+            document.getElementById('viewStaffContent').innerHTML =
+                '<div class="flex items-center gap-4 mb-4 pb-4 border-b border-[#e1e6f3]">' +
+                '<div class="staff-avatar" style="background:' + color + ';width:64px;height:64px;font-size:24px;">' + (staff.firstName.charAt(0) + staff.lastName.charAt(0)).toUpperCase() + '</div>' +
+                '<div><div class="font-display font-bold text-lg text-[#1A328D]">' + fullName + '</div>' +
+                '<div class="text-sm text-[#7b85a3]">' + staff.empId + ' · ' + staff.role + '</div>' +
+                '<span class="chip ' + statusCls + ' text-[10px]">' + staff.status + '</span></div></div>' +
+                '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+                '<div class="profile-field"><span class="label">First Name</span><span class="value">' + staff.firstName + '</span></div>' +
+                '<div class="profile-field"><span class="label">Middle Name</span><span class="value">' + (staff.middleName || '—') + '</span></div>' +
+                '<div class="profile-field"><span class="label">Last Name</span><span class="value">' + staff.lastName + '</span></div>' +
+                '<div class="profile-field"><span class="label">Mobile</span><span class="value">' + staff.mobile + '</span></div>' +
+                '<div class="profile-field"><span class="label">Email</span><span class="value">' + staff.email + '</span></div>' +
+                '<div class="profile-field"><span class="label">Role</span><span class="value">' + staff.role + '</span></div>' +
+                '<div class="profile-field"><span class="label">Date of Birth</span><span class="value">' + dob + '</span></div>' +
+                '<div class="profile-field"><span class="label">Gender</span><span class="value">' + (staff.gender || '—') + '</span></div>' +
+                '<div class="profile-field"><span class="label">Blood Group</span><span class="value">' + (staff.bloodGroup || '—') + '</span></div>' +
+                '<div class="profile-field"><span class="label">Joining Date</span><span class="value">' + joining + '</span></div>' +
+                '<div class="md:col-span-2 profile-field"><span class="label">Address</span><span class="value">' + (staff.address || '—') + '</span></div>' +
+                '</div>' +
+                '<div class="flex justify-end mt-4"><button onclick="document.getElementById(\'viewStaffModal\').classList.remove(\'open\')" class="btn-primary px-6 py-2">Close</button></div>';
+
+            document.getElementById('viewStaffModal').classList.add('open');
+        };
+
+        function openAddModal() {
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-regular fa-user-plus mr-2"></i>Add Staff';
+            document.getElementById('staffForm').reset();
+            document.getElementById('staffId').value = '';
+            document.getElementById('empId').value = 'Auto-generated';
+            document.getElementById('password').required = true;
+            document.getElementById('passwordHint').textContent = 'Required when adding a new staff member';
+            document.getElementById('staffModal').classList.add('open');
+        }
+
+        window.editStaff = function(id) {
+            var staff = staffData.find(function(s) { return s.employeePrimeId === id; });
+            if (!staff) return;
+
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-regular fa-pen-to-square mr-2"></i>Edit Staff';
+            document.getElementById('staffId').value = staff.employeePrimeId;
+            document.getElementById('empId').value = staff.empId;
+            document.getElementById('firstName').value = staff.firstName;
+            document.getElementById('middleName').value = staff.middleName || '';
+            document.getElementById('lastName').value = staff.lastName;
+            document.getElementById('mobileNo').value = staff.mobile;
+            document.getElementById('email').value = staff.email;
+            document.getElementById('role').value = staff.role;
+            document.getElementById('dob').value = staff.dob || '';
+            document.getElementById('gender').value = staff.gender || '';
+            document.getElementById('bloodGroup').value = staff.bloodGroup || '';
+            document.getElementById('joiningDate').value = staff.joiningDate || '';
+            document.getElementById('status').value = staff.status;
+            document.getElementById('address').value = staff.address || '';
+            document.getElementById('password').value = '';
+            document.getElementById('password').required = false;
+            document.getElementById('passwordHint').textContent = 'Leave blank to keep current password';
+            document.getElementById('staffModal').classList.add('open');
+        };
+
+        window.deleteStaff = function(id) {
+            deleteId = id;
+            document.getElementById('deleteBackdrop').classList.add('open');
+        };
+
+        document.getElementById('staffForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var id = document.getElementById('staffId').value;
+            var data = {
+                firstName: document.getElementById('firstName').value.trim(),
+                middleName: document.getElementById('middleName').value.trim(),
+                lastName: document.getElementById('lastName').value.trim(),
+                mobile: document.getElementById('mobileNo').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                role: document.getElementById('role').value,
+                dob: document.getElementById('dob').value || null,
+                gender: document.getElementById('gender').value,
+                bloodGroup: document.getElementById('bloodGroup').value,
+                joiningDate: document.getElementById('joiningDate').value || null,
+                status: document.getElementById('status').value,
+                address: document.getElementById('address').value.trim(),
+                password: document.getElementById('password').value
             };
-            document.getElementById('cancelDelete').onclick = function() {
+
+            if (!data.firstName || !data.lastName || !data.mobile || !data.email || !data.role) {
+                showToast('Please fill all required fields', true);
+                return;
+            }
+            if (!id && !data.password) {
+                showToast('Password is required for new staff', true);
+                return;
+            }
+
+            var request = id ? apiPut('/' + id, data) : apiPost('', data);
+            request.then(function() {
+                showToast(id ? 'Staff updated ✓' : 'Staff added ✓');
+                document.getElementById('staffModal').classList.remove('open');
+                loadStaff();
+            }).catch(function(err) {
+                showToast('Save failed: ' + err.message, true);
+            });
+        });
+
+        document.getElementById('addStaffBtn').onclick = openAddModal;
+        document.getElementById('emptyAddBtn').onclick = openAddModal;
+        document.getElementById('closeStaffModal').onclick = function() { document.getElementById('staffModal').classList.remove('open'); };
+        document.getElementById('cancelStaff').onclick = function() { document.getElementById('staffModal').classList.remove('open'); };
+        document.getElementById('closeViewStaff').onclick = function() { document.getElementById('viewStaffModal').classList.remove('open'); };
+
+        document.getElementById('confirmDelete').onclick = function() {
+            if (deleteId === null) return;
+            apiDelete('/' + deleteId).then(function() {
                 deleteId = null;
                 document.getElementById('deleteBackdrop').classList.remove('open');
-            };
-
-            // ===== FILTERS =====
-            document.getElementById('searchStaff').addEventListener('input', renderStaff);
-            document.getElementById('filterRole').addEventListener('change', renderStaff);
-            document.getElementById('filterStatus').addEventListener('change', renderStaff);
-            document.getElementById('resetFilters').onclick = function() {
-                document.getElementById('searchStaff').value = '';
-                document.getElementById('filterRole').value = '';
-                document.getElementById('filterStatus').value = '';
-                renderStaff();
-                showToast('Filters reset ✓');
-            };
-
-            // ===== SIDEBAR =====
-            var sidebar = document.getElementById('sidebar');
-            var sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
-            var isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (isSidebarCollapsed) sidebar.classList.add('collapsed');
-            sidebarCollapseBtn.onclick = function() {
-                sidebar.classList.toggle('collapsed');
-                localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-            };
-
-            // ===== USER DROPDOWN =====
-            var userMenuBtn = document.getElementById('userMenuBtn');
-            var userDropdown = document.getElementById('userDropdown');
-            var profileModal = document.getElementById('profileModal');
-            var logoutBackdrop = document.getElementById('logoutBackdrop');
-
-            userMenuBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                userDropdown.classList.toggle('hidden');
+                showToast('Staff deleted', true);
+                loadStaff();
+            }).catch(function(err) {
+                showToast('Delete failed: ' + err.message, true);
             });
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden');
-            });
+        };
+        document.getElementById('cancelDelete').onclick = function() {
+            deleteId = null;
+            document.getElementById('deleteBackdrop').classList.remove('open');
+        };
 
-            document.getElementById('closeProfileModal').addEventListener('click', function() { profileModal.classList.remove('open'); });
-            document.getElementById('closeProfileModalBtn').addEventListener('click', function() { profileModal.classList.remove('open'); });
-            profileModal.addEventListener('click', function(e) {
-                if (e.target === profileModal) profileModal.classList.remove('open');
-            });
+        var searchTimer;
+        document.getElementById('searchStaff').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(loadStaff, 300);
+        });
+        document.getElementById('filterRole').addEventListener('change', loadStaff);
+        document.getElementById('filterStatus').addEventListener('change', loadStaff);
+        document.getElementById('resetFilters').onclick = function() {
+            document.getElementById('searchStaff').value = '';
+            document.getElementById('filterRole').value = '';
+            document.getElementById('filterStatus').value = '';
+            loadStaff();
+            showToast('Filters reset ✓');
+        };
 
-            // ===== LOGOUT =====
-            document.getElementById('logoutBtn').onclick = function() {
-                userDropdown.classList.add('hidden');
-                logoutBackdrop.classList.add('open');
-            };
-            document.getElementById('cancelLogout').onclick = function() { logoutBackdrop.classList.remove('open'); };
-            document.getElementById('confirmLogout').onclick = function() {
-                sessionStorage.removeItem('amc_session');
-                setTimeout(function() {
-                    logoutBackdrop.classList.remove('open');
-                    window.location.href = '/page/login.html';
-                }, 300);
-            };
+        var sidebar = document.getElementById('sidebar');
+        var sidebarCollapseBtn = document.getElementById('sidebarCollapseBtn');
+        var isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+        sidebarCollapseBtn.onclick = function() {
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        };
 
-            // ===== INIT =====
-            renderStaff();
+        var userMenuBtn = document.getElementById('userMenuBtn');
+        var userDropdown = document.getElementById('userDropdown');
+        var profileModal = document.getElementById('profileModal');
 
-        })();
-    </script>
+        userMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden');
+        });
+
+        document.getElementById('closeProfileModal').addEventListener('click', function() { profileModal.classList.remove('open'); });
+        document.getElementById('closeProfileModalBtn').addEventListener('click', function() { profileModal.classList.remove('open'); });
+        profileModal.addEventListener('click', function(e) {
+            if (e.target === profileModal) profileModal.classList.remove('open');
+        });
+
+        Auth.bindLogoutUI();
+        loadStaff();
+
+    })();
+</script>
 </body>
 </html>

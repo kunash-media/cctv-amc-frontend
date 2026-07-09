@@ -337,243 +337,236 @@
   </div>
 
   <script>
-    (function () {
-      'use strict';
+  (function () {
+    'use strict';
 
-      const REPORTS_KEY = 'cctv_amc_reports';
-      const ISSUES_KEY = 'cctv_amc_issues';
-      const PAGE_SIZE = 10;
+    const API_BASE = 'http://localhost:5000/api/inspection'; // same-origin relative path
 
-      // ===== CLIENT / DEPARTMENT / CAMERA PAYLOAD =====
-      const CLIENTS = [
-        { "clientId": 1, "clientName": "TechVision Solutions", "clientDepartments": [
-          { "depId": 1, "depName": "Headquarters Security", "totalCamera": 45, "picId": "pic-101", "cameraList": [
-            { "camId": 101, "cameraName": "HQ-Main-Entrance-1", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 102, "cameraName": "HQ-Parking-Area", "cameraAngle": "360", "cameraType": "PTZ Cameras" },
-            { "camId": 103, "cameraName": "HQ-Lobby-Recption", "cameraAngle": "FOV", "cameraType": "Dome Cameras" }
-          ]},
-          { "depId": 2, "depName": "Warehouse Division", "totalCamera": 30, "picId": "pic-102" },
-          { "depId": 3, "depName": "Data Center Monitoring", "totalCamera": 25, "picId": "pic-103" }
-        ]},
-        { "clientId": 2, "clientName": "Global Retail Corp", "clientDepartments": [
-          { "depId": 1, "depName": "Main Store Security", "totalCamera": 60, "picId": "pic-201", "cameraList": [
-            { "camId": 201, "cameraName": "Store-Entry-East", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 202, "cameraName": "Store-Entry-West", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 203, "cameraName": "Store-Cashier-1", "cameraAngle": "90", "cameraType": "Dome Cameras" },
-            { "camId": 204, "cameraName": "Store-Parking-Lot", "cameraAngle": "360", "cameraType": "PTZ Cameras" }
-          ]},
-          { "depId": 2, "depName": "Mall Branch Security", "totalCamera": 35, "picId": "pic-202", "cameraList": [
-            { "camId": 205, "cameraName": "Mall-Entry-South", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" }
-          ]},
-          { "depId": 3, "depName": "Warehouse & Logistics", "totalCamera": 20, "picId": "pic-203" }
-        ]},
-        { "clientId": 3, "clientName": "SecureTech Industries", "clientDepartments": [
-          { "depId": 1, "depName": "Manufacturing Plant", "totalCamera": 75, "picId": "pic-301", "cameraList": [
-            { "camId": 301, "cameraName": "Plant-Area-A", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 302, "cameraName": "Plant-Area-B", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 303, "cameraName": "Plant-Conveyor-Belt", "cameraAngle": "45", "cameraType": "Dome Cameras" },
-            { "camId": 304, "cameraName": "Plant-Exterior-Perimeter", "cameraAngle": "360", "cameraType": "PTZ Cameras" }
-          ]},
-          { "depId": 2, "depName": "R&D Center", "totalCamera": 15, "picId": "pic-302", "cameraList": [
-            { "camId": 305, "cameraName": "R&D-Lobby", "cameraAngle": "FOV", "cameraType": "Dome Cameras" }
-          ]},
-          { "depId": 3, "depName": "Administrative Building", "totalCamera": 28, "picId": "pic-303" }
-        ]},
-        { "clientId": 4, "clientName": "City Metro Transport", "clientDepartments": [
-          { "depId": 1, "depName": "Bus Terminal Security", "totalCamera": 50, "picId": "pic-401", "cameraList": [
-            { "camId": 401, "cameraName": "Terminal-Platform-1", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 402, "cameraName": "Terminal-Platform-2", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" },
-            { "camId": 403, "cameraName": "Terminal-Ticketing", "cameraAngle": "90", "cameraType": "Dome Cameras" },
-            { "camId": 404, "cameraName": "Terminal-Parking-Garage", "cameraAngle": "360", "cameraType": "PTZ Cameras" },
-            { "camId": 405, "cameraName": "Terminal-Entry-Gate", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" }
-          ]},
-          { "depId": 2, "depName": "Train Station Security", "totalCamera": 40, "picId": "pic-402", "cameraList": [
-            { "camId": 406, "cameraName": "Station-Main-Concouse", "cameraAngle": "FOV", "cameraType": "Dome Cameras" },
-            { "camId": 407, "cameraName": "Station-Platform-3", "cameraAngle": "FOV", "cameraType": "Bullet Cameras" }
-          ]},
-          { "depId": 3, "depName": "Fleet Management", "totalCamera": 18, "picId": "pic-403" }
-        ]}
-      ];
+    // TODO(auth): replace with real logged-in engineer's employeePrimeId once auth.js is wired in.
+    const CURRENT_ENGINEER_ID = 1;
 
-      // Mock last-visit data — replace with backend lookup later (key: `${clientId}_${depId}`)
-      const LAST_VISITS = {
-        '1_1': { date: '2026-06-25', time: '11:30 AM' },
-        '2_1': { date: '2026-06-29', time: '03:15 PM' },
-        '3_1': { date: '2026-05-10', time: '10:00 AM' },
-        '4_2': { date: '2026-06-30', time: '09:00 AM' }
-      };
+    const PAGE_SIZE = 10;
 
-      let session = { employee_id: 'ENG-021', name: 'Vikram Joshi' };
-      try { const s = JSON.parse(sessionStorage.getItem('amc_session')); if (s) session = s; } catch (e) {}
+    let session = { employee_id: 'ENG-021', name: 'Vikram Joshi' };
+    try { const s = JSON.parse(sessionStorage.getItem('amc_session')); if (s) session = s; } catch (e) {}
 
-      let currentClient = null;
-      let currentDept = null;
-      let cameras = [];
-      let selectedCameras = new Set();
-      let issues = [];
-      let openDetailId = null;
-      let currentPage = 1;
-      let uploadedImages = [];
-      let pendingBulkAction = null;
+    let companies = [];          // from /companies
+    let currentClient = null;    // selected company object (from companies[])
+    let currentDept = null;      // selected department object (from currentClient.clientDepartments[])
+    let cameras = [];            // from /departments/{id}/cameras, extended with inspection fields
+    let selectedCameras = new Set();
+    let issues = [];             // from /issues?departmentId=
+    let openDetailId = null;
+    let currentPage = 1;
+    let uploadedImages = [];     // { id, file, url, name }
+    let pendingBulkAction = null;
 
-      const $ = id => document.getElementById(id);
-      const companySelect = $('companySelect');
-      const departmentField = $('departmentField');
-      const companyMeta = $('companyMeta'), companyMetaText = $('companyMetaText');
-      const headerFields = $('headerFields');
-      const cameraSection = $('cameraSection');
-      const issueSection = $('issueSection');
-      const cameraCards = $('cameraCards');
-      const camCountText = $('camCountText');
-      const inspectionType = $('inspectionType');
-      const toast = $('toast');
-      const simpleSubmitBtn = $('simpleSubmitBtn');
-      const submitBtnContainer = $('submitBtnContainer');
-      const paginationBar = $('paginationBar');
-      const searchCamera = $('searchCamera');
+    const $ = id => document.getElementById(id);
+    const companySelect = $('companySelect');
+    const departmentField = $('departmentField');
+    const companyMeta = $('companyMeta'), companyMetaText = $('companyMetaText');
+    const headerFields = $('headerFields');
+    const cameraSection = $('cameraSection');
+    const issueSection = $('issueSection');
+    const cameraCards = $('cameraCards');
+    const camCountText = $('camCountText');
+    const inspectionType = $('inspectionType');
+    const toast = $('toast');
+    const simpleSubmitBtn = $('simpleSubmitBtn');
+    const submitBtnContainer = $('submitBtnContainer');
+    const paginationBar = $('paginationBar');
+    const searchCamera = $('searchCamera');
 
-      function showToast(msg, danger = false) {
-        toast.textContent = msg;
-        toast.className = 'toast' + (danger ? ' danger' : '') + ' show';
-        clearTimeout(toast._t);
-        toast._t = setTimeout(() => toast.classList.remove('show'), 2800);
+    function showToast(msg, danger = false) {
+      toast.textContent = msg;
+      toast.className = 'toast' + (danger ? ' danger' : '') + ' show';
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    async function apiGet(path) {
+      const res = await fetch(API_BASE + path);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(err.message || err.error || `Request failed (${res.status})`);
       }
+      return res.json();
+    }
 
-      // ===== SIGNATURE PAD =====
-      const sigCanvas = $('signaturePad');
-      const sigCtx = sigCanvas.getContext('2d');
-      const sigStatusText = $('sigStatusText');
-      let sigDrawing = false, hasSignature = false;
+    async function apiPostJson(path, body) {
+      const res = await fetch(API_BASE + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(err.message || err.error || `Request failed (${res.status})`);
+      }
+      return res.json();
+    }
 
-      function resizeSignaturePad() {
-        const rect = sigCanvas.getBoundingClientRect();
-        const ratio = window.devicePixelRatio || 1;
-        sigCanvas.width = rect.width * ratio;
-        sigCanvas.height = rect.height * ratio;
-        sigCtx.scale(ratio, ratio);
-        sigCtx.lineCap = 'round';
-        sigCtx.lineJoin = 'round';
-        sigCtx.strokeStyle = '#151929';
-        sigCtx.lineWidth = 2.2;
+    async function apiDelete(path) {
+      const res = await fetch(API_BASE + path, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(err.message || err.error || `Request failed (${res.status})`);
       }
+    }
 
-      function sigPos(e) {
-        const rect = sigCanvas.getBoundingClientRect();
-        const point = e.touches ? e.touches[0] : e;
-        return { x: point.clientX - rect.left, y: point.clientY - rect.top };
-      }
-      function sigStart(e) {
-        sigDrawing = true;
-        const p = sigPos(e);
-        sigCtx.beginPath();
-        sigCtx.moveTo(p.x, p.y);
-        e.preventDefault();
-      }
-      function sigMove(e) {
-        if (!sigDrawing) return;
-        const p = sigPos(e);
-        sigCtx.lineTo(p.x, p.y);
-        sigCtx.stroke();
-        if (!hasSignature) { hasSignature = true; updateSigStatus(); }
-        e.preventDefault();
-      }
-      function sigEnd() { sigDrawing = false; }
-      function updateSigStatus() {
-        if (hasSignature) {
-          sigStatusText.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i>Signature captured';
-          sigStatusText.className = 'text-[11px] text-accenttext font-medium';
-        } else {
-          sigStatusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>Signature required';
-          sigStatusText.className = 'text-[11px] text-redc font-medium';
-        }
-      }
-      function clearSignaturePad() {
-        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
-        hasSignature = false;
-        updateSigStatus();
-      }
+    // ===== SIGNATURE PAD =====
+    const sigCanvas = $('signaturePad');
+    const sigCtx = sigCanvas.getContext('2d');
+    const sigStatusText = $('sigStatusText');
+    let sigDrawing = false, hasSignature = false;
 
-      sigCanvas.addEventListener('mousedown', sigStart);
-      sigCanvas.addEventListener('mousemove', sigMove);
-      window.addEventListener('mouseup', sigEnd);
-      sigCanvas.addEventListener('touchstart', sigStart, { passive: false });
-      sigCanvas.addEventListener('touchmove', sigMove, { passive: false });
-      sigCanvas.addEventListener('touchend', sigEnd);
-      $('clearSignatureBtn').addEventListener('click', clearSignaturePad);
+    function resizeSignaturePad() {
+      const rect = sigCanvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      sigCanvas.width = rect.width * ratio;
+      sigCanvas.height = rect.height * ratio;
+      sigCtx.scale(ratio, ratio);
+      sigCtx.lineCap = 'round';
+      sigCtx.lineJoin = 'round';
+      sigCtx.strokeStyle = '#151929';
+      sigCtx.lineWidth = 2.2;
+    }
 
-      // ===== Populate company dropdown =====
-      CLIENTS.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.clientId;
-        opt.textContent = c.clientName;
-        companySelect.appendChild(opt);
+    function sigPos(e) {
+      const rect = sigCanvas.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+      return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+    }
+    function sigStart(e) {
+      sigDrawing = true;
+      const p = sigPos(e);
+      sigCtx.beginPath();
+      sigCtx.moveTo(p.x, p.y);
+      e.preventDefault();
+    }
+    function sigMove(e) {
+      if (!sigDrawing) return;
+      const p = sigPos(e);
+      sigCtx.lineTo(p.x, p.y);
+      sigCtx.stroke();
+      if (!hasSignature) { hasSignature = true; updateSigStatus(); }
+      e.preventDefault();
+    }
+    function sigEnd() { sigDrawing = false; }
+    function updateSigStatus() {
+      if (hasSignature) {
+        sigStatusText.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i>Signature captured';
+        sigStatusText.className = 'text-[11px] text-accenttext font-medium';
+      } else {
+        sigStatusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>Signature required';
+        sigStatusText.className = 'text-[11px] text-redc font-medium';
+      }
+    }
+    function clearSignaturePad() {
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      hasSignature = false;
+      updateSigStatus();
+    }
+
+    sigCanvas.addEventListener('mousedown', sigStart);
+    sigCanvas.addEventListener('mousemove', sigMove);
+    window.addEventListener('mouseup', sigEnd);
+    sigCanvas.addEventListener('touchstart', sigStart, { passive: false });
+    sigCanvas.addEventListener('touchmove', sigMove, { passive: false });
+    sigCanvas.addEventListener('touchend', sigEnd);
+    $('clearSignatureBtn').addEventListener('click', clearSignaturePad);
+
+    // ===== Load companies from backend =====
+    async function loadCompanies() {
+      try {
+        companies = await apiGet('/companies');
+        companySelect.innerHTML = '<option value="">— Choose —</option>';
+        companies.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.clientId;
+          opt.textContent = c.clientName;
+          companySelect.appendChild(opt);
+        });
+      } catch (err) {
+        showToast('Failed to load companies: ' + err.message, true);
+      }
+    }
+    loadCompanies();
+
+    function resetCameraState() {
+      cameras = [];
+      selectedCameras.clear();
+      openDetailId = null;
+      currentPage = 1;
+      searchCamera.value = '';
+      cameraSection.classList.add('hidden');
+      submitBtnContainer.style.display = 'none';
+    }
+
+    companySelect.addEventListener('change', function () {
+      const id = Number(this.value);
+      if (!id) {
+        currentClient = null; currentDept = null;
+        resetCameraState();
+        headerFields.classList.add('hidden');
+        companyMeta.classList.add('hidden');
+        departmentField.innerHTML = '<option value="">— Select Company First —</option>';
+        $('bsidField').value = '';
+        $('lastVisitInfo').classList.add('hidden');
+        return;
+      }
+      currentClient = companies.find(c => c.clientId === id);
+      currentDept = null;
+      resetCameraState();
+
+      $('vendorField').value = 'Akansha Enterprises';
+      $('bsidField').value = '';
+      $('visitDateField').value = new Date().toISOString().split('T')[0];
+      $('checkedByField').value = session.name;
+
+      departmentField.innerHTML = '<option value="">— Select Department —</option>';
+      (currentClient.clientDepartments || []).forEach(d => {
+        const o = document.createElement('option');
+        o.value = d.depId;
+        o.textContent = `${d.depName} (${d.totalCamera} cams)`;
+        departmentField.appendChild(o);
       });
 
-      function resetCameraState() {
-        cameras = [];
-        selectedCameras.clear();
-        openDetailId = null;
-        currentPage = 1;
-        searchCamera.value = '';
-        cameraSection.classList.add('hidden');
-        submitBtnContainer.style.display = 'none';
-      }
+      companyMetaText.textContent = `${(currentClient.clientDepartments || []).length} departments available`;
+      companyMeta.classList.remove('hidden');
+      headerFields.classList.remove('hidden');
+    });
 
-      companySelect.addEventListener('change', function () {
-        const id = Number(this.value);
-        if (!id) {
-          currentClient = null; currentDept = null;
-          resetCameraState();
-          headerFields.classList.add('hidden');
-          companyMeta.classList.add('hidden');
-          departmentField.innerHTML = '<option value="">— Select Company First —</option>';
-          $('bsidField').value = '';
-          $('lastVisitInfo').classList.add('hidden');
-          return;
-        }
-        currentClient = CLIENTS.find(c => c.clientId === id);
+    departmentField.addEventListener('change', async function () {
+      const depId = Number(this.value);
+      if (!depId) {
         currentDept = null;
         resetCameraState();
-
-        $('vendorField').value = 'Akansha Enterprises';
         $('bsidField').value = '';
-        $('visitDateField').value = new Date().toISOString().split('T')[0];
-        $('checkedByField').value = session.name;
+        $('lastVisitInfo').classList.add('hidden');
+        return;
+      }
+      currentDept = currentClient.clientDepartments.find(d => d.depId === depId);
+      $('bsidField').value = '';
 
-        // Populate department dropdown
-        departmentField.innerHTML = '<option value="">— Select Department —</option>';
-        currentClient.clientDepartments.forEach(d => {
-          const o = document.createElement('option');
-          o.value = d.depId;
-          o.textContent = `${d.depName} (${d.totalCamera} cams)`;
-          departmentField.appendChild(o);
-        });
+      await Promise.all([
+        loadLastVisit(depId),
+        loadCameras(depId)
+      ]);
 
-        companyMetaText.textContent = `${currentClient.clientDepartments.length} departments available`;
-        companyMeta.classList.remove('hidden');
-        headerFields.classList.remove('hidden');
-      });
+      if (inspectionType.value === 'monthly') submitBtnContainer.style.display = 'block';
+    });
 
-      departmentField.addEventListener('change', function () {
-        const depId = Number(this.value);
-        if (!depId) {
-          currentDept = null;
-          resetCameraState();
-          $('bsidField').value = '';
-          $('lastVisitInfo').classList.add('hidden');
-          return;
-        }
-        currentDept = currentClient.clientDepartments.find(d => d.depId === depId);
-        $('bsidField').value = '';
-        renderLastVisitInfo(depId);
-
-        cameras = (currentDept.cameraList || []).map(cam => ({
+    async function loadCameras(depId) {
+      try {
+        const camList = await apiGet(`/departments/${depId}/cameras`);
+        cameras = camList.map(cam => ({
           camId: cam.camId,
           cameraName: cam.cameraName,
           cameraAngle: cam.cameraAngle,
           cameraType: cam.cameraType,
           working: null,
-          lens_cleaning: '', visual_on_tv: '', focus_angle: '', damage: '', abnormality: '', remark: ''
+          lens_cleaning: '', visual_on_tv: '', focus_angle: '', damage: '', abnormality: ''
         }));
         selectedCameras.clear();
         openDetailId = null;
@@ -584,397 +577,385 @@
 
         const sel = $('issueCamera');
         sel.innerHTML = '<option value="">— Select —</option>';
-        cameras.forEach(c => { const o = document.createElement('option'); o.value = c.camId; o.textContent = `${c.cameraName}`; sel.appendChild(o); });
+        cameras.forEach(c => {
+          const o = document.createElement('option');
+          o.value = c.camId;
+          o.textContent = c.cameraName;
+          sel.appendChild(o);
+        });
 
         renderCameraCards();
-        if (inspectionType.value === 'monthly') submitBtnContainer.style.display = 'block';
-      });
+      } catch (err) {
+        showToast('Failed to load cameras: ' + err.message, true);
+      }
+    }
 
-      function renderLastVisitInfo(depId) {
-        const box = $('lastVisitInfo');
-        const key = `${currentClient.clientId}_${depId}`;
-        const lv = LAST_VISITS[key];
+    async function loadLastVisit(depId) {
+      const box = $('lastVisitInfo');
+      try {
+        const lv = await apiGet(`/departments/${depId}/last-visit`);
         box.classList.remove('hidden');
-        if (lv) {
+        if (lv.hasPreviousVisit) {
           const d = new Date(lv.date);
           const day = d.toLocaleDateString('en-IN', { weekday: 'long' });
           const dateStr = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-          const today = new Date().toISOString().split('T')[0];
-          const isConflict = lv.date === today;
+          const isConflict = lv.sameDayConflict;
           box.className = 'mt-2 text-xs rounded-lg px-3 py-2 flex items-start gap-2 ' + (isConflict ? 'bg-[#fbe4e1] text-[#c0392b] border border-[#f3c6c0]' : 'bg-surface3 text-textdim border border-bordersoft');
           box.innerHTML = `<i class="fa-solid ${isConflict ? 'fa-triangle-exclamation' : 'fa-clock-rotate-left'} mt-0.5"></i><span><strong>Last Visit:</strong> ${dateStr} (${day}) at ${lv.time}${isConflict ? ' — <strong>Same-day visit already logged!</strong>' : ''}</span>`;
         } else {
           box.className = 'mt-2 text-xs rounded-lg px-3 py-2 flex items-start gap-2 bg-surface3 text-textfaint border border-bordersoft';
           box.innerHTML = `<i class="fa-regular fa-clock mt-0.5"></i><span>No previous visit on record for this department.</span>`;
         }
+      } catch (err) {
+        box.classList.add('hidden');
+        console.warn('Last-visit lookup failed:', err.message);
+      }
+    }
+
+    function getFilteredCameras() {
+      const search = searchCamera.value.toLowerCase().trim();
+      if (!search) return cameras;
+      return cameras.filter(c =>
+        String(c.camId).toLowerCase().includes(search) ||
+        (c.cameraName || '').toLowerCase().includes(search) ||
+        (c.cameraType || '').toLowerCase().includes(search) ||
+        (c.cameraAngle || '').toLowerCase().includes(search)
+      );
+    }
+
+    function renderCameraCards() {
+      const filtered = getFilteredCameras();
+      const totalCount = currentDept ? currentDept.totalCamera : 0;
+      camCountText.textContent = `${cameras.length} listed of ${totalCount} total`;
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      const startIdx = (currentPage - 1) * PAGE_SIZE;
+      const pageCameras = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
+      cameraCards.innerHTML = '';
+
+      if (!pageCameras.length) {
+        cameraCards.innerHTML = '<div style="grid-column:1/-1" class="text-center text-textfaint py-8 bg-white rounded-2xl border border-bordersoft"><i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>No cameras match</div>';
+        paginationBar.classList.add('hidden');
+        return;
       }
 
-      function getFilteredCameras() {
-        const search = searchCamera.value.toLowerCase().trim();
-        if (!search) return cameras;
-        return cameras.filter(c =>
-          String(c.camId).toLowerCase().includes(search) ||
-          (c.cameraName || '').toLowerCase().includes(search) ||
-          (c.cameraType || '').toLowerCase().includes(search) ||
-          (c.cameraAngle || '').toLowerCase().includes(search)
-        );
-      }
+      for (let i = 0; i < pageCameras.length; i += 2) {
+        const pair = pageCameras.slice(i, i + 2);
+        const rowWrap = document.createElement('div');
+        rowWrap.style.cssText = 'grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:12px;';
 
-  function renderCameraCards() {
-        const filtered = getFilteredCameras();
-        const totalCount = currentDept ? currentDept.totalCamera : 0;
-        camCountText.textContent = `${cameras.length} listed of ${totalCount} total`;
+        let expandCamId = null;
+        let expandHTML = '';
 
-        const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-        if (currentPage > totalPages) currentPage = totalPages;
-        const startIdx = (currentPage - 1) * PAGE_SIZE;
-        const pageCameras = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+        pair.forEach(cam => {
+          const sel = selectedCameras.has(cam.camId);
+          const isOpen = openDetailId === cam.camId;
+          if (isOpen) { expandCamId = cam.camId; }
 
-        cameraCards.innerHTML = '';
-
-        if (!pageCameras.length) {
-          cameraCards.innerHTML = '<div style="grid-column:1/-1" class="text-center text-textfaint py-8 bg-white rounded-2xl border border-bordersoft"><i class="fa-regular fa-folder-open text-2xl mb-2 block"></i>No cameras match</div>';
-          paginationBar.classList.add('hidden');
-          return;
-        }
-
-        // Render in pairs so expand row spans full width
-        for (let i = 0; i < pageCameras.length; i += 2) {
-          const pair = pageCameras.slice(i, i + 2);
-
-          // Row wrapper spans full grid width
-          const rowWrap = document.createElement('div');
-          rowWrap.style.cssText = 'grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:12px;';
-
-          let expandCamId = null;
-          let expandHTML = '';
-
-          pair.forEach(cam => {
-            const sel = selectedCameras.has(cam.camId);
-            const isOpen = openDetailId === cam.camId;
-            if (isOpen) { expandCamId = cam.camId; }
-
-            const card = document.createElement('div');
-            card.className = `cam-card${sel ? ' selected' : ''}`;
-            card.innerHTML = `
-              <div class="flex items-start justify-between gap-1">
-                <div class="flex items-start gap-1.5 min-w-0 flex-1">
-                  <input type="checkbox" class="checkbox cam-check mt-0.5 flex-shrink-0" data-id="${cam.camId}" ${sel ? 'checked' : ''}>
-                  <span class="font-semibold text-[11.5px] leading-tight text-[#151929] break-all">${cam.cameraName}</span>
-                </div>
-                <button class="cam-detail-toggle flex-shrink-0 text-primary text-[10px] font-semibold w-7 h-7 flex items-center justify-center border border-borderc rounded-lg bg-surface3 hover:bg-primary hover:text-white transition ${isOpen ? 'bg-primary text-white' : ''}" data-id="${cam.camId}">
-                  <i class="fa-regular fa-pen-to-square"></i>
-                </button>
+          const card = document.createElement('div');
+          card.className = `cam-card${sel ? ' selected' : ''}`;
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-1">
+              <div class="flex items-start gap-1.5 min-w-0 flex-1">
+                <input type="checkbox" class="checkbox cam-check mt-0.5 flex-shrink-0" data-id="${cam.camId}" ${sel ? 'checked' : ''}>
+                <span class="font-semibold text-[11.5px] leading-tight text-[#151929] break-all">${cam.cameraName}</span>
               </div>
-              <div class="status-toggle mt-2">
-                <button class="status-btn working-btn ${cam.working === true ? 'active' : ''}" data-id="${cam.camId}" data-val="true">✓ Working</button>
-                <button class="status-btn faulty-btn ${cam.working === false ? 'active' : ''}" data-id="${cam.camId}" data-val="false">✗ Faulty</button>
-              </div>
-            `;
+              <button class="cam-detail-toggle flex-shrink-0 text-primary text-[10px] font-semibold w-7 h-7 flex items-center justify-center border border-borderc rounded-lg bg-surface3 hover:bg-primary hover:text-white transition ${isOpen ? 'bg-primary text-white' : ''}" data-id="${cam.camId}">
+                <i class="fa-regular fa-pen-to-square"></i>
+              </button>
+            </div>
+            <div class="status-toggle mt-2">
+              <button class="status-btn working-btn ${cam.working === true ? 'active' : ''}" data-id="${cam.camId}" data-val="true">✓ Working</button>
+              <button class="status-btn faulty-btn ${cam.working === false ? 'active' : ''}" data-id="${cam.camId}" data-val="false">✗ Faulty</button>
+            </div>
+          `;
 
-            card.querySelectorAll('.status-btn').forEach(btn => {
-              btn.addEventListener('click', () => {
-                const c = cameras.find(x => x.camId === Number(btn.dataset.id));
-                if (!c) return;
-                const val = btn.dataset.val === 'true';
-                if (c.working === val) { c.working = null; }
-                else {
-                  c.working = val;
-                  if (val === true) {
-                    c.lens_cleaning = c.lens_cleaning || 'Done';
-                    c.visual_on_tv = c.visual_on_tv || 'Yes';
-                    c.focus_angle = c.focus_angle || 'Correct';
-                  } else {
-                    c.visual_on_tv = c.visual_on_tv || 'No';
-                  }
+          card.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const c = cameras.find(x => x.camId === Number(btn.dataset.id));
+              if (!c) return;
+              const val = btn.dataset.val === 'true';
+              if (c.working === val) { c.working = null; }
+              else {
+                c.working = val;
+                if (val === true) {
+                  c.lens_cleaning = c.lens_cleaning || 'Done';
+                  c.visual_on_tv = c.visual_on_tv || 'Yes';
+                  c.focus_angle = c.focus_angle || 'Correct';
+                } else {
+                  c.visual_on_tv = c.visual_on_tv || 'No';
                 }
-                renderCameraCards();
-              });
-            });
-
-            card.querySelector('.cam-check').addEventListener('change', e => {
-              const id = Number(e.target.dataset.id);
-              if (e.target.checked) selectedCameras.add(id);
-              else selectedCameras.delete(id);
+              }
               renderCameraCards();
             });
-
-            card.querySelector('.cam-detail-toggle').addEventListener('click', () => {
-              const id = Number(card.querySelector('.cam-detail-toggle').dataset.id);
-              openDetailId = openDetailId === id ? null : id;
-              renderCameraCards();
-            });
-
-            rowWrap.appendChild(card);
-
-            if (isOpen) {
-              const c = cam;
-              expandHTML = `
-                <div class="grid grid-cols-2 gap-2 mb-2">
-                  <div>
-                    <label class="cam-detail-fields label">Lens Cleaning</label>
-                    <select class="field-lens w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
-                      <option value="">— Select —</option>
-                      <option value="Done" ${c.lens_cleaning==='Done'?'selected':''}>Done</option>
-                      <option value="Pending" ${c.lens_cleaning==='Pending'?'selected':''}>Pending</option>
-                      <option value="N/A" ${c.lens_cleaning==='N/A'?'selected':''}>N/A</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="cam-detail-fields label">Visual on TV</label>
-                    <select class="field-visual w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
-                      <option value="">— Select —</option>
-                      <option value="Yes" ${c.visual_on_tv==='Yes'?'selected':''}>Yes</option>
-                      <option value="No" ${c.visual_on_tv==='No'?'selected':''}>No</option>
-                    </select>
-                  </div>
-                  <div class="col-span-2">
-                    <label class="cam-detail-fields label">Focus Angle</label>
-                    <select class="field-focus w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
-                      <option value="">— Select —</option>
-                      <option value="Correct" ${c.focus_angle==='Correct'?'selected':''}>Correct</option>
-                      <option value="Adjustment Required" ${c.focus_angle==='Adjustment Required'?'selected':''}>Adjustment Required</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="mb-2">
-                  <label class="cam-detail-fields label">Damage (if any)</label>
-                  <input type="text" class="field-damage w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.damage||''}" placeholder="Describe damage...">
-                </div>
-                <div class="mb-3">
-                  <label class="cam-detail-fields label">Any Abnormality</label>
-                  <input type="text" class="field-abnormal w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.abnormality||''}" placeholder="Any other issue...">
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-[11px] text-textfaint font-mono">${c.cameraName}</span>
-                  <button class="save-close-detail btn-grad px-4 py-1.5 rounded-lg text-xs font-semibold" data-id="${c.camId}">
-                    <i class="fa-solid fa-check mr-1"></i>Save &amp; Close
-                  </button>
-                </div>
-              `;
-            }
           });
 
-          cameraCards.appendChild(rowWrap);
+          card.querySelector('.cam-check').addEventListener('change', e => {
+            const id = Number(e.target.dataset.id);
+            if (e.target.checked) selectedCameras.add(id);
+            else selectedCameras.delete(id);
+            renderCameraCards();
+          });
 
-          // Expanded detail row — spans full width below the pair
-          if (expandCamId !== null) {
-            const expandRow = document.createElement('div');
-            expandRow.style.cssText = 'grid-column:1/-1;';
-            expandRow.className = 'cam-expand-row open';
-            expandRow.innerHTML = expandHTML;
-            cameraCards.appendChild(expandRow);
+          card.querySelector('.cam-detail-toggle').addEventListener('click', () => {
+            const id = Number(card.querySelector('.cam-detail-toggle').dataset.id);
+            openDetailId = openDetailId === id ? null : id;
+            renderCameraCards();
+          });
 
-            const expandCam = cameras.find(x => x.camId === expandCamId);
-            if (expandCam) {
-              expandRow.querySelector('.field-lens').addEventListener('change', e => { expandCam.lens_cleaning = e.target.value; });
-              expandRow.querySelector('.field-visual').addEventListener('change', e => { expandCam.visual_on_tv = e.target.value; });
-              expandRow.querySelector('.field-focus').addEventListener('change', e => { expandCam.focus_angle = e.target.value; });
-              expandRow.querySelector('.field-damage').addEventListener('input', e => { expandCam.damage = e.target.value; });
-              expandRow.querySelector('.field-abnormal').addEventListener('input', e => { expandCam.abnormality = e.target.value; });
-              expandRow.querySelector('.save-close-detail').addEventListener('click', () => {
-                openDetailId = null;
-                renderCameraCards();
-                showToast('Camera details saved');
-              });
-            }
-          }
-        }
+          rowWrap.appendChild(card);
 
-        renderPagination(totalPages, filtered.length);
-      }
-
-      function renderPagination(totalPages, filteredCount) {
-        if (totalPages <= 1) { paginationBar.classList.add('hidden'); return; }
-        paginationBar.classList.remove('hidden');
-        paginationBar.innerHTML = '';
-
-        const prev = document.createElement('button');
-        prev.className = 'pg-btn'; prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-        prev.disabled = currentPage === 1;
-        prev.addEventListener('click', () => { currentPage--; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
-        paginationBar.appendChild(prev);
-
-        for (let i = 1; i <= totalPages; i++) {
-          if (totalPages > 7 && i !== 1 && i !== totalPages && Math.abs(i - currentPage) > 1) {
-            if (i === 2 || i === totalPages - 1) {
-              const dots = document.createElement('span');
-              dots.textContent = '…'; dots.className = 'px-1 text-textfaint';
-              paginationBar.appendChild(dots);
-            }
-            continue;
-          }
-          const btn = document.createElement('button');
-          btn.className = 'pg-btn' + (i === currentPage ? ' active' : '');
-          btn.textContent = i;
-          btn.addEventListener('click', () => { currentPage = i; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
-          paginationBar.appendChild(btn);
-        }
-
-        const next = document.createElement('button');
-        next.className = 'pg-btn'; next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-        next.disabled = currentPage === totalPages;
-        next.addEventListener('click', () => { currentPage++; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
-        paginationBar.appendChild(next);
-      }
-
-      // Search filters the FULL department camera list, paginated afterward
-      searchCamera.addEventListener('input', function () {
-        currentPage = 1;
-        renderCameraCards();
-      });
-
-      // Selection-based bulk apply (works on checked cameras only)
-      $('applyBulkAction').addEventListener('click', function () {
-        const action = $('bulkActionSelect').value;
-        if (!action) { showToast('Select a bulk action first', true); return; }
-        if (selectedCameras.size === 0) { showToast('No cameras selected', true); return; }
-        cameras.forEach(c => {
-          if (selectedCameras.has(c.camId)) {
-            if (action === 'working') {
-              c.working = true;
-              c.lens_cleaning = c.lens_cleaning || 'Done';
-              c.visual_on_tv = c.visual_on_tv || 'Yes';
-              c.focus_angle = c.focus_angle || 'Correct';
-            } else if (action === 'faulty') {
-              c.working = false;
-            }
+          if (isOpen) {
+            const c = cam;
+            expandHTML = `
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label class="cam-detail-fields label">Lens Cleaning</label>
+                  <select class="field-lens w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
+                    <option value="">— Select —</option>
+                    <option value="Done" ${c.lens_cleaning==='Done'?'selected':''}>Done</option>
+                    <option value="Pending" ${c.lens_cleaning==='Pending'?'selected':''}>Pending</option>
+                    <option value="N/A" ${c.lens_cleaning==='N/A'?'selected':''}>N/A</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="cam-detail-fields label">Visual on TV</label>
+                  <select class="field-visual w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
+                    <option value="">— Select —</option>
+                    <option value="Yes" ${c.visual_on_tv==='Yes'?'selected':''}>Yes</option>
+                    <option value="No" ${c.visual_on_tv==='No'?'selected':''}>No</option>
+                  </select>
+                </div>
+                <div class="col-span-2">
+                  <label class="cam-detail-fields label">Focus Angle</label>
+                  <select class="field-focus w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
+                    <option value="">— Select —</option>
+                    <option value="Correct" ${c.focus_angle==='Correct'?'selected':''}>Correct</option>
+                    <option value="Adjustment Required" ${c.focus_angle==='Adjustment Required'?'selected':''}>Adjustment Required</option>
+                  </select>
+                </div>
+              </div>
+              <div class="mb-2">
+                <label class="cam-detail-fields label">Damage (if any)</label>
+                <input type="text" class="field-damage w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.damage||''}" placeholder="Describe damage...">
+              </div>
+              <div class="mb-3">
+                <label class="cam-detail-fields label">Any Abnormality</label>
+                <input type="text" class="field-abnormal w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.abnormality||''}" placeholder="Any other issue...">
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-[11px] text-textfaint font-mono">${c.cameraName}</span>
+                <button class="save-close-detail btn-grad px-4 py-1.5 rounded-lg text-xs font-semibold" data-id="${c.camId}">
+                  <i class="fa-solid fa-check mr-1"></i>Save &amp; Close
+                </button>
+              </div>
+            `;
           }
         });
-        renderCameraCards();
-        showToast(`✅ ${selectedCameras.size} cameras marked`);
-        selectedCameras.clear();
-        $('bulkActionSelect').value = '';
-      });
 
-      // ===== MARK ALL WORKING / FAULTY — with confirm overlay =====
-      const bulkConfirmModal = $('bulkConfirmModal');
-      function openBulkConfirm(type) {
-        if (!cameras.length) { showToast('No cameras in this department', true); return; }
-        pendingBulkAction = type;
-        const icon = $('bulkConfirmIcon');
-        const title = $('bulkConfirmTitle');
-        const text = $('bulkConfirmText');
-        if (type === 'working') {
-          icon.className = 'w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#e3f6ea] text-[#1f8a4c]';
-          icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
-          title.textContent = 'Mark all as Working?';
-        } else {
-          icon.className = 'w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#fbe4e1] text-[#c0392b]';
-          icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
-          title.textContent = 'Mark all as Faulty?';
+        cameraCards.appendChild(rowWrap);
+
+        if (expandCamId !== null) {
+          const expandRow = document.createElement('div');
+          expandRow.style.cssText = 'grid-column:1/-1;';
+          expandRow.className = 'cam-expand-row open';
+          expandRow.innerHTML = expandHTML;
+          cameraCards.appendChild(expandRow);
+
+          const expandCam = cameras.find(x => x.camId === expandCamId);
+          if (expandCam) {
+            expandRow.querySelector('.field-lens').addEventListener('change', e => { expandCam.lens_cleaning = e.target.value; });
+            expandRow.querySelector('.field-visual').addEventListener('change', e => { expandCam.visual_on_tv = e.target.value; });
+            expandRow.querySelector('.field-focus').addEventListener('change', e => { expandCam.focus_angle = e.target.value; });
+            expandRow.querySelector('.field-damage').addEventListener('input', e => { expandCam.damage = e.target.value; });
+            expandRow.querySelector('.field-abnormal').addEventListener('input', e => { expandCam.abnormality = e.target.value; });
+            expandRow.querySelector('.save-close-detail').addEventListener('click', () => {
+              openDetailId = null;
+              renderCameraCards();
+              showToast('Camera details saved');
+            });
+          }
         }
-        text.textContent = `This will mark all ${cameras.length} cameras in "${currentDept.depName}" as ${type}, and select their checkboxes.`;
-        bulkConfirmModal.classList.add('open');
       }
-      $('markAllWorkingBtn').addEventListener('click', () => openBulkConfirm('working'));
-      $('markAllFaultyBtn').addEventListener('click', () => openBulkConfirm('faulty'));
-      $('bulkConfirmNo').addEventListener('click', () => { bulkConfirmModal.classList.remove('open'); pendingBulkAction = null; });
-      $('bulkConfirmYes').addEventListener('click', () => {
-        if (!pendingBulkAction) return;
-        const val = pendingBulkAction === 'working';
-        cameras.forEach(c => {
-          c.working = val;
-          if (val) {
+
+      renderPagination(totalPages);
+    }
+
+    function renderPagination(totalPages) {
+      if (totalPages <= 1) { paginationBar.classList.add('hidden'); return; }
+      paginationBar.classList.remove('hidden');
+      paginationBar.innerHTML = '';
+
+      const prev = document.createElement('button');
+      prev.className = 'pg-btn'; prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      prev.disabled = currentPage === 1;
+      prev.addEventListener('click', () => { currentPage--; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
+      paginationBar.appendChild(prev);
+
+      for (let i = 1; i <= totalPages; i++) {
+        if (totalPages > 7 && i !== 1 && i !== totalPages && Math.abs(i - currentPage) > 1) {
+          if (i === 2 || i === totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.textContent = '…'; dots.className = 'px-1 text-textfaint';
+            paginationBar.appendChild(dots);
+          }
+          continue;
+        }
+        const btn = document.createElement('button');
+        btn.className = 'pg-btn' + (i === currentPage ? ' active' : '');
+        btn.textContent = i;
+        btn.addEventListener('click', () => { currentPage = i; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
+        paginationBar.appendChild(btn);
+      }
+
+      const next = document.createElement('button');
+      next.className = 'pg-btn'; next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      next.disabled = currentPage === totalPages;
+      next.addEventListener('click', () => { currentPage++; renderCameraCards(); window.scrollTo({top: cameraCards.offsetTop - 80, behavior: 'smooth'}); });
+      paginationBar.appendChild(next);
+    }
+
+    searchCamera.addEventListener('input', function () {
+      currentPage = 1;
+      renderCameraCards();
+    });
+
+    $('applyBulkAction').addEventListener('click', function () {
+      const action = $('bulkActionSelect').value;
+      if (!action) { showToast('Select a bulk action first', true); return; }
+      if (selectedCameras.size === 0) { showToast('No cameras selected', true); return; }
+      cameras.forEach(c => {
+        if (selectedCameras.has(c.camId)) {
+          if (action === 'working') {
+            c.working = true;
             c.lens_cleaning = c.lens_cleaning || 'Done';
             c.visual_on_tv = c.visual_on_tv || 'Yes';
             c.focus_angle = c.focus_angle || 'Correct';
-          } else {
-            c.visual_on_tv = c.visual_on_tv || 'No';
+          } else if (action === 'faulty') {
+            c.working = false;
           }
-          selectedCameras.add(c.camId);
-        });
-        bulkConfirmModal.classList.remove('open');
-        renderCameraCards();
-        showToast(pendingBulkAction === 'working' ? '✅ All cameras marked working' : '⚠️ All cameras marked faulty', pendingBulkAction !== 'working');
-        pendingBulkAction = null;
+        }
       });
-      bulkConfirmModal.addEventListener('click', e => { if (e.target === bulkConfirmModal) { bulkConfirmModal.classList.remove('open'); pendingBulkAction = null; } });
+      renderCameraCards();
+      showToast(`✅ ${selectedCameras.size} cameras marked`);
+      selectedCameras.clear();
+      $('bulkActionSelect').value = '';
+    });
 
-      // ===== IMAGE UPLOAD =====
-      const uploadZone = $('uploadZone');
-      const imageUploadInput = $('imageUploadInput');
-      const imagePreviewList = $('imagePreviewList');
-      uploadZone.addEventListener('click', () => imageUploadInput.click());
-      imageUploadInput.addEventListener('change', e => {
-        Array.from(e.target.files).forEach(file => {
-          const url = URL.createObjectURL(file);
-          uploadedImages.push({ id: Date.now() + Math.random(), url, name: file.name });
-        });
-        renderImagePreviews();
-        imageUploadInput.value = '';
-      });
-      function renderImagePreviews() {
-        imagePreviewList.innerHTML = '';
-        uploadedImages.forEach(img => {
-          const div = document.createElement('div');
-          div.className = 'img-thumb';
-          div.innerHTML = `<img src="${img.url}" alt="${img.name}"><div class="rm-img" data-id="${img.id}"><i class="fa-solid fa-xmark"></i></div>`;
-          div.querySelector('.rm-img').addEventListener('click', () => {
-            uploadedImages = uploadedImages.filter(i => i.id !== img.id);
-            renderImagePreviews();
-          });
-          imagePreviewList.appendChild(div);
-        });
+    const bulkConfirmModal = $('bulkConfirmModal');
+    function openBulkConfirm(type) {
+      if (!cameras.length) { showToast('No cameras in this department', true); return; }
+      pendingBulkAction = type;
+      const icon = $('bulkConfirmIcon');
+      const title = $('bulkConfirmTitle');
+      const text = $('bulkConfirmText');
+      if (type === 'working') {
+        icon.className = 'w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#e3f6ea] text-[#1f8a4c]';
+        icon.innerHTML = '<i class="fa-regular fa-circle-check"></i>';
+        title.textContent = 'Mark all as Working?';
+      } else {
+        icon.className = 'w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#fbe4e1] text-[#c0392b]';
+        icon.innerHTML = '<i class="fa-regular fa-circle-xmark"></i>';
+        title.textContent = 'Mark all as Faulty?';
       }
-
-      // Inspection type switch
-      inspectionType.addEventListener('change', function () {
-        const val = this.value;
-        if (val === 'monthly') {
-          cameraSection.classList.remove('hidden');
-          issueSection.classList.add('hidden');
-          if (currentDept) submitBtnContainer.style.display = 'block';
+      text.textContent = `This will mark all ${cameras.length} cameras in "${currentDept.depName}" as ${type}, and select their checkboxes.`;
+      bulkConfirmModal.classList.add('open');
+    }
+    $('markAllWorkingBtn').addEventListener('click', () => openBulkConfirm('working'));
+    $('markAllFaultyBtn').addEventListener('click', () => openBulkConfirm('faulty'));
+    $('bulkConfirmNo').addEventListener('click', () => { bulkConfirmModal.classList.remove('open'); pendingBulkAction = null; });
+    $('bulkConfirmYes').addEventListener('click', () => {
+      if (!pendingBulkAction) return;
+      const val = pendingBulkAction === 'working';
+      cameras.forEach(c => {
+        c.working = val;
+        if (val) {
+          c.lens_cleaning = c.lens_cleaning || 'Done';
+          c.visual_on_tv = c.visual_on_tv || 'Yes';
+          c.focus_angle = c.focus_angle || 'Correct';
         } else {
-          cameraSection.classList.add('hidden');
-          issueSection.classList.remove('hidden');
-          submitBtnContainer.style.display = 'none';
-          $('issueSectionTitle').innerHTML = val === 'complaint' ?
-            '<i class="fa-regular fa-circle-exclamation mr-2"></i>Complaint Issue' :
-            '<i class="fa-regular fa-pen-to-square mr-2"></i>Other Issue';
+          c.visual_on_tv = c.visual_on_tv || 'No';
         }
+        selectedCameras.add(c.camId);
       });
+      bulkConfirmModal.classList.remove('open');
+      renderCameraCards();
+      showToast(pendingBulkAction === 'working' ? '✅ All cameras marked working' : '⚠️ All cameras marked faulty', pendingBulkAction !== 'working');
+      pendingBulkAction = null;
+    });
+    bulkConfirmModal.addEventListener('click', e => { if (e.target === bulkConfirmModal) { bulkConfirmModal.classList.remove('open'); pendingBulkAction = null; } });
 
-      $('issueCamera').addEventListener('change', function () {
-        const cam = cameras.find(c => c.camId === Number(this.value));
-        $('issueDept').value = currentDept ? currentDept.depName : '';
-        $('issueLoc').value = cam ? cam.cameraType : '';
+    // ===== IMAGE UPLOAD (kept in-memory as File objects; actual upload happens at submit time) =====
+    const uploadZone = $('uploadZone');
+    const imageUploadInput = $('imageUploadInput');
+    const imagePreviewList = $('imagePreviewList');
+    uploadZone.addEventListener('click', () => imageUploadInput.click());
+    imageUploadInput.addEventListener('change', e => {
+      Array.from(e.target.files).forEach(file => {
+        const url = URL.createObjectURL(file);
+        uploadedImages.push({ id: Date.now() + Math.random(), file, url, name: file.name });
       });
+      renderImagePreviews();
+      imageUploadInput.value = '';
+    });
+    function renderImagePreviews() {
+      imagePreviewList.innerHTML = '';
+      uploadedImages.forEach(img => {
+        const div = document.createElement('div');
+        div.className = 'img-thumb';
+        div.innerHTML = `<img src="${img.url}" alt="${img.name}"><div class="rm-img" data-id="${img.id}"><i class="fa-solid fa-xmark"></i></div>`;
+        div.querySelector('.rm-img').addEventListener('click', () => {
+          uploadedImages = uploadedImages.filter(i => i.id !== img.id);
+          renderImagePreviews();
+        });
+        imagePreviewList.appendChild(div);
+      });
+    }
 
-      // Issue submit
-      $('submitIssueBtn').addEventListener('click', () => {
-        const camId = $('issueCamera').value;
-        const cam = cameras.find(c => c.camId === Number(camId));
-        const issue = {
-          id: Date.now(),
-          company: currentClient ? currentClient.clientName : '',
-          department: currentDept ? currentDept.depName : '',
-          type: $('issueType').value,
-          camera: cam ? cam.cameraName : '',
-          dept: $('issueDept').value || (currentDept ? currentDept.depName : ''),
-          location: $('issueLoc').value || (cam ? cam.cameraType : ''),
-          desc: $('issueDesc').value,
-          priority: $('issuePriority').value,
-          status: $('issueStatus').value,
-          resolution: $('issueResolution').value,
-          created: new Date().toISOString().split('T')[0],
-          resolvedBy: null,
-          resolvedDate: null,
-          approved: false,
-          approved_by: null,
-          approved_date: null
-        };
-        if (issue.status === 'Resolved') {
-          issue.resolvedBy = session.name;
-          issue.resolvedDate = new Date().toISOString().split('T')[0];
-        }
-        issues.push(issue);
+    inspectionType.addEventListener('change', function () {
+      const val = this.value;
+      if (val === 'monthly') {
+        cameraSection.classList.remove('hidden');
+        issueSection.classList.add('hidden');
+        if (currentDept) submitBtnContainer.style.display = 'block';
+      } else {
+        cameraSection.classList.add('hidden');
+        issueSection.classList.remove('hidden');
+        submitBtnContainer.style.display = 'none';
+        $('issueSectionTitle').innerHTML = val === 'complaint' ?
+          '<i class="fa-regular fa-circle-exclamation mr-2"></i>Complaint Issue' :
+          '<i class="fa-regular fa-pen-to-square mr-2"></i>Other Issue';
+        if (currentDept) loadIssues(currentDept.depId);
+      }
+    });
 
-        const savedIssues = JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]');
-        savedIssues.push(issue);
-        localStorage.setItem(ISSUES_KEY, JSON.stringify(savedIssues));
+    $('issueCamera').addEventListener('change', function () {
+      const cam = cameras.find(c => c.camId === Number(this.value));
+      $('issueDept').value = currentDept ? currentDept.depName : '';
+      $('issueLoc').value = cam ? cam.cameraType : '';
+    });
 
-        renderIssueList();
+    // Issue submit
+    $('submitIssueBtn').addEventListener('click', async () => {
+      if (!currentClient || !currentDept) { showToast('Select company & department first', true); return; }
+      const camId = $('issueCamera').value;
+
+      const payload = {
+        companyId: currentClient.clientId,
+        departmentId: currentDept.depId,
+        cameraId: camId ? Number(camId) : null,
+        reportedByEmpPrimeId: CURRENT_ENGINEER_ID,
+        issueType: $('issueType').value,
+        description: $('issueDesc').value,
+        priority: $('issuePriority').value,
+        status: $('issueStatus').value,
+        resolutionRemark: $('issueResolution').value
+      };
+
+      try {
+        await apiPostJson('/issues', payload);
         showToast('Issue submitted & saved ✓');
         $('issueDesc').value = '';
         $('issueResolution').value = '';
@@ -982,114 +963,128 @@
         $('issueCamera').value = '';
         $('issueDept').value = '';
         $('issueLoc').value = '';
-      });
-
-      function renderIssueList() {
-        const container = $('issueList');
-        container.innerHTML = '';
-        if (issues.length === 0) {
-          container.innerHTML = '<div class="text-center text-textfaint text-sm py-4">No issues reported yet</div>';
-          return;
-        }
-        issues.slice().reverse().forEach(iss => {
-          const priorityClass = iss.priority === 'High' ? 'priority-high' : iss.priority === 'Critical' ? 'priority-critical' : '';
-          const statusClass = iss.status === 'Resolved' ? 'badge-resolved' : iss.status === 'Open' ? 'badge-open' : iss.status === 'In Progress' ? 'badge-progress' : 'bg-gray-100';
-          const createdDate = new Date(iss.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-          const div = document.createElement('div');
-          div.className = `issue-card ${priorityClass}`;
-          div.innerHTML = `
-            <div class="flex flex-wrap justify-between items-start gap-1">
-              <div><span class="font-mono text-sm font-semibold">${iss.camera || 'N/A'}</span><span class="text-xs text-textfaint ml-2">${iss.type || ''}</span></div>
-              <span class="badge-status ${statusClass}">${iss.status}</span>
-            </div>
-            <div class="text-sm mt-1">${iss.desc || ''}</div>
-            <div class="flex flex-wrap gap-2 text-xs text-textfaint mt-1">
-              <span><i class="fa-regular fa-flag mr-1"></i>${iss.priority}</span>
-              <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
-            </div>
-            <div class="issue-actions">
-              <button class="delete-btn" data-id="${iss.id}"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
-            </div>
-          `;
-          div.querySelector('.delete-btn').addEventListener('click', () => {
-            if (confirm('Delete this issue?')) {
-              issues = issues.filter(i => i.id !== iss.id);
-              const saved = JSON.parse(localStorage.getItem(ISSUES_KEY) || '[]');
-              localStorage.setItem(ISSUES_KEY, JSON.stringify(saved.filter(i => i.id !== iss.id)));
-              renderIssueList();
-              showToast('Issue deleted');
-            }
-          });
-          container.appendChild(div);
-        });
+        loadIssues(currentDept.depId);
+      } catch (err) {
+        showToast('Failed to submit issue: ' + err.message, true);
       }
+    });
 
-      // ===== SUBMIT INSPECTION =====
-      simpleSubmitBtn.addEventListener('click', () => {
-        if (!currentClient || !currentDept) { showToast('Select company & department', true); return; }
-        const unchecked = cameras.filter(c => c.working === null).length;
-        if (unchecked > 0) { showToast(`${unchecked} cameras not checked yet`, true); return; }
-        const total = cameras.length;
-        const working = cameras.filter(c => c.working === true).length;
-        const faulty = total - working;
-        $('confirmSummary').textContent = `${total} cameras · ${working} working · ${faulty} faulty`;
-        clearSignaturePad();
-        setTimeout(resizeSignaturePad, 50);
-        $('submitConfirmModal').classList.add('open');
+    async function loadIssues(departmentId) {
+      try {
+        issues = await apiGet(`/issues?departmentId=${departmentId}`);
+        renderIssueList();
+      } catch (err) {
+        showToast('Failed to load issues: ' + err.message, true);
+      }
+    }
+
+    function renderIssueList() {
+      const container = $('issueList');
+      container.innerHTML = '';
+      if (issues.length === 0) {
+        container.innerHTML = '<div class="text-center text-textfaint text-sm py-4">No issues reported yet</div>';
+        return;
+      }
+      issues.forEach(iss => {
+        const priorityClass = iss.priority === 'High' ? 'priority-high' : iss.priority === 'Critical' ? 'priority-critical' : '';
+        const statusClass = iss.status === 'Resolved' ? 'badge-resolved' : iss.status === 'Open' ? 'badge-open' : iss.status === 'In Progress' ? 'badge-progress' : 'bg-gray-100';
+        const createdDate = iss.createdDate ? new Date(iss.createdDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+        const div = document.createElement('div');
+        div.className = `issue-card ${priorityClass}`;
+        div.innerHTML = `
+          <div class="flex flex-wrap justify-between items-start gap-1">
+            <div><span class="font-mono text-sm font-semibold">${iss.camera || 'N/A'}</span><span class="text-xs text-textfaint ml-2">${iss.issueType || ''}</span></div>
+            <span class="badge-status ${statusClass}">${iss.status}</span>
+          </div>
+          <div class="text-sm mt-1">${iss.description || ''}</div>
+          <div class="flex flex-wrap gap-2 text-xs text-textfaint mt-1">
+            <span><i class="fa-regular fa-flag mr-1"></i>${iss.priority}</span>
+            <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
+          </div>
+          <div class="issue-actions">
+            <button class="delete-btn" data-id="${iss.id}"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+          </div>
+        `;
+        div.querySelector('.delete-btn').addEventListener('click', async () => {
+          if (!confirm('Delete this issue?')) return;
+          try {
+            await apiDelete(`/issues/${iss.id}`);
+            showToast('Issue deleted');
+            loadIssues(currentDept.depId);
+          } catch (err) {
+            showToast('Failed to delete issue: ' + err.message, true);
+          }
+        });
+        container.appendChild(div);
       });
+    }
 
-      $('cancelSubmit').addEventListener('click', () => $('submitConfirmModal').classList.remove('open'));
+    // ===== SUBMIT INSPECTION =====
+    simpleSubmitBtn.addEventListener('click', () => {
+      if (!currentClient || !currentDept) { showToast('Select company & department', true); return; }
+      const unchecked = cameras.filter(c => c.working === null).length;
+      if (unchecked > 0) { showToast(`${unchecked} cameras not checked yet`, true); return; }
+      const total = cameras.length;
+      const working = cameras.filter(c => c.working === true).length;
+      const faulty = total - working;
+      $('confirmSummary').textContent = `${total} cameras · ${working} working · ${faulty} faulty`;
+      clearSignaturePad();
+      setTimeout(resizeSignaturePad, 50);
+      $('submitConfirmModal').classList.add('open');
+    });
 
-      $('confirmSubmitBtn').addEventListener('click', () => {
-        if (!hasSignature) { showToast('Please sign before submitting', true); return; }
+    $('cancelSubmit').addEventListener('click', () => $('submitConfirmModal').classList.remove('open'));
 
-        const reportId = Date.now();
+    $('confirmSubmitBtn').addEventListener('click', async () => {
+      if (!hasSignature) { showToast('Please sign before submitting', true); return; }
+
+      const confirmBtn = $('confirmSubmitBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Submitting...';
+
+      try {
         const visitDate = $('visitDateField').value;
         const vendor = $('vendorField').value;
         const bsid = $('bsidField').value;
-        const engineer = $('checkedByField').value;
         const remarks = $('generalRemarks').value;
         const signatureData = sigCanvas.toDataURL('image/png');
 
-        const cameraDetails = cameras.map((cam, idx) => ({
-          sr_no: idx + 1,
-          camera_name: cam.cameraName,
-          camera_type: cam.cameraType,
-          camera_angle: cam.cameraAngle,
-          working: cam.working === true ? 'Yes' : 'No',
-          lens_cleaning: cam.lens_cleaning || (cam.working ? 'Done' : 'Pending'),
-          visual_on_tv: cam.visual_on_tv || (cam.working ? 'Yes' : 'No'),
-          focus_angle: cam.focus_angle || (cam.working ? 'Correct' : 'Adjustment Required'),
+        const cameraDetails = cameras.map(cam => ({
+          camId: cam.camId,
+          working: cam.working === true,
+          lensCleaning: cam.lens_cleaning || (cam.working ? 'Done' : 'Pending'),
+          visualOnTv: cam.visual_on_tv || (cam.working ? 'Yes' : 'No'),
+          focusAngle: cam.focus_angle || (cam.working ? 'Correct' : 'Adjustment Required'),
           damage: cam.damage || '',
           abnormality: cam.abnormality || ''
         }));
 
-        const newReport = {
-          id: reportId,
-          company: currentClient.clientName,
-          department: currentDept.depName,
-          vendor: vendor,
-          bsid_pic: bsid,
-          date: visitDate,
-          engineer: engineer,
-          signature: signatureData,
-          total: cameras.length,
-          working: cameras.filter(c => c.working === true).length,
-          faulty: cameras.filter(c => c.working === false).length,
+        const payload = {
+          companyId: currentClient.clientId,
+          departmentId: currentDept.depId,
+          engineerEmpPrimeId: CURRENT_ENGINEER_ID,
+          inspectionType: inspectionType.value,
+          vendorName: vendor,
+          contactPerson: bsid,
+          visitDate: visitDate,
           remarks: remarks,
-          photos: uploadedImages.map(i => i.name),
-          approved: false,
-          approved_by: null,
-          approved_date: null,
+          signature: signatureData,
           cameraDetails: cameraDetails
         };
 
-        const savedReports = JSON.parse(localStorage.getItem(REPORTS_KEY) || '[]');
-        savedReports.push(newReport);
-        localStorage.setItem(REPORTS_KEY, JSON.stringify(savedReports));
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+        uploadedImages.forEach(img => formData.append('images', img.file, img.name));
+
+        const res = await fetch(API_BASE + '/submit', { method: 'POST', body: formData });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ message: res.statusText }));
+          throw new Error(err.message || err.error || `Submit failed (${res.status})`);
+        }
+        const result = await res.json();
 
         $('submitConfirmModal').classList.remove('open');
-        showToast('✅ Inspection submitted & saved to Reports!');
+        showToast(`✅ Inspection submitted! (${result.workingCount} working, ${result.faultyCount} faulty)`);
 
         setTimeout(() => {
           uploadedImages = [];
@@ -1099,25 +1094,31 @@
           companySelect.dispatchEvent(new Event('change'));
           $('generalRemarks').value = '';
         }, 500);
-      });
+      } catch (err) {
+        showToast('Submit failed: ' + err.message, true);
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Submit';
+      }
+    });
 
-      // User dropdown
-      const userMenuBtn = $('userMenuBtn');
-      const userDropdown = $('userDropdown');
-      const profileModal = $('profileModal');
-      userMenuBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
-      document.addEventListener('click', e => { if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden'); });
-      $('profileMenuItem').addEventListener('click', e => { e.preventDefault(); userDropdown.classList.add('hidden'); profileModal.classList.add('open'); });
-      $('logoutMenuItem').addEventListener('click', e => { e.preventDefault(); sessionStorage.removeItem('amc_session'); window.location.href = '/page/login.html'; });
-      $('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('open'));
-      $('closeProfileModalBtn').addEventListener('click', () => profileModal.classList.remove('open'));
-      profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('open'); });
+    // User dropdown
+    const userMenuBtn = $('userMenuBtn');
+    const userDropdown = $('userDropdown');
+    const profileModal = $('profileModal');
+    userMenuBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
+    document.addEventListener('click', e => { if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden'); });
+    $('profileMenuItem').addEventListener('click', e => { e.preventDefault(); userDropdown.classList.add('hidden'); profileModal.classList.add('open'); });
+    $('logoutMenuItem').addEventListener('click', e => { e.preventDefault(); sessionStorage.removeItem('amc_session'); window.location.href = '/page/login.html'; });
+    $('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('open'));
+    $('closeProfileModalBtn').addEventListener('click', () => profileModal.classList.remove('open'));
+    profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('open'); });
 
-      // Init
-      $('checkedByField').value = session.name;
-      $('visitDateField').value = new Date().toISOString().split('T')[0];
-      resizeSignaturePad();
-    })();
-  </script>
+    // Init
+    $('checkedByField').value = session.name;
+    $('visitDateField').value = new Date().toISOString().split('T')[0];
+    resizeSignaturePad();
+  })();
+</script>
 </body>
 </html>

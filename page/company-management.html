@@ -48,7 +48,7 @@
         .sidebar .text-accenttext { color: #2d5a2d; }
         .sidebar .bg-accentdim { background: rgba(45, 90, 45, 0.12); }
         .sidebar a:hover { background: rgba(0, 0, 0, 0.06); color: #1a1a1a; }
-        .sidebar a.active { background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; margin-left: 10px; border-radius: 10px; }
+        .sidebar a.active { background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; border-radius: 10px; }
         .sidebar a.active svg { stroke: white !important; }
         .sidebar { border-right-color: #e1e6f3; }
         .bg-surface2 { background: #eef1fa; }
@@ -173,7 +173,7 @@
 
         <!-- SIDEBAR -->
         <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col h-screen sticky top-0 overflow-y-auto">
-            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
+            <nav class="ml-2 flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
                 <a href="/page/dashboard.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item" data-nav="dashboard">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
                     <span class="sidebar-nav-text">Dashboard</span>
@@ -191,8 +191,7 @@
                     <span class="sidebar-nav-text">Monthly Inspection Reports</span>
                 </a>
                 <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                    <span class="sidebar-nav-text">Staff Management</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>                    <span class="sidebar-nav-text">Staff Management</span>
                 </a>
             </nav>
         </aside>
@@ -324,7 +323,7 @@
                 </div>
 
                 <!-- ===== CAMERA LOCATIONS SECTION (same theme as Departments) ===== -->
-                <div class="mb-4 border border-[#e1e6f3] rounded-xl p-3 bg-[#f9fafd]">
+                <!-- <div class="mb-4 border border-[#e1e6f3] rounded-xl p-3 bg-[#f9fafd]">
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-xs font-medium text-[#3d4763] flex items-center gap-1.5">
                             <i class="fa-solid fa-video text-[10px]"></i>
@@ -340,7 +339,7 @@
                     <button type="button" id="addLocationRow" class="w-full mt-2 py-2 border border-dashed border-[#cdd5ea] rounded-lg text-sm text-[#1A328D] hover:bg-[#F0F3FB] transition">
                         <i class="fa-solid fa-plus mr-1"></i> Add Camera
                     </button>
-                </div>
+                </div> -->
 
                 <div><label class="text-xs font-medium text-[#3d4763] block mb-1">Notes</label><textarea id="notes" rows="2" class="w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#1A328D]"></textarea></div>
             </form>
@@ -389,317 +388,375 @@
         </div>
     </div>
 
-    <script>
-        (function () {
-            'use strict';
+    <script src="/page/admin-auth.js"></script>
+   <script>
+    (async function () {
+        'use strict';
 
-            let companies = [
-                { company_id: 101, company_name: "Shree Balaji Enterprises", contact_person: "Rajesh Sharma", mobile_number: "9876543210", email: "rajesh@shreebalaji.com", address: "Shop No. 12, MG Road, Pune", amc_start_date: "2026-01-01", amc_end_date: "2026-12-31", amc_amount: 24000, warranty_start_date: "2026-01-01", warranty_end_date: "2028-01-01", vendor_name: "CP Plus Distributor", notes: "", departments: [{ id: 1, dept_name: "Security", pic_id: "EMP-001" }, { id: 2, dept_name: "IT", pic_id: "EMP-045" }], camera_locations: [{ id: 1, location_name: "Reception", camera_count: 2 }, { id: 2, location_name: "Parking", camera_count: 4 }] },
-                { company_id: 102, company_name: "Patil Traders", contact_person: "Sunil Patil", mobile_number: "9823456712", email: "sunil@patiltraders.in", address: "Plot 45, MIDC, Bhosari", amc_start_date: "2025-03-15", amc_end_date: "2026-03-15", amc_amount: 36000, warranty_start_date: "2025-06-20", warranty_end_date: "2026-06-20", vendor_name: "Hikvision", notes: "", departments: [{ id: 3, dept_name: "Admin", pic_id: "EMP-010" }], camera_locations: [{ id: 5, location_name: "Cabin", camera_count: 6 }, { id: 6, location_name: "Reception", camera_count: 2 }] },
-                { company_id: 103, company_name: "Greenfield Apartments", contact_person: "Mrs. Anita Deshmukh", mobile_number: "9765432109", email: "secretary@greenfieldapts.com", address: "Greenfield Society, Baner", amc_start_date: "2026-02-01", amc_end_date: "2027-02-01", amc_amount: 48000, warranty_start_date: "2026-02-01", warranty_end_date: "2027-08-01", vendor_name: "Local Vendor", notes: "", departments: [], camera_locations: [{ id: 8, location_name: "Main Gate", camera_count: 2 }, { id: 9, location_name: "Parking", camera_count: 8 }] }
-            ];
+           const sessionOk = await Auth.guard();
+            if (!sessionOk) return; // guard() already redirected to admin-login.html
 
-            let nextCompanyId = 104, nextLocationId = 14, nextDeptId = 20, expandedRowId = null, pendingDeleteId = null;
 
-            const todayStr = () => new Date().toISOString().split('T')[0];
-            const amcStatus = c => !c.amc_end_date ? { label: 'No AMC', cls: 'chip-neutral' } : c.amc_end_date >= todayStr() ? { label: 'Active', cls: 'chip-active' } : { label: 'Expired', cls: 'chip-expired' };
-            const warrantyStatus = c => { if (!c.warranty_end_date) return { label: 'N/A', cls: 'chip-neutral' }; const d = Math.ceil((new Date(c.warranty_end_date) - new Date()) / 86400000); return d < 0 ? { label: 'Expired', cls: 'chip-expired' } : d <= 30 ? { label: 'Expiring Soon', cls: 'chip-soon' } : { label: 'Active', cls: 'chip-active' }; };
-            const totalCameras = c => (c.camera_locations || []).reduce((s, l) => s + (Number(l.camera_count) || 0), 0);
-            const formatDate = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00'); if (isNaN(d)) return s; return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
-            const escapeHtml = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
+        const API_BASE = 'http://localhost:5000/api/companies';
 
-            const $ = id => document.getElementById(id);
-            const tbody = $('companyTableBody'), emptyState = $('emptyState'), searchInput = $('searchInput');
-            const filterAmc = $('filterAmc'), filterWarranty = $('filterWarranty');
-            const statTotal = $('statTotal'), statCameras = $('statCameras'), statAmcActive = $('statAmcActive');
-            const statAmcExpired = $('statAmcExpired'), statWarrantySoon = $('statWarrantySoon'), navCompanyCount = $('navCompanyCount');
-            const modalBackdrop = $('modalBackdrop'), locationRows = $('locationRows'), totalCamerasDisplay = $('totalCamerasDisplay');
-            const departmentRows = $('departmentRows'), totalDeptsDisplay = $('totalDeptsDisplay');
-            const deleteBackdrop = $('deleteBackdrop'), toast = $('toast'), viewModalBackdrop = $('viewModalBackdrop');
-            const viewModalContent = $('viewModalContent'), logoutBackdrop = $('logoutBackdrop');
+        let companies = [];
+        let pendingDeleteId = null;
 
-            // TOAST
-            function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' toast-danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2600); }
+        const todayStr = () => new Date().toISOString().split('T')[0];
+        const amcStatus = c => c.amcStatus === 'Active' ? { label: 'Active', cls: 'chip-active' }
+            : c.amcStatus === 'Expired' ? { label: 'Expired', cls: 'chip-expired' }
+            : { label: 'No AMC', cls: 'chip-neutral' };
+        const warrantyStatus = c => c.warrantyStatus === 'Active' ? { label: 'Active', cls: 'chip-active' }
+            : c.warrantyStatus === 'Expiring Soon' ? { label: 'Expiring Soon', cls: 'chip-soon' }
+            : c.warrantyStatus === 'Expired' ? { label: 'Expired', cls: 'chip-expired' }
+            : { label: 'N/A', cls: 'chip-neutral' };
+        const formatDate = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00'); if (isNaN(d)) return s; return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }); };
+        const escapeHtml = s => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
 
-            // RESET FILTERS
-            $('resetFiltersBtn').addEventListener('click', function() { searchInput.value = ''; filterAmc.value = ''; filterWarranty.value = ''; renderTable(); showToast('Filters reset ✓'); });
+        const $ = id => document.getElementById(id);
+        const tbody = $('companyTableBody'), emptyState = $('emptyState'), searchInput = $('searchInput');
+        const filterAmc = $('filterAmc'), filterWarranty = $('filterWarranty');
+        const statTotal = $('statTotal'), statCameras = $('statCameras'), statAmcActive = $('statAmcActive');
+        const statAmcExpired = $('statAmcExpired'), statWarrantySoon = $('statWarrantySoon');
+        const modalBackdrop = $('modalBackdrop');
+        const departmentRows = $('departmentRows'), totalDeptsDisplay = $('totalDeptsDisplay');
+        const deleteBackdrop = $('deleteBackdrop'), toast = $('toast'), viewModalBackdrop = $('viewModalBackdrop');
+        const viewModalContent = $('viewModalContent'), logoutBackdrop = $('logoutBackdrop');
 
-            // ===== DEPARTMENT ROWS =====
-            const createDeptRow = (dept = { dept_name: '', pic_id: '' }) => {
-                const row = document.createElement('div');
-                row.className = 'dept-row location-row';
-                row.innerHTML = `
-                    <input type="text" class="dept-name w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="e.g. Security" value="${escapeHtml(dept.dept_name)}">
-                    <input type="text" class="pic-id w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="e.g. EMP-001" value="${escapeHtml(dept.pic_id)}">
+        function showToast(msg, danger = false) { toast.textContent = msg; toast.className = 'toast' + (danger ? ' toast-danger' : '') + ' show'; clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove('show'), 2600); }
+
+        async function apiGet(path) {
+            const res = await fetch(API_BASE + path);
+            if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+            return res.json();
+        }
+        async function apiPost(path, body) {
+            const res = await fetch(API_BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+            return res.json();
+        }
+        async function apiPut(path, body) {
+            const res = await fetch(API_BASE + path, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+            return res.json();
+        }
+        async function apiDelete(path) {
+            const res = await fetch(API_BASE + path, { method: 'DELETE' });
+            if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+        }
+
+        $('resetFiltersBtn').addEventListener('click', function() { searchInput.value = ''; filterAmc.value = ''; filterWarranty.value = ''; loadCompanies(); showToast('Filters reset ✓'); });
+
+        // ===== DEPARTMENT ROWS — now each contains its own nested camera list =====
+        const createDeptRow = (dept = { deptName: '', picId: '', cameras: [] }) => {
+            const row = document.createElement('div');
+            row.className = 'dept-block border border-[#e1e6f3] rounded-xl p-3 bg-white mb-2';
+            row.innerHTML = `
+                <div class="dept-row mb-2">
+                    <input type="text" class="dept-name w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="e.g. Security" value="${escapeHtml(dept.deptName)}">
+                    <input type="text" class="pic-id w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="e.g. EMP-001" value="${escapeHtml(dept.picId)}">
                     <button type="button" class="remove-dept-btn bg-white border border-[#e1e6f3] rounded-lg px-2 py-1.5 text-[#c0392b] hover:bg-red-50 transition text-sm">✕</button>
-                `;
-                row.querySelector('.remove-dept-btn').onclick = () => {
-                    if (departmentRows.querySelectorAll('.dept-row').length > 1) {
-                        row.remove();
-                    } else {
-                        row.querySelectorAll('input').forEach(i => i.value = '');
-                    }
-                    updateDeptCount();
-                };
-                return row;
-            };
-            const addDeptRow = (dept) => { departmentRows.appendChild(createDeptRow(dept)); updateDeptCount(); };
-            const updateDeptCount = () => {
-                let count = 0;
-                departmentRows.querySelectorAll('.dept-row').forEach(row => {
-                    const name = row.querySelector('.dept-name').value.trim();
-                    const pic = row.querySelector('.pic-id').value.trim();
-                    if (name || pic) count++;
-                });
-                totalDeptsDisplay.textContent = count + ' added';
-            };
-            $('addDepartmentRow').onclick = () => addDeptRow();
+                </div>
+                <div class="camera-rows flex flex-col gap-1.5 pl-2 border-l-2 border-[#eef1fa]"></div>
+                <button type="button" class="add-camera-row w-full mt-2 py-1.5 border border-dashed border-[#cdd5ea] rounded-lg text-xs text-[#1A328D] hover:bg-[#F0F3FB] transition">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Camera to this Department
+                </button>
+            `;
+            const cameraRowsContainer = row.querySelector('.camera-rows');
 
-            // CAMERA LOCATION ROWS - styled like department rows (same theme)
-            const createLocationRow = (loc = { location_name: '' }) => {
-                const row = document.createElement('div');
-                row.className = 'dept-row location-row';
-                row.style.gridTemplateColumns = '1fr 32px';
+            const createCameraRow = (cam = { cameraName: '', cameraAngle: '', cameraType: '' }) => {
+                const camRow = document.createElement('div');
+                camRow.className = 'camera-row grid gap-1.5 items-center';
+                camRow.style.gridTemplateColumns = '1fr 100px 130px 28px';
+                camRow.innerHTML = `
+                    <input type="text" class="cam-name w-full bg-[#f9fafd] border border-[#e1e6f3] rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-[#1A328D]" placeholder="e.g. HQ-Main-Entrance-1" value="${escapeHtml(cam.cameraName)}">
+                    <input type="text" class="cam-angle w-full bg-[#f9fafd] border border-[#e1e6f3] rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-[#1A328D]" placeholder="Angle" value="${escapeHtml(cam.cameraAngle)}">
+                    <input type="text" class="cam-type w-full bg-[#f9fafd] border border-[#e1e6f3] rounded-lg px-2 py-1 text-xs focus:outline-none focus:border-[#1A328D]" placeholder="Type" value="${escapeHtml(cam.cameraType)}">
+                    <button type="button" class="remove-cam-btn bg-white border border-[#e1e6f3] rounded-lg px-1.5 py-1 text-[#c0392b] hover:bg-red-50 transition text-xs">✕</button>
+                `;
+                camRow.querySelector('.remove-cam-btn').onclick = () => camRow.remove();
+                return camRow;
+            };
+
+            if (dept.cameras && dept.cameras.length) {
+                dept.cameras.forEach(cam => cameraRowsContainer.appendChild(createCameraRow(cam)));
+            }
+
+            row.querySelector('.add-camera-row').onclick = () => cameraRowsContainer.appendChild(createCameraRow());
+
+            row.querySelector('.remove-dept-btn').onclick = () => {
+                if (departmentRows.querySelectorAll('.dept-block').length > 1) {
+                    row.remove();
+                } else {
+                    row.querySelectorAll('input').forEach(i => i.value = '');
+                    cameraRowsContainer.innerHTML = '';
+                }
+                updateDeptCount();
+            };
+            return row;
+        };
+        const addDeptRow = (dept) => { departmentRows.appendChild(createDeptRow(dept)); updateDeptCount(); };
+        const updateDeptCount = () => {
+            let count = 0;
+            departmentRows.querySelectorAll('.dept-block').forEach(row => {
+                const name = row.querySelector('.dept-name').value.trim();
+                const pic = row.querySelector('.pic-id').value.trim();
+                if (name || pic) count++;
+            });
+            totalDeptsDisplay.textContent = count + ' added';
+        };
+        $('addDepartmentRow').onclick = () => addDeptRow();
+
+        // ===== FILTER & LOAD FROM BACKEND =====
+        async function loadCompanies() {
+            try {
+                const params = new URLSearchParams();
+                if (searchInput.value.trim()) params.set('search', searchInput.value.trim());
+                if (filterAmc.value) params.set('amcStatus', filterAmc.value);
+                if (filterWarranty.value) params.set('warrantyStatus', filterWarranty.value);
+                const qs = params.toString();
+                companies = await apiGet(qs ? `?${qs}` : '');
+                renderTable();
+                await loadStats();
+            } catch (err) {
+                showToast('Failed to load companies: ' + err.message, true);
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const stats = await apiGet('/stats');
+                statTotal.textContent = stats.totalCompanies;
+                statCameras.textContent = stats.totalCameras;
+                statAmcActive.textContent = stats.amcActive;
+                statAmcExpired.textContent = stats.amcExpired;
+                statWarrantySoon.textContent = stats.warrantyExpiringSoon;
+            } catch (err) {
+                console.warn('Failed to load stats:', err.message);
+            }
+        }
+
+        const renderTable = () => {
+            tbody.innerHTML = '';
+            if (!companies.length) { emptyState.classList.remove('hidden'); return; }
+            emptyState.classList.add('hidden');
+            companies.forEach(c => {
+                const amc = amcStatus(c), war = warrantyStatus(c), total = c.totalCameras || 0;
+                const depts = c.departments || [];
+                const row = document.createElement('tr');
+                row.className = `company-row border-b`;
+                row.dataset.id = c.companyId;
                 row.innerHTML = `
-                    <input type="text" class="loc-name w-full bg-white border border-[#e1e6f3] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="e.g. Camera 1" value="${escapeHtml(loc.location_name)}">
-                    <button type="button" class="remove-row-btn bg-white border border-[#e1e6f3] rounded-lg px-2 py-1.5 text-[#c0392b] hover:bg-red-50 transition text-sm">✕</button>
+                    <td class="px-4 py-3.5 font-semibold" data-label="Company">
+                        ${escapeHtml(c.companyName)}
+                        <span class="block text-[10px] text-[#7b85a3]">#${c.companyId}</span>
+                        ${depts.length ? `<span class="block text-[10px] text-[#7b85a3] mt-0.5"><i class="fa-solid fa-layer-group mr-1"></i>${depts.map(d => escapeHtml(d.deptName)).join(', ')}</span>` : ''}
+                    </td>
+                    <td class="px-4 py-3.5 text-sm" data-label="Contact">${escapeHtml(c.contactPerson || '—')}<span class="block text-[11px] text-[#7b85a3]">${escapeHtml(c.mobileNumber)}</span></td>
+                    <td class="px-4 py-3.5" data-label="AMC"><span class="chip ${amc.cls} text-[10px]">${amc.label}</span></td>
+                    <td class="px-4 py-3.5" data-label="Warranty"><span class="chip ${war.cls} text-[10px]">${war.label}</span></td>
+                    <td class="px-4 py-3.5 text-right font-mono font-bold text-sm" data-label="Cameras">${total}</td>
+                    <td class="px-4 py-3.5 text-right row-actions" data-label="Actions">
+                        <div class="flex gap-2 justify-end">
+                            <button class="action-view-btn w-7 h-7 rounded border border-[#cdd5ea] bg-white text-[#1A328D] hover:bg-[#1A328D] hover:text-white flex items-center justify-center transition" data-action="view" data-id="${c.companyId}" title="View Details"><i class="fa-regular fa-eye text-sm"></i></button>
+                            <button class="action-btn w-7 h-7 rounded border border-[#cdd5ea] bg-white text-[#1A328D] hover:bg-[#1A328D] hover:text-white flex items-center justify-center transition" data-action="edit" data-id="${c.companyId}" title="Edit"><i class="fa-regular fa-pen-to-square text-sm"></i></button>
+                            <button class="action-btn w-7 h-7 rounded border border-[#cdd5ea] bg-white text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition" data-action="delete" data-id="${c.companyId}" title="Delete"><i class="fa-regular fa-trash-can text-sm"></i></button>
+                        </div>
+                    </td>
                 `;
-                row.querySelector('.remove-row-btn').onclick = () => {
-                    if (locationRows.querySelectorAll('.location-row').length > 1) {
-                        row.remove();
-                    } else {
-                        row.querySelectorAll('input').forEach(i => i.value = '');
-                    }
-                    updateTotal();
-                };
-                return row;
-            };
-            const addLocationRow = (loc) => { locationRows.appendChild(createLocationRow(loc)); updateTotal(); };
-            const updateTotal = () => {
-                let count = 0;
-                locationRows.querySelectorAll('.location-row').forEach(row => {
-                    const name = row.querySelector('.loc-name').value.trim();
-                    if (name) count++;
-                });
-                totalCamerasDisplay.textContent = count;
-            };
-            $('addLocationRow').onclick = () => addLocationRow();
+                tbody.appendChild(row);
+            });
+        };
 
-            // FILTER & RENDER
-            const getFiltered = () => companies.filter(c => {
-                const q = searchInput.value.trim().toLowerCase();
-                if (q && !`${c.company_name} ${c.contact_person} ${c.mobile_number}`.toLowerCase().includes(q)) return false;
-                if (filterAmc.value && amcStatus(c).label !== filterAmc.value) return false;
-                if (filterWarranty.value && warrantyStatus(c).label !== filterWarranty.value) return false;
-                return true;
+        // VIEW MODAL
+        const openViewModal = (company) => {
+            const amc = amcStatus(company), war = warrantyStatus(company);
+            const depts = company.departments || [];
+            const deptsHtml = depts.length
+                ? depts.map(d => {
+                    const camsHtml = (d.cameras || []).map(cam =>
+                        `<div class="location-tag bg-white rounded-lg px-2.5 py-1 text-xs flex items-center gap-1.5 border border-[#e1e6f3]"><i class="fa-solid fa-video text-[9px] text-[#7b85a3]"></i>${escapeHtml(cam.cameraName)}${cam.cameraType ? `<span class="text-[#7b85a3]">· ${escapeHtml(cam.cameraType)}</span>` : ''}</div>`
+                    ).join('');
+                    return `<div class="bg-[#eef1fa] rounded-lg p-3">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="font-semibold text-sm"><i class="fa-solid fa-layer-group text-[10px] mr-1 text-[#7b85a3]"></i>${escapeHtml(d.deptName)}</span>
+                            <span class="bg-white/70 rounded-full px-2 py-0.5 text-xs font-mono font-bold text-[#1A328D]">${escapeHtml(d.picId || '—')}</span>
+                            <span class="text-xs text-[#7b85a3] ml-auto">${(d.cameras || []).length} camera${(d.cameras || []).length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">${camsHtml || '<div class="text-xs text-[#7b85a3] italic">No cameras added</div>'}</div>
+                    </div>`;
+                }).join('')
+                : '<div class="text-sm text-[#7b85a3] italic">No departments added</div>';
+            viewModalContent.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-building mr-1.5"></i>Company</div><div class="text-lg font-bold text-[#1A328D]">${escapeHtml(company.companyName)}</div><div class="text-xs text-[#7b85a3] mt-1">ID: #${company.companyId}</div></div>
+                    <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-phone mr-1.5"></i>Contact</div><div class="text-sm font-medium">${escapeHtml(company.contactPerson || '—')}</div><div class="text-xs text-[#7b85a3]">${escapeHtml(company.mobileNumber)}</div><div class="text-xs text-[#7b85a3]">${escapeHtml(company.email)}</div></div>
+                    <div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-2 flex justify-between"><span><i class="fa-solid fa-layer-group mr-1.5"></i>Departments &amp; Cameras</span><span class="font-bold text-[#1A328D]">${depts.length} dept${depts.length !== 1 ? 's' : ''} · ${company.totalCameras || 0} cams</span></div><div class="flex flex-col gap-2">${deptsHtml}</div></div>
+                    <div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-location-dot mr-1.5"></i>Address</div><div class="text-sm">${escapeHtml(company.address) || 'Not provided'}</div></div>
+                    <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-file-contract mr-1.5"></i>AMC Contract</div><div><span class="chip ${amc.cls}">${amc.label}</span></div>${company.amcStartDate ? `<div class="grid grid-cols-2 gap-2 mt-2"><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">AMC Start</div><div class="text-sm font-medium">${formatDate(company.amcStartDate)}</div></div><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">AMC End</div><div class="text-sm font-medium">${formatDate(company.amcEndDate)}</div></div></div>` : `<div class="text-sm mt-1">No AMC</div>`}<div class="text-xs font-mono mt-2">₹${(company.amcAmount || 0).toLocaleString()}</div></div>
+                    <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-shield-halved mr-1.5"></i>Warranty</div><div><span class="chip ${war.cls}">${war.label}</span></div>${company.warrantyStartDate ? `<div class="grid grid-cols-2 gap-2 mt-2"><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">Warranty Start</div><div class="text-sm font-medium">${formatDate(company.warrantyStartDate)}</div></div><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">Warranty End</div><div class="text-sm font-medium">${formatDate(company.warrantyEndDate)}</div></div></div>` : `<div class="text-sm mt-1">No warranty</div>`}<div class="text-xs text-[#7b85a3] mt-2">Vendor: ${escapeHtml(company.vendorName) || '—'}</div></div>
+                    ${company.notes ? `<div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-note-sticky mr-1.5"></i>Notes</div><div class="text-sm">${escapeHtml(company.notes)}</div></div>` : ''}
+                </div>
+                <div class="mt-6 flex justify-end"><button id="closeViewModalInner" class="btn-primary px-6 py-2">Close</button></div>
+            `;
+            viewModalBackdrop.classList.add('open');
+            $('closeViewModalInner').onclick = () => viewModalBackdrop.classList.remove('open');
+        };
+
+        // TABLE EVENT HANDLERS
+        tbody.addEventListener('click', e => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action, companyId = Number(btn.dataset.id);
+            if (action === 'view') { const company = companies.find(c => c.companyId === companyId); if (company) openViewModal(company); return; }
+            if (action === 'edit') openEditModal(companyId);
+            if (action === 'delete') { pendingDeleteId = companyId; deleteBackdrop.classList.add('open'); }
+        });
+
+        // SEARCH & FILTER — debounce search slightly to avoid a request per keystroke
+        let searchTimer;
+        searchInput.oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(loadCompanies, 300); };
+        filterAmc.onchange = loadCompanies;
+        filterWarranty.onchange = loadCompanies;
+
+        // ADD/EDIT MODAL
+        const openEditModal = (id) => {
+            const c = companies.find(x => x.companyId === id);
+            if (!c) return;
+            $('modalTitle').textContent = 'Edit Company';
+            $('companyId').value = c.companyId;
+            $('companyName').value = c.companyName || '';
+            $('contactPerson').value = c.contactPerson || '';
+            $('mobileNumber').value = c.mobileNumber || '';
+            $('email').value = c.email || '';
+            $('address').value = c.address || '';
+            $('amcStart').value = c.amcStartDate || '';
+            $('amcEnd').value = c.amcEndDate || '';
+            $('amcAmount').value = c.amcAmount || '';
+            $('warrantyStart').value = c.warrantyStartDate || '';
+            $('warrantyEnd').value = c.warrantyEndDate || '';
+            $('vendorName').value = c.vendorName || '';
+            $('notes').value = c.notes || '';
+            departmentRows.innerHTML = '';
+            if (c.departments?.length) c.departments.forEach(d => departmentRows.appendChild(createDeptRow(d)));
+            else departmentRows.appendChild(createDeptRow());
+            updateDeptCount();
+            modalBackdrop.classList.add('open');
+        };
+
+        const openAddModal = () => {
+            $('modalTitle').textContent = 'Add Company';
+            $('companyForm').reset();
+            $('companyId').value = '';
+            $('vendorName').value = 'Akansha Enterprises';
+            departmentRows.innerHTML = '';
+            departmentRows.appendChild(createDeptRow());
+            updateDeptCount();
+            modalBackdrop.classList.add('open');
+        };
+
+        $('addCompanyBtn').onclick = openAddModal;
+        $('emptyAddBtn').onclick = openAddModal;
+        $('closeModal').onclick = () => modalBackdrop.classList.remove('open');
+        $('cancelBtn').onclick = () => modalBackdrop.classList.remove('open');
+
+        // FORM SUBMIT — now builds departments with nested cameras
+        $('companyForm').onsubmit = async e => {
+            e.preventDefault();
+            const id = $('companyId').value;
+
+            const depts = [];
+            departmentRows.querySelectorAll('.dept-block').forEach(deptRow => {
+                const name = deptRow.querySelector('.dept-name').value.trim();
+                const pic = deptRow.querySelector('.pic-id').value.trim();
+                if (!name && !pic) return;
+
+                const cameras = [];
+                deptRow.querySelectorAll('.camera-row').forEach(camRow => {
+                    const cameraName = camRow.querySelector('.cam-name').value.trim();
+                    if (!cameraName) return;
+                    cameras.push({
+                        cameraName: cameraName,
+                        cameraAngle: camRow.querySelector('.cam-angle').value.trim(),
+                        cameraType: camRow.querySelector('.cam-type').value.trim()
+                    });
+                });
+
+                depts.push({ deptName: name || 'Unnamed', picId: pic, cameras: cameras });
             });
 
-            const renderStats = () => {
-                statTotal.textContent = companies.length;
-                statCameras.textContent = companies.reduce((s, c) => s + totalCameras(c), 0);
-                statAmcActive.textContent = companies.filter(c => amcStatus(c).label === 'Active').length;
-                statAmcExpired.textContent = companies.filter(c => amcStatus(c).label === 'Expired').length;
-                statWarrantySoon.textContent = companies.filter(c => warrantyStatus(c).label === 'Expiring Soon').length;
-                if (navCompanyCount) navCompanyCount.textContent = companies.length;
+            const data = {
+                companyName: $('companyName').value.trim(),
+                contactPerson: $('contactPerson').value.trim(),
+                mobileNumber: $('mobileNumber').value.trim(),
+                email: $('email').value.trim(),
+                address: $('address').value.trim(),
+                amcStartDate: $('amcStart').value || null,
+                amcEndDate: $('amcEnd').value || null,
+                amcAmount: Number($('amcAmount').value) || 0,
+                warrantyStartDate: $('warrantyStart').value || null,
+                warrantyEndDate: $('warrantyEnd').value || null,
+                vendorName: $('vendorName').value.trim(),
+                notes: $('notes').value.trim(),
+                departments: depts
             };
 
-            const renderTable = () => {
-                const list = getFiltered();
-                tbody.innerHTML = '';
-                if (!list.length) { emptyState.classList.remove('hidden'); renderStats(); return; }
-                emptyState.classList.add('hidden');
-                list.forEach(c => {
-                    const amc = amcStatus(c), war = warrantyStatus(c), total = totalCameras(c);
-                    const depts = c.departments || [];
-                    const row = document.createElement('tr');
-                    row.className = `company-row border-b`;
-                    row.dataset.id = c.company_id;
-                    row.innerHTML = `
-                        <td class="px-4 py-3.5 font-semibold" data-label="Company">
-                            ${escapeHtml(c.company_name)}
-                            <span class="block text-[10px] text-[#7b85a3]">#${c.company_id}</span>
-                            ${depts.length ? `<span class="block text-[10px] text-[#7b85a3] mt-0.5"><i class="fa-solid fa-layer-group mr-1"></i>${depts.map(d => escapeHtml(d.dept_name)).join(', ')}</span>` : ''}
-                        </td>
-                        <td class="px-4 py-3.5 text-sm" data-label="Contact">${escapeHtml(c.contact_person || '—')}<span class="block text-[11px] text-[#7b85a3]">${escapeHtml(c.mobile_number)}</span></td>
-                        <td class="px-4 py-3.5" data-label="AMC"><span class="chip ${amc.cls} text-[10px]">${amc.label}</span></td>
-                        <td class="px-4 py-3.5" data-label="Warranty"><span class="chip ${war.cls} text-[10px]">${war.label}</span></td>
-                        <td class="px-4 py-3.5 text-right font-mono font-bold text-sm" data-label="Cameras">${total}</td>
-                        <td class="px-4 py-3.5 text-right row-actions" data-label="Actions">
-                            <div class="flex gap-2 justify-end">
-                                <button class="action-view-btn w-7 h-7 rounded border border-[#cdd5ea] bg-white text-[#1A328D] hover:bg-[#1A328D] hover:text-white flex items-center justify-center transition" data-action="view" data-id="${c.company_id}" title="View Details"><i class="fa-regular fa-eye text-sm"></i></button>
-                                <button class="action-btn w-7 h-7 rounded border border-[#cdd5ea] bg-white text-[#1A328D] hover:bg-[#1A328D] hover:text-white flex items-center justify-center transition" data-action="edit" data-id="${c.company_id}" title="Edit"><i class="fa-regular fa-pen-to-square text-sm"></i></button>
-                                <button class="action-btn w-7 h-7 rounded border border-[#cdd5ea] bg-white text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition" data-action="delete" data-id="${c.company_id}" title="Delete"><i class="fa-regular fa-trash-can text-sm"></i></button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-                renderStats();
-            };
+            const saveBtn = $('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
 
-            // VIEW MODAL
-            const openViewModal = (company) => {
-                const amc = amcStatus(company), war = warrantyStatus(company);
-                const depts = company.departments || [];
-                const deptsHtml = depts.length
-                    ? depts.map(d => `<div class="dept-tag bg-[#eef1fa] rounded-lg px-3 py-1.5 text-sm flex items-center gap-2"><span><i class="fa-solid fa-layer-group text-[10px] mr-1 text-[#7b85a3]"></i>${escapeHtml(d.dept_name)}</span><span class="bg-white/70 rounded-full px-2 py-0.5 text-xs font-mono font-bold text-[#1A328D]">${escapeHtml(d.pic_id)}</span></div>`).join('')
-                    : '<div class="text-sm text-[#7b85a3] italic">No departments added</div>';
-                const locationsHtml = (company.camera_locations || []).map(loc => `<div class="location-tag bg-[#eef1fa] rounded-lg px-3 py-1.5 text-sm flex items-center gap-2"><span><i class="fa-solid fa-location-dot text-[10px] mr-1 text-[#7b85a3]"></i>${escapeHtml(loc.location_name)}</span><span class="bg-white/70 rounded-full px-2 py-0.5 text-xs font-bold">${loc.camera_count} cams</span></div>`).join('');
-                viewModalContent.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-building mr-1.5"></i>Company</div><div class="text-lg font-bold text-[#1A328D]">${escapeHtml(company.company_name)}</div><div class="text-xs text-[#7b85a3] mt-1">ID: #${company.company_id}</div></div>
-                        <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-phone mr-1.5"></i>Contact</div><div class="text-sm font-medium">${escapeHtml(company.contact_person || '—')}</div><div class="text-xs text-[#7b85a3]">${escapeHtml(company.mobile_number)}</div><div class="text-xs text-[#7b85a3]">${escapeHtml(company.email)}</div></div>
-                        <div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-2 flex justify-between"><span><i class="fa-solid fa-layer-group mr-1.5"></i>Departments & PIC IDs</span><span class="font-bold text-[#1A328D]">${depts.length} dept${depts.length !== 1 ? 's' : ''}</span></div><div class="flex flex-wrap gap-2">${deptsHtml}</div></div>
-                        <div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-location-dot mr-1.5"></i>Address</div><div class="text-sm">${escapeHtml(company.address) || 'Not provided'}</div></div>
-                        <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-file-contract mr-1.5"></i>AMC Contract</div><div><span class="chip ${amc.cls}">${amc.label}</span></div>${company.amc_start_date ? `<div class="grid grid-cols-2 gap-2 mt-2"><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">AMC Start</div><div class="text-sm font-medium">${formatDate(company.amc_start_date)}</div></div><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">AMC End</div><div class="text-sm font-medium">${formatDate(company.amc_end_date)}</div></div></div>` : `<div class="text-sm mt-1">No AMC</div>`}<div class="text-xs font-mono mt-2">₹${(company.amc_amount || 0).toLocaleString()}</div></div>
-                        <div class="bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-shield-halved mr-1.5"></i>Warranty</div><div><span class="chip ${war.cls}">${war.label}</span></div>${company.warranty_start_date ? `<div class="grid grid-cols-2 gap-2 mt-2"><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">Warranty Start</div><div class="text-sm font-medium">${formatDate(company.warranty_start_date)}</div></div><div><div class="text-[10px] text-[#7b85a3] font-mono uppercase">Warranty End</div><div class="text-sm font-medium">${formatDate(company.warranty_end_date)}</div></div></div>` : `<div class="text-sm mt-1">No warranty</div>`}<div class="text-xs text-[#7b85a3] mt-2">Vendor: ${escapeHtml(company.vendor_name) || '—'}</div></div>
-                        <div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1 flex justify-between"><span><i class="fa-solid fa-video mr-1.5"></i>Camera Name</span><span class="font-bold text-[#1A328D]">${totalCameras(company)} total</span></div><div class="flex flex-wrap gap-2 mt-2">${locationsHtml || '<div class="text-sm text-[#7b85a3] italic">No camera names added</div>'}</div></div>
-                        ${company.notes ? `<div class="md:col-span-2 bg-[#f9fafd] rounded-xl p-4 border border-[#e1e6f3]"><div class="text-xs uppercase tracking-wider text-[#7b85a3] font-mono mb-1"><i class="fa-solid fa-note-sticky mr-1.5"></i>Notes</div><div class="text-sm">${escapeHtml(company.notes)}</div></div>` : ''}
-                    </div>
-                    <div class="mt-6 flex justify-end"><button id="closeViewModalInner" class="btn-primary px-6 py-2">Close</button></div>
-                `;
-                viewModalBackdrop.classList.add('open');
-                $('closeViewModalInner').onclick = () => viewModalBackdrop.classList.remove('open');
-            };
-
-            // TABLE EVENT HANDLERS
-            tbody.addEventListener('click', e => {
-                const btn = e.target.closest('[data-action]');
-                if (!btn) return;
-                const action = btn.dataset.action, companyId = Number(btn.dataset.id);
-                if (action === 'view') { const company = companies.find(c => c.company_id === companyId); if (company) openViewModal(company); return; }
-                if (action === 'edit') openEditModal(companyId);
-                if (action === 'delete') { pendingDeleteId = companyId; deleteBackdrop.classList.add('open'); }
-            });
-
-            // SEARCH & FILTER
-            searchInput.oninput = renderTable;
-            filterAmc.onchange = renderTable;
-            filterWarranty.onchange = renderTable;
-
-            // ADD/EDIT MODAL
-            const openEditModal = (id) => {
-                const c = companies.find(x => x.company_id === id);
-                if (!c) return;
-                $('modalTitle').textContent = 'Edit Company';
-                $('companyId').value = c.company_id;
-                $('companyName').value = c.company_name || '';
-                $('contactPerson').value = c.contact_person || '';
-                $('mobileNumber').value = c.mobile_number || '';
-                $('email').value = c.email || '';
-                $('address').value = c.address || '';
-                $('amcStart').value = c.amc_start_date || '';
-                $('amcEnd').value = c.amc_end_date || '';
-                $('amcAmount').value = c.amc_amount || '';
-                $('warrantyStart').value = c.warranty_start_date || '';
-                $('warrantyEnd').value = c.warranty_end_date || '';
-                $('vendorName').value = c.vendor_name || '';
-                $('notes').value = c.notes || '';
-                // Load departments
-                departmentRows.innerHTML = '';
-                if (c.departments?.length) c.departments.forEach(d => departmentRows.appendChild(createDeptRow(d)));
-                else departmentRows.appendChild(createDeptRow());
-                updateDeptCount();
-                // Load camera locations
-                locationRows.innerHTML = '';
-                if (c.camera_locations?.length) c.camera_locations.forEach(l => locationRows.appendChild(createLocationRow(l)));
-                else locationRows.appendChild(createLocationRow());
-                updateTotal();
-                modalBackdrop.classList.add('open');
-            };
-
-            const openAddModal = () => {
-                $('modalTitle').textContent = 'Add Company';
-                $('companyForm').reset();
-                $('companyId').value = '';
-                $('vendorName').value = 'Akansha Enterprises';
-                departmentRows.innerHTML = '';
-                departmentRows.appendChild(createDeptRow());
-                updateDeptCount();
-                locationRows.innerHTML = '';
-                locationRows.appendChild(createLocationRow());
-                updateTotal();
-                modalBackdrop.classList.add('open');
-            };
-
-            $('addCompanyBtn').onclick = openAddModal;
-            $('emptyAddBtn').onclick = openAddModal;
-            $('closeModal').onclick = () => modalBackdrop.classList.remove('open');
-            $('cancelBtn').onclick = () => modalBackdrop.classList.remove('open');
-
-            // FORM SUBMIT
-            $('companyForm').onsubmit = e => {
-                e.preventDefault();
-                const id = $('companyId').value;
-                // Collect departments
-                const depts = [];
-                departmentRows.querySelectorAll('.dept-row').forEach(row => {
-                    const name = row.querySelector('.dept-name').value.trim();
-                    const pic = row.querySelector('.pic-id').value.trim();
-                    if (name || pic) depts.push({ id: nextDeptId++, dept_name: name || 'Unnamed', pic_id: pic });
-                });
-                // Collect camera locations (only location names, count defaults to 0)
-                const locs = [];
-                locationRows.querySelectorAll('.location-row').forEach(row => {
-                    const name = row.querySelector('.loc-name').value.trim();
-                    if (name) locs.push({ id: nextLocationId++, location_name: name, camera_count: 0 });
-                });
-                const data = {
-                    company_name: $('companyName').value.trim(),
-                    contact_person: $('contactPerson').value.trim(),
-                    mobile_number: $('mobileNumber').value.trim(),
-                    email: $('email').value.trim(),
-                    address: $('address').value.trim(),
-                    amc_start_date: $('amcStart').value,
-                    amc_end_date: $('amcEnd').value,
-                    amc_amount: Number($('amcAmount').value) || 0,
-                    warranty_start_date: $('warrantyStart').value,
-                    warranty_end_date: $('warrantyEnd').value,
-                    vendor_name: $('vendorName').value.trim(),
-                    notes: $('notes').value.trim(),
-                    departments: depts,
-                    camera_locations: locs
-                };
+            try {
                 if (id) {
-                    const idx = companies.findIndex(c => c.company_id === Number(id));
-                    if (idx !== -1) companies[idx] = { ...companies[idx], ...data, company_id: Number(id) };
+                    await apiPut(`/${id}`, data);
                     showToast('Company updated ✓');
                 } else {
-                    data.company_id = nextCompanyId++;
-                    companies.unshift(data);
+                    await apiPost('', data);
                     showToast('Company added ✓');
                 }
                 modalBackdrop.classList.remove('open');
-                renderTable();
-            };
+                await loadCompanies();
+            } catch (err) {
+                showToast('Save failed: ' + err.message, true);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+            }
+        };
 
-            // DELETE
-            $('confirmDelete').onclick = () => { companies = companies.filter(c => c.company_id !== pendingDeleteId); if (expandedRowId === pendingDeleteId) expandedRowId = null; pendingDeleteId = null; deleteBackdrop.classList.remove('open'); showToast('Company deleted', true); renderTable(); };
-            $('cancelDelete').onclick = () => deleteBackdrop.classList.remove('open');
+        // DELETE
+        $('confirmDelete').onclick = async () => {
+            try {
+                await apiDelete(`/${pendingDeleteId}`);
+                pendingDeleteId = null;
+                deleteBackdrop.classList.remove('open');
+                showToast('Company deleted', true);
+                await loadCompanies();
+            } catch (err) {
+                showToast('Delete failed: ' + err.message, true);
+            }
+        };
+        $('cancelDelete').onclick = () => deleteBackdrop.classList.remove('open');
 
-            // VIEW MODAL CLOSE
-            $('closeViewModal').onclick = () => viewModalBackdrop.classList.remove('open');
-            viewModalBackdrop.addEventListener('click', e => { if (e.target === viewModalBackdrop) viewModalBackdrop.classList.remove('open'); });
+        // VIEW MODAL CLOSE
+        $('closeViewModal').onclick = () => viewModalBackdrop.classList.remove('open');
+        viewModalBackdrop.addEventListener('click', e => { if (e.target === viewModalBackdrop) viewModalBackdrop.classList.remove('open'); });
 
-            // SIDEBAR
-            const sidebar = $('sidebar');
-            const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (isSidebarCollapsed) sidebar.classList.add('collapsed');
-            $('sidebarCollapseBtn').onclick = () => { sidebar.classList.toggle('collapsed'); localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); };
+        // SIDEBAR
+        const sidebar = $('sidebar');
+        const isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (isSidebarCollapsed) sidebar.classList.add('collapsed');
+        $('sidebarCollapseBtn').onclick = () => { sidebar.classList.toggle('collapsed'); localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed')); };
 
-            // PROFILE DROPDOWN
-            const profileBtn = $('profileBtn'), profileDropdown = $('profileDropdown');
-            profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
-            document.addEventListener('click', e => { if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('open'); });
+        // PROFILE DROPDOWN
+        const profileBtn = $('profileBtn'), profileDropdown = $('profileDropdown');
+        profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
+        document.addEventListener('click', e => { if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('open'); });
 
-            // LOGOUT
-            $('logoutBtn').onclick = () => { profileDropdown.classList.remove('open'); logoutBackdrop.classList.add('open'); };
-            $('cancelLogout').onclick = () => logoutBackdrop.classList.remove('open');
-            $('confirmLogout').onclick = () => { sessionStorage.removeItem('amc_session'); setTimeout(() => { logoutBackdrop.classList.remove('open'); window.location.href = '/page/login.html'; }, 300); };
+       Auth.bindLogoutUI();
 
-            // INIT
-            renderTable();
-        })();
-    </script>
+        // INIT
+        loadCompanies();
+    })();
+</script>
 </body>
 </html>

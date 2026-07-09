@@ -43,7 +43,7 @@
         .sidebar.collapsed .sidebar-nav-text { display: none; }
         .sidebar.collapsed .sidebar-nav-item { justify-content: center; padding: 0.625rem; }
         .sidebar a:hover { background: rgba(0,0,0,0.06); color: #1a1a1a; }
-        .sidebar a.active { background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; margin-left: 10px; border-radius: 10px; }
+        .sidebar a.active { padding: 10px; background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; border-radius: 10px; }
         .sidebar a.active svg { stroke: white !important; }
         .sidebar { border-right-color: #e1e6f3; }
 
@@ -189,7 +189,7 @@
 
         <!-- SIDEBAR -->
         <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col h-screen sticky top-0 overflow-y-auto">
-            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2">
+            <nav class="ml-2 flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2">
                 <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                     <span class="sidebar-nav-text">Dashboard</span>
@@ -207,8 +207,7 @@
                     <span class="sidebar-nav-text">Monthly Inspection Reports</span>
                 </a>
                 <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <span class="sidebar-nav-text">Staff Management</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>                    <span class="sidebar-nav-text">Staff Management</span>
                 </a>
             </nav>
         </aside>
@@ -233,7 +232,7 @@
             <div id="tab-reports" class="tab-content active">
                 <div class="filter-bar mb-4">
                     <div class="relative flex-1 w-full">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#7b85a3] text-sm"></i>
+                        <!-- <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-[#7b85a3] text-sm"></i> -->
                         <input type="text" id="searchReport" placeholder="Search by company, engineer, department..." class="w-full pl-10 pr-3.5 py-2 border border-[#cdd5ea] rounded-md text-[#1A328D] bg-white focus:outline-none">
                     </div>
                     <select id="filterApprove" class="border border-[#cdd5ea] text-[#1A328D] rounded-md px-3 py-2 text-sm bg-white">
@@ -337,712 +336,672 @@
         </div>
     </div>
 
+    <script src="/page/admin-auth.js"></script>
+
     <script>
-    (function() {
-        'use strict';
+(async function() {
+    'use strict';
 
-        // ===== STORAGE KEYS (same as monthly-inspection.html) =====
-        const REPORTS_KEY = 'cctv_amc_reports';
-        const ISSUES_KEY = 'cctv_amc_issues';
+       const sessionOk = await Auth.guard();
+            if (!sessionOk) return; // guard() already redirected to admin-login.html
 
-        // ===== MOCK DATA =====
-        // Note: "Shree Balaji Enterprises" has TWO visits in January 2026 done by
-        // two different engineers for two different departments — this is the
-        // exact scenario the combined monthly report needs to handle correctly.
-        const mockReports = [
-            { id: 1, company: "Shree Balaji Enterprises", department: "Security", date: "2026-01-10", engineer: "Vikram Joshi", vendor: "CP Plus", bsid_pic: "Rajesh", total: 6, working: 6, faulty: 0, remarks: "All cameras working fine", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-01-11",
-              signature: null,
-              cameraDetails: [
-                { sr_no:1, camera_name:'CAM001', location:'Reception 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:2, camera_name:'CAM002', location:'Reception 2', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:3, camera_name:'CAM003', location:'Parking 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:4, camera_name:'CAM004', location:'Parking 2', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:5, camera_name:'CAM005', location:'Server Room', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:6, camera_name:'CAM006', location:'Warehouse', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-              ]
-            },
-            { id: 2, company: "Shree Balaji Enterprises", department: "IT & Data Center", date: "2026-01-25", engineer: "Suresh Rana", vendor: "CP Plus", bsid_pic: "Meena", total: 4, working: 3, faulty: 1, remarks: "Camera 2 needs replacement", approved: false, approved_by: null, approved_date: null,
-              signature: null,
-              cameraDetails: [
-                { sr_no:1, camera_name:'CAM101', location:'Server Rack 1', dept:'IT', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:2, camera_name:'CAM102', location:'Server Rack 2', dept:'IT', working:'No', lens_cleaning:'Pending', visual_on_tv:'No', focus_angle:'Adjustment Required', damage:'Lens cracked', abnormality:'Camera not powering on' },
-                { sr_no:3, camera_name:'CAM103', location:'UPS Room', dept:'IT', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:4, camera_name:'CAM104', location:'IT Entry', dept:'IT', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-              ]
-            },
-            { id: 3, company: "Patil Traders", department: "Security", date: "2026-01-20", engineer: "Vikram Joshi", vendor: "Hikvision", bsid_pic: "Sunil", total: 4, working: 4, faulty: 0, remarks: "All good", approved: true, approved_by: "Sunil Patil", approved_date: "2026-01-21",
-              signature: null,
-              cameraDetails: [
-                { sr_no:1, camera_name:'CAM001', location:'Cabin 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:2, camera_name:'CAM002', location:'Cabin 2', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:3, camera_name:'CAM003', location:'Reception 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-                { sr_no:4, camera_name:'CAM004', location:'Parking 1', dept:'Security', working:'Yes', lens_cleaning:'Done', visual_on_tv:'Yes', focus_angle:'Correct', damage:'', abnormality:'' },
-              ]
-            },
-        ];
 
-        const mockIssues = [
-            { id: 1, company: "Shree Balaji Enterprises", camera: "CAM002", type: "Hardware", priority: "High", status: "Resolved", desc: "Camera not powering on", created: "2026-02-12", resolvedBy: "Vikram Joshi", resolvedDate: "2026-02-14", approved: true, approved_by: "Rajesh Sharma", approved_date: "2026-02-15", dept: "Security", location: "Reception 2", resolution: "Replaced power supply" },
-            { id: 2, company: "Patil Traders", camera: "CAM005", type: "Network", priority: "Critical", status: "Resolved", desc: "Camera offline - network issue", created: "2026-02-22", resolvedBy: "Suresh Patil", resolvedDate: "2026-02-24", approved: true, approved_by: "Sunil Patil", approved_date: "2026-02-25", dept: "Security", location: "Parking", resolution: "Fixed network switch" },
-            { id: 3, company: "Shree Balaji Enterprises", camera: "CAM001", type: "Software", priority: "Medium", status: "Open", desc: "Firmware update needed", created: "2026-03-18", resolvedBy: null, resolvedDate: null, approved: false, approved_by: null, approved_date: null, dept: "Security", location: "Reception 1", resolution: "" },
-        ];
+    const API_BASE = 'http://localhost:5000/api/inspection';
 
-        // Load from localStorage, fall back to mock
-        function loadReports() {
-            const saved = JSON.parse(localStorage.getItem(REPORTS_KEY) || 'null');
-            return saved && saved.length > 0 ? saved : mockReports;
+    let reports = [];
+    let issues = [];
+    let deleteId = null, deleteType = null;
+
+    const reportsContainer = document.getElementById('reportsContainer');
+    const issuesContainer = document.getElementById('issuesContainer');
+
+    function showToast(msg, danger) {
+        const toast = document.getElementById('toastMessage');
+        toast.textContent = msg;
+        toast.className = 'toast' + (danger ? ' toast-danger' : '') + ' show';
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => toast.classList.remove('show'), 2600);
+    }
+
+    async function apiGet(path) {
+        const res = await fetch(API_BASE + path);
+        if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+        return res.json();
+    }
+    async function apiPost(path, body) {
+        const res = await fetch(API_BASE + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+        return res.json();
+    }
+    async function apiPut(path, body) {
+        const res = await fetch(API_BASE + path, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+        return res.json();
+    }
+    async function apiDelete(path) {
+        const res = await fetch(API_BASE + path, { method: 'DELETE' });
+        if (!res.ok) { const err = await res.json().catch(() => ({ message: res.statusText })); throw new Error(err.message || err.error || `Request failed (${res.status})`); }
+    }
+
+    async function loadReports() {
+        try {
+            reports = await apiGet('/reports');
+            renderReports();
+        } catch (err) {
+            showToast('Failed to load reports: ' + err.message, true);
         }
-        function loadIssues() {
-            const saved = JSON.parse(localStorage.getItem(ISSUES_KEY) || 'null');
-            return saved && saved.length > 0 ? saved : mockIssues;
+    }
+    async function loadIssues() {
+        try {
+            issues = await apiGet('/issues/all');
+            renderIssues();
+        } catch (err) {
+            showToast('Failed to load issues: ' + err.message, true);
         }
+    }
 
-        let reports = loadReports();
-        let issues = loadIssues();
+    function monthYearOf(dateStr) {
+        return new Date(dateStr).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+    }
 
-        function saveReports() { localStorage.setItem(REPORTS_KEY, JSON.stringify(reports)); }
-        function saveIssues() { localStorage.setItem(ISSUES_KEY, JSON.stringify(issues)); }
+    function groupByMonth(data, dateKey) {
+        const groups = {};
+        data.forEach(item => {
+            const monthYear = monthYearOf(item[dateKey]);
+            if (!groups[monthYear]) groups[monthYear] = [];
+            groups[monthYear].push(item);
+        });
+        return Object.fromEntries(
+            Object.entries(groups).sort((a, b) => new Date(b[0]+' 1') - new Date(a[0]+' 1'))
+        );
+    }
 
-        let deleteId = null, deleteType = null;
-        const reportsContainer = document.getElementById('reportsContainer');
-        const issuesContainer = document.getElementById('issuesContainer');
+    function groupByCompany(monthVisits) {
+        const groups = {};
+        monthVisits.forEach(v => {
+            if (!groups[v.company]) groups[v.company] = [];
+            groups[v.company].push(v);
+        });
+        Object.values(groups).forEach(list => list.sort((a, b) => new Date(a.date) - new Date(b.date)));
+        return groups;
+    }
 
-        function showToast(msg, danger) {
-            const toast = document.getElementById('toastMessage');
-            toast.textContent = msg;
-            toast.className = 'toast' + (danger ? ' toast-danger' : '') + ' show';
-            clearTimeout(toast._t);
-            toast._t = setTimeout(() => toast.classList.remove('show'), 2600);
-        }
+    // ===== RENDER REPORTS =====
+    function renderReports() {
+        const search = document.getElementById('searchReport').value.toLowerCase();
+        const filterApprove = document.getElementById('filterApprove').value;
+        const filterCompany = document.getElementById('filterCompany').value;
 
-        function monthYearOf(dateStr) {
-            return new Date(dateStr).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-        }
+        const filtered = reports.filter(r => {
+            const matchSearch = (r.company||'').toLowerCase().includes(search)
+                || (r.engineer||'').toLowerCase().includes(search)
+                || (r.department||'').toLowerCase().includes(search);
+            const matchCompany = !filterCompany || r.company === filterCompany;
+            return matchSearch && matchCompany;
+        });
 
-        function groupByMonth(data, dateKey) {
-            const groups = {};
-            data.forEach(item => {
-                const monthYear = monthYearOf(item[dateKey]);
-                if (!groups[monthYear]) groups[monthYear] = [];
-                groups[monthYear].push(item);
-            });
-            return Object.fromEntries(
-                Object.entries(groups).sort((a, b) => new Date(b[0]+' 1') - new Date(a[0]+' 1'))
-            );
-        }
+        const compFilter = document.getElementById('filterCompany');
+        const companies = [...new Set(reports.map(r => r.company))];
+        const prevCompanyVal = compFilter.value;
+        compFilter.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c}">${c}</option>`).join('');
+        compFilter.value = prevCompanyVal;
 
-        // Groups visits by company WITHIN a month bucket, so a company with
-        // multiple department-visits (possibly by different engineers) in the
-        // same month is shown — and exported — as ONE combined monthly report.
-        function groupByCompany(monthVisits) {
-            const groups = {};
-            monthVisits.forEach(v => {
-                if (!groups[v.company]) groups[v.company] = [];
-                groups[v.company].push(v);
-            });
-            Object.values(groups).forEach(list => list.sort((a, b) => new Date(a.date) - new Date(b.date)));
-            return groups;
-        }
+        const groupedByMonth = groupByMonth(filtered, 'date');
+        let html = '';
 
-        // ===== RENDER REPORTS (grouped by Month -> Company, showing every engineer) =====
-        function renderReports() {
-            const search = document.getElementById('searchReport').value.toLowerCase();
-            const filterApprove = document.getElementById('filterApprove').value;
-            const filterCompany = document.getElementById('filterCompany').value;
+        if (!Object.keys(groupedByMonth).length) {
+            html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p><p class="text-sm text-[#7b85a3] mt-1">Submit an inspection from Monthly Visits page</p></div>';
+        } else {
+            Object.entries(groupedByMonth).forEach(([month, visitsInMonth]) => {
+                const byCompany = groupByCompany(visitsInMonth);
+                const companyKeys = Object.keys(byCompany);
 
-            const filtered = reports.filter(r => {
-                const matchSearch = r.company.toLowerCase().includes(search)
-                    || (r.engineer||'').toLowerCase().includes(search)
-                    || (r.department||'').toLowerCase().includes(search);
-                const matchCompany = !filterCompany || r.company === filterCompany;
-                return matchSearch && matchCompany;
-            });
-
-            // Update company filter dropdown
-            const compFilter = document.getElementById('filterCompany');
-            const companies = [...new Set(reports.map(r => r.company))];
-            const prevCompanyVal = compFilter.value;
-            compFilter.innerHTML = '<option value="">All Companies</option>' + companies.map(c => `<option value="${c}">${c}</option>`).join('');
-            compFilter.value = prevCompanyVal;
-
-            const groupedByMonth = groupByMonth(filtered, 'date');
-            let html = '';
-
-            if (!Object.keys(groupedByMonth).length) {
-                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p><p class="text-sm text-[#7b85a3] mt-1">Submit an inspection from Monthly Visits page</p></div>';
-            } else {
-                Object.entries(groupedByMonth).forEach(([month, visitsInMonth]) => {
-                    const byCompany = groupByCompany(visitsInMonth);
-                    const companyKeys = Object.keys(byCompany);
-
-                    // filterApprove applies at the combined-company level
-                    const visibleCompanyKeys = companyKeys.filter(company => {
-                        if (!filterApprove) return true;
-                        const allApproved = byCompany[company].every(v => v.approved);
-                        return filterApprove === 'Approved' ? allApproved : !allApproved;
-                    });
-
-                    if (!visibleCompanyKeys.length) return;
-
-                    html += `<div class="month-group"><div class="month-title"><i class="fa-regular fa-calendar-check text-accenttext"></i>${month}<span class="count-badge">${visibleCompanyKeys.length} ${visibleCompanyKeys.length > 1 ? 'companies' : 'company'}</span></div><div class="grid grid-cols-1 gap-3">`;
-
-                    visibleCompanyKeys.forEach(company => {
-                        const visits = byCompany[company];
-                        const engineers = [...new Set(visits.map(v => v.engineer).filter(Boolean))];
-                        const totalCams = visits.reduce((s, v) => s + Number(v.total || 0), 0);
-                        const totalWorking = visits.reduce((s, v) => s + Number(v.working || 0), 0);
-                        const totalFaulty = visits.reduce((s, v) => s + Number(v.faulty || 0), 0);
-                        const allApproved = visits.every(v => v.approved);
-                        const pendingCount = visits.filter(v => !v.approved).length;
-                        const statusChip = totalFaulty === 0 ? 'chip-active' : 'chip-soon';
-                        const statusLabel = totalFaulty === 0 ? 'All Working' : `${totalFaulty} Faulty`;
-                        const approveChip = allApproved ? 'chip-approved' : 'chip-pending';
-                        const approveLabel = allApproved ? '<i class="fa-solid fa-check"></i> All Approved' : `${pendingCount} Pending`;
-                        const companyKeySafe = company.replace(/'/g, "\\'");
-
-                        html += `<div class="report-card">
-                            <div class="flex flex-wrap justify-between items-start gap-2">
-                                <div>
-                                    <div class="font-semibold text-[#1A328D] text-lg">${company}</div>
-                                    <div class="flex flex-wrap gap-2 mt-1.5">
-                                        ${engineers.map(e => `<span class="chip chip-engineer"><i class="fa-regular fa-user mr-1"></i>${e}</span>`).join('')}
-                                    </div>
-                                    <div class="text-xs text-[#7b85a3] mt-1.5"><i class="fa-regular fa-building mr-1"></i>${visits.length} department visit${visits.length > 1 ? 's' : ''} logged this month</div>
-                                </div>
-                                <div class="flex flex-wrap gap-2 items-center">
-                                    <span class="chip ${statusChip}">${statusLabel}</span>
-                                    <span class="chip ${approveChip}">${approveLabel}</span>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap gap-4 text-sm text-[#3d4763] mt-2">
-                                <span>Total: <b>${totalCams}</b></span>
-                                <span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>Working: <b>${totalWorking}</b></span>
-                                ${totalFaulty > 0 ? `<span class="text-redc"><i class="fa-regular fa-circle-xmark mr-1"></i>Faulty: <b>${totalFaulty}</b></span>` : ''}
-                            </div>
-
-                            <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft">
-                                <button class="btn-export-excel text-xs py-1.5 px-3" onclick="exportCompanyMonthlyExcel('${companyKeySafe}','${month}')"><i class="fa-regular fa-file-excel mr-1"></i>Export Combined Excel</button>
-                            </div>
-
-                            <div class="mt-3 pt-3 border-t border-bordersoft space-y-2">
-                                ${visits.map(r => renderVisitRow(r)).join('')}
-                            </div>
-                        </div>`;
-                    });
-
-                    html += '</div></div>';
+                const visibleCompanyKeys = companyKeys.filter(company => {
+                    if (!filterApprove) return true;
+                    const allApproved = byCompany[company].every(v => v.approved);
+                    return filterApprove === 'Approved' ? allApproved : !allApproved;
                 });
 
-                if (!html) {
-                    html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p></div>';
-                }
-            }
-            reportsContainer.innerHTML = html;
-        }
+                if (!visibleCompanyKeys.length) return;
 
-        function renderVisitRow(r) {
-            const date = new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-            const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
-            const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
-            const sig = r.signature
-                ? `<img src="${r.signature}" class="sig-thumb" alt="signature of ${r.engineer}">`
-                : `<span class="no-sig-badge"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No signature</span>`;
-            return `<div class="visit-row">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex flex-wrap items-center gap-2 text-sm">
-                        <span class="font-semibold text-[#1A328D]"><i class="fa-solid fa-diagram-project mr-1"></i>${r.department || '—'}</span>
-                        <span class="text-[#7b85a3]">·</span>
-                        <span><i class="fa-regular fa-user mr-1"></i>${r.engineer || '—'}</span>
-                        <span class="text-[#7b85a3]">·</span>
-                        <span><i class="fa-regular fa-calendar mr-1"></i>${date}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="chip ${approveCls}">${approveLabel}</span>
-                    </div>
-                </div>
-                <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
-                    <div class="flex flex-wrap gap-3 text-xs text-[#3d4763]">
-                        <span>Total: <b>${r.total}</b></span>
-                        <span class="text-accenttext">Working: <b>${r.working}</b></span>
-                        ${r.faulty > 0 ? `<span class="text-redc">Faulty: <b>${r.faulty}</b></span>` : ''}
-                        ${r.approved ? `<span class="text-[#7b85a3]">Approved by ${r.approved_by} on ${r.approved_date}</span>` : ''}
-                    </div>
-                    ${sig}
-                </div>
-                <div class="flex flex-wrap gap-2 mt-2.5 actions">
-                    <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
-                    <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
-                    <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
-                    <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
-                </div>
-            </div>`;
-        }
+                html += `<div class="month-group"><div class="month-title"><i class="fa-regular fa-calendar-check text-accenttext"></i>${month}<span class="count-badge">${visibleCompanyKeys.length} ${visibleCompanyKeys.length > 1 ? 'companies' : 'company'}</span></div><div class="grid grid-cols-1 gap-3">`;
 
-        // ===== RENDER ISSUES =====
-        function renderIssues() {
-            const search = document.getElementById('searchIssues').value.toLowerCase();
-            const filterStatus = document.getElementById('filterIssueStatus').value;
-            const filtered = issues.filter(r => {
-                const matchSearch = (r.company||'').toLowerCase().includes(search) || (r.camera||'').toLowerCase().includes(search);
-                const matchStatus = !filterStatus || r.status === filterStatus;
-                return matchSearch && matchStatus;
-            });
-            const grouped = groupByMonth(filtered, 'created');
-            let html = '';
-            if (!Object.keys(grouped).length) {
-                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-circle-exclamation"></i></div><p class="font-semibold text-[#1A328D]">No issues found</p></div>';
-            } else {
-                Object.entries(grouped).forEach(([month, records]) => {
-                    html += `<div class="month-group"><div class="month-title">${month}<span class="count-badge">${records.length} ${records.length > 1 ? 'issues' : 'issue'}</span></div><div class="grid grid-cols-1 gap-3">`;
-                    records.forEach(r => {
-                        const statusCls = r.status === 'Resolved' ? 'chip-resolved' : r.status === 'Open' ? 'chip-open' : r.status === 'In Progress' ? 'chip-progress' : 'chip-closed';
-                        const priorityCls = r.priority === 'Critical' ? 'text-redc font-bold' : r.priority === 'High' ? 'text-amber font-bold' : 'text-[#3d4763]';
-                        const createdDate = new Date(r.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-                        const resolvedDate = r.resolvedDate ? new Date(r.resolvedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
-                        const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
-                        const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
-                        html += `<div class="issue-card-r ${r.status === 'Resolved' ? 'resolved' : ''}">
-                            <div class="flex flex-wrap justify-between items-start gap-2">
-                                <div>
-                                    <div class="font-semibold text-[#1A328D] text-lg">${r.company}</div>
-                                    <div class="flex flex-wrap gap-3 text-xs text-[#7b85a3] mt-1">
-                                        <span><i class="fa-regular fa-video mr-1"></i>${r.camera}</span>
-                                        <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
-                                    </div>
+                visibleCompanyKeys.forEach(company => {
+                    const visits = byCompany[company];
+                    const engineers = [...new Set(visits.map(v => v.engineer).filter(Boolean))];
+                    const totalCams = visits.reduce((s, v) => s + Number(v.total || 0), 0);
+                    const totalWorking = visits.reduce((s, v) => s + Number(v.working || 0), 0);
+                    const totalFaulty = visits.reduce((s, v) => s + Number(v.faulty || 0), 0);
+                    const allApproved = visits.every(v => v.approved);
+                    const pendingCount = visits.filter(v => !v.approved).length;
+                    const statusChip = totalFaulty === 0 ? 'chip-active' : 'chip-soon';
+                    const statusLabel = totalFaulty === 0 ? 'All Working' : `${totalFaulty} Faulty`;
+                    const approveChip = allApproved ? 'chip-approved' : 'chip-pending';
+                    const approveLabel = allApproved ? '<i class="fa-solid fa-check"></i> All Approved' : `${pendingCount} Pending`;
+                    const companyKeySafe = company.replace(/'/g, "\\'");
+
+                    html += `<div class="report-card">
+                        <div class="flex flex-wrap justify-between items-start gap-2">
+                            <div>
+                                <div class="font-semibold text-[#1A328D] text-lg">${company}</div>
+                                <div class="flex flex-wrap gap-2 mt-1.5">
+                                    ${engineers.map(e => `<span class="chip chip-engineer"><i class="fa-regular fa-user mr-1"></i>${e}</span>`).join('')}
                                 </div>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="chip ${statusCls}">${r.status}</span>
-                                    <span class="chip ${approveCls}">${approveLabel}</span>
-                                </div>
+                                <div class="text-xs text-[#7b85a3] mt-1.5"><i class="fa-regular fa-building mr-1"></i>${visits.length} department visit${visits.length > 1 ? 's' : ''} logged this month</div>
                             </div>
-                            <div class="text-sm mt-1">${r.desc}</div>
-                            <div class="flex flex-wrap gap-2 text-xs text-[#3d4763] mt-1.5">
-                                <span class="${priorityCls}"><i class="fa-regular fa-flag mr-1"></i>${r.priority}</span>
-                                <span><i class="fa-regular fa-tag mr-1"></i>${r.type}</span>
-                                ${resolvedDate ? `<span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>${resolvedDate}</span>` : ''}
+                            <div class="flex flex-wrap gap-2 items-center">
+                                <span class="chip ${statusChip}">${statusLabel}</span>
+                                <span class="chip ${approveChip}">${approveLabel}</span>
                             </div>
-                            ${r.resolvedBy ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-user mr-1"></i>Resolved by: ${r.resolvedBy}</div>` : ''}
-                            ${r.approved ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-id-badge mr-1"></i>Approved by: ${r.approved_by} on ${r.approved_date}</div>` : ''}
-                            <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions">
-                                <button class="btn-export-issue-excel text-xs py-1.5 px-3" onclick="exportIssueExcel(${r.id})"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                                <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'issue')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
-                                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'issue')"><i class="fa-regular fa-eye mr-1"></i>View</button>
-                                <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'issue')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
-                            </div>
-                        </div>`;
-                    });
-                    html += '</div></div>';
+                        </div>
+                        <div class="flex flex-wrap gap-4 text-sm text-[#3d4763] mt-2">
+                            <span>Total: <b>${totalCams}</b></span>
+                            <span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>Working: <b>${totalWorking}</b></span>
+                            ${totalFaulty > 0 ? `<span class="text-redc"><i class="fa-regular fa-circle-xmark mr-1"></i>Faulty: <b>${totalFaulty}</b></span>` : ''}
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft">
+                            <button class="btn-export-excel text-xs py-1.5 px-3" onclick="exportCompanyMonthlyExcel('${companyKeySafe}','${month}')"><i class="fa-regular fa-file-excel mr-1"></i>Export Combined Excel</button>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-t border-bordersoft space-y-2">
+                            ${visits.map(r => renderVisitRow(r)).join('')}
+                        </div>
+                    </div>`;
                 });
-            }
-            issuesContainer.innerHTML = html;
-        }
 
-        // ===== EXPORT COMBINED COMPANY+MONTH EXCEL (with per-visit engineer & signature) =====
-        window.exportCompanyMonthlyExcel = async function(company, monthYear) {
-            const visits = reports
-                .filter(r => r.company === company && monthYearOf(r.date) === monthYear)
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            if (!visits.length) { showToast('Nothing to export', true); return; }
-
-            const btn = event.currentTarget;
-            const originalLabel = btn ? btn.innerHTML : null;
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Exporting...'; }
-
-            try {
-                const wb = new ExcelJS.Workbook();
-                const ws = wb.addWorksheet('Monthly Checksheet');
-                ws.columns = [
-                    { width: 7 }, { width: 16 }, { width: 18 }, { width: 12 },
-                    { width: 14 }, { width: 12 }, { width: 20 }, { width: 18 }, { width: 22 }
-                ];
-
-                let row = 1;
-                ws.mergeCells(`A${row}:I${row}`);
-                const titleCell = ws.getCell(`A${row}`);
-                titleCell.value = `Monthly Camera Checksheet — ${company} — ${monthYear}`;
-                titleCell.font = { bold: true, size: 14, color: { argb: 'FF1A328D' } };
-                row += 1;
-                ws.mergeCells(`A${row}:I${row}`);
-                ws.getCell(`A${row}`).value = `${visits.length} department visit${visits.length > 1 ? 's' : ''} logged this month`;
-                ws.getCell(`A${row}`).font = { italic: true, size: 10, color: { argb: 'FF7B85A3' } };
-                row += 2;
-
-                for (const visit of visits) {
-                    // Department / engineer / date sub-header
-                    ws.mergeCells(`A${row}:I${row}`);
-                    const subCell = ws.getCell(`A${row}`);
-                    subCell.value = `Department: ${visit.department || '-'}   |   Date: ${visit.date}   |   Vendor: ${visit.vendor || '-'}   |   BSID PIC: ${visit.bsid_pic || '-'}`;
-                    subCell.font = { bold: true, color: { argb: 'FF1A328D' } };
-                    subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8ECF7' } };
-                    row += 1;
-
-                    // Camera table header
-                    const headerRow = ws.getRow(row);
-                    const headers = ['Sr.No', 'Camera Name', 'Location', 'Working', 'Lens Cleaning', 'Visual on TV', 'Focus Angle', 'Damage', 'Any Abnormality'];
-                    headers.forEach((h, i) => { headerRow.getCell(i + 1).value = h; headerRow.getCell(i + 1).font = { bold: true }; headerRow.getCell(i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F3FB' } }; });
-                    row += 1;
-
-                    const cameras = visit.cameraDetails || [];
-                    cameras.forEach((c, idx) => {
-                        const r = ws.getRow(row);
-                        r.getCell(1).value = c.sr_no || (idx + 1);
-                        r.getCell(2).value = c.camera_name || '';
-                        r.getCell(3).value = c.location || c.camera_type || '';
-                        r.getCell(4).value = c.working || '';
-                        r.getCell(5).value = c.lens_cleaning || '';
-                        r.getCell(6).value = c.visual_on_tv || '';
-                        r.getCell(7).value = c.focus_angle || '';
-                        r.getCell(8).value = c.damage || '';
-                        r.getCell(9).value = c.abnormality || '';
-                        row += 1;
-                    });
-
-                    row += 1; // spacer
-
-                    // Checked-by row + embedded signature image next to the engineer name
-                    const checkedRow = ws.getRow(row);
-                    checkedRow.getCell(1).value = 'Checked by:';
-                    checkedRow.getCell(1).font = { bold: true };
-                    checkedRow.getCell(2).value = visit.engineer || '-';
-                    checkedRow.getCell(2).font = { bold: true, color: { argb: 'FF1A328D' } };
-
-                    ws.getRow(row).height = 34;
-
-                    if (visit.signature) {
-                        try {
-                            const base64 = visit.signature.split(',')[1];
-                            const imgId = wb.addImage({ base64, extension: 'png' });
-                            // anchor image in the cell right next to the engineer's name (column D, 0-indexed col 3)
-                            ws.addImage(imgId, {
-                                tl: { col: 3, row: row - 1 },
-                                ext: { width: 100, height: 32 }
-                            });
-                        } catch (imgErr) {
-                            checkedRow.getCell(5).value = '(signature unavailable)';
-                        }
-                    } else {
-                        checkedRow.getCell(5).value = 'No signature on file';
-                        checkedRow.getCell(5).font = { italic: true, color: { argb: 'FFC0392B' } };
-                    }
-
-                    row += 3; // room for the signature image height + spacing before next visit block
-                }
-
-                // Final sign-off block
-                row += 1;
-                ws.mergeCells(`A${row}:C${row}`); ws.getCell(`A${row}`).value = 'BSID PIC';
-                ws.mergeCells(`E${row}:F${row}`); ws.getCell(`E${row}`).value = 'Area Manager';
-                ws.mergeCells(`H${row}:I${row}`); ws.getCell(`H${row}`).value = 'Manager';
-                ws.getRow(row).font = { bold: true };
-
-                const buffer = await wb.xlsx.writeBuffer();
-                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                const fileName = `${company}_${monthYear.replace(/\s+/g, '_')}.xlsx`;
-                a.href = url; a.download = fileName; document.body.appendChild(a); a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                showToast(`Combined Excel exported: ${fileName}`);
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
-            } finally {
-                if (btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
-            }
-        };
-
-        // ===== EXPORT ISSUE EXCEL (Separate Format, unchanged) =====
-        window.exportIssueExcel = function(id) {
-            const iss = issues.find(x => x.id === id);
-            if (!iss) return;
-
-            const date = new Date(iss.created);
-            const monthName = date.toLocaleString('en-US', { month: 'long' });
-            const year = date.getFullYear();
-            const fileName = `Issue_${iss.company}_${monthName}_${year}.xlsx`;
-
-            const sameMonthIssues = issues.filter(i => {
-                const d = new Date(i.created);
-                return i.company === iss.company && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
+                html += '</div></div>';
             });
 
-            const excelData = [
-                ['Issues Report', '', '', '', '', '', '', '', '', '', ''],
-                ['Company', iss.company, '', '', '', '', '', '', '', '', ''],
-                ['Month / Year', `${monthName} ${year}`, '', '', '', '', '', '', '', '', ''],
-                ['', '', '', '', '', '', '', '', '', '', ''],
-                ['Sr.No', 'Company', 'Camera', 'Location', 'Issue Type', 'Priority', 'Status', 'Description', 'Created Date', 'Resolved Date', 'Resolved By', 'Resolution', 'Approved'],
+            if (!html) {
+                html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-file-lines"></i></div><p class="font-semibold text-[#1A328D]">No reports found</p></div>';
+            }
+        }
+        reportsContainer.innerHTML = html;
+    }
+
+    function renderVisitRow(r) {
+        const date = new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
+        const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
+        const sig = r.signature
+            ? `<img src="${r.signature}" class="sig-thumb" alt="signature of ${r.engineer}">`
+            : `<span class="no-sig-badge"><i class="fa-solid fa-triangle-exclamation mr-1"></i>No signature</span>`;
+        return `<div class="visit-row">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2 text-sm">
+                    <span class="font-semibold text-[#1A328D]"><i class="fa-solid fa-diagram-project mr-1"></i>${r.department || '—'}</span>
+                    <span class="text-[#7b85a3]">·</span>
+                    <span><i class="fa-regular fa-user mr-1"></i>${r.engineer || '—'}</span>
+                    <span class="text-[#7b85a3]">·</span>
+                    <span><i class="fa-regular fa-calendar mr-1"></i>${date}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="chip ${approveCls}">${approveLabel}</span>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
+                <div class="flex flex-wrap gap-3 text-xs text-[#3d4763]">
+                    <span>Total: <b>${r.total}</b></span>
+                    <span class="text-accenttext">Working: <b>${r.working}</b></span>
+                    ${r.faulty > 0 ? `<span class="text-redc">Faulty: <b>${r.faulty}</b></span>` : ''}
+                    ${r.approved ? `<span class="text-[#7b85a3]">Approved by ${r.approvedBy} on ${r.approvedDate}</span>` : ''}
+                </div>
+                ${sig}
+            </div>
+            <div class="flex flex-wrap gap-2 mt-2.5 actions">
+                <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
+                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
+                <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
+                <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+            </div>
+        </div>`;
+    }
+
+    // ===== RENDER ISSUES =====
+    function renderIssues() {
+        const search = document.getElementById('searchIssues').value.toLowerCase();
+        const filterStatus = document.getElementById('filterIssueStatus').value;
+        const filtered = issues.filter(r => {
+            const matchSearch = (r.company||'').toLowerCase().includes(search) || (r.camera||'').toLowerCase().includes(search);
+            const matchStatus = !filterStatus || r.status === filterStatus;
+            return matchSearch && matchStatus;
+        });
+        const grouped = groupByMonth(filtered, 'createdDate');
+        let html = '';
+        if (!Object.keys(grouped).length) {
+            html = '<div class="text-center py-16 px-6"><div class="text-4xl text-[#cdd5ea] mb-3"><i class="fa-regular fa-circle-exclamation"></i></div><p class="font-semibold text-[#1A328D]">No issues found</p></div>';
+        } else {
+            Object.entries(grouped).forEach(([month, records]) => {
+                html += `<div class="month-group"><div class="month-title">${month}<span class="count-badge">${records.length} ${records.length > 1 ? 'issues' : 'issue'}</span></div><div class="grid grid-cols-1 gap-3">`;
+                records.forEach(r => {
+                    const statusCls = r.status === 'Resolved' ? 'chip-resolved' : r.status === 'Open' ? 'chip-open' : r.status === 'In Progress' ? 'chip-progress' : 'chip-closed';
+                    const priorityCls = r.priority === 'Critical' ? 'text-redc font-bold' : r.priority === 'High' ? 'text-amber font-bold' : 'text-[#3d4763]';
+                    const createdDate = r.createdDate ? new Date(r.createdDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
+                    const resolvedDate = r.resolvedDate ? new Date(r.resolvedDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
+                    const approveCls = r.approved ? 'chip-approved' : 'chip-pending';
+                    const approveLabel = r.approved ? '<i class="fa-solid fa-check"></i> Approved' : 'Pending';
+                    html += `<div class="issue-card-r ${r.status === 'Resolved' ? 'resolved' : ''}">
+                        <div class="flex flex-wrap justify-between items-start gap-2">
+                            <div>
+                                <div class="font-semibold text-[#1A328D] text-lg">${r.company}</div>
+                                <div class="flex flex-wrap gap-3 text-xs text-[#7b85a3] mt-1">
+                                    <span><i class="fa-regular fa-video mr-1"></i>${r.camera || 'N/A'}</span>
+                                    <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="chip ${statusCls}">${r.status}</span>
+                                <span class="chip ${approveCls}">${approveLabel}</span>
+                            </div>
+                        </div>
+                        <div class="text-sm mt-1">${r.description || ''}</div>
+                        <div class="flex flex-wrap gap-2 text-xs text-[#3d4763] mt-1.5">
+                            <span class="${priorityCls}"><i class="fa-regular fa-flag mr-1"></i>${r.priority}</span>
+                            <span><i class="fa-regular fa-tag mr-1"></i>${r.issueType}</span>
+                            ${resolvedDate ? `<span class="text-accenttext"><i class="fa-regular fa-circle-check mr-1"></i>${resolvedDate}</span>` : ''}
+                        </div>
+                        ${r.resolvedBy ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-user mr-1"></i>Resolved by: ${r.resolvedBy}</div>` : ''}
+                        ${r.approved ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-id-badge mr-1"></i>Approved by: ${r.approvedBy} on ${r.approvedDate}</div>` : ''}
+                        <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions">
+                            <button class="btn-export-issue-excel text-xs py-1.5 px-3" onclick="exportIssueExcel(${r.id})"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
+                            <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'issue')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
+                            <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'issue')"><i class="fa-regular fa-eye mr-1"></i>View</button>
+                            <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'issue')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
+                        </div>
+                    </div>`;
+                });
+                html += '</div></div>';
+            });
+        }
+        issuesContainer.innerHTML = html;
+    }
+
+    // ===== EXPORT COMBINED COMPANY+MONTH EXCEL (unchanged logic, reads from `reports` now backend-sourced) =====
+    window.exportCompanyMonthlyExcel = async function(company, monthYear) {
+        const visits = reports
+            .filter(r => r.company === company && monthYearOf(r.date) === monthYear)
+            .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        if (!visits.length) { showToast('Nothing to export', true); return; }
+
+        const btn = event.currentTarget;
+        const originalLabel = btn ? btn.innerHTML : null;
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Exporting...'; }
+
+        try {
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet('Monthly Checksheet');
+            ws.columns = [
+                { width: 7 }, { width: 16 }, { width: 18 }, { width: 12 },
+                { width: 14 }, { width: 12 }, { width: 20 }, { width: 18 }, { width: 22 }
             ];
 
-            sameMonthIssues.forEach((i, idx) => {
-                excelData.push([
-                    idx + 1,
-                    i.company || '',
-                    i.camera || '',
-                    i.location || '',
-                    i.type || '',
-                    i.priority || '',
-                    i.status || '',
-                    i.desc || '',
-                    i.created || '',
-                    i.resolvedDate || '',
-                    i.resolvedBy || '',
-                    i.resolution || '',
-                    i.approved ? 'Yes' : 'No'
-                ]);
-            });
+            let row = 1;
+            ws.mergeCells(`A${row}:I${row}`);
+            const titleCell = ws.getCell(`A${row}`);
+            titleCell.value = `Monthly Camera Checksheet — ${company} — ${monthYear}`;
+            titleCell.font = { bold: true, size: 14, color: { argb: 'FF1A328D' } };
+            row += 1;
+            ws.mergeCells(`A${row}:I${row}`);
+            ws.getCell(`A${row}`).value = `${visits.length} department visit${visits.length > 1 ? 's' : ''} logged this month`;
+            ws.getCell(`A${row}`).font = { italic: true, size: 10, color: { argb: 'FF7B85A3' } };
+            row += 2;
 
-            const total = sameMonthIssues.length;
-            const resolved = sameMonthIssues.filter(i => i.status === 'Resolved').length;
-            const open = sameMonthIssues.filter(i => i.status === 'Open').length;
-            const inProgress = sameMonthIssues.filter(i => i.status === 'In Progress').length;
+            for (const visit of visits) {
+                ws.mergeCells(`A${row}:I${row}`);
+                const subCell = ws.getCell(`A${row}`);
+                subCell.value = `Department: ${visit.department || '-'}   |   Date: ${visit.date}   |   Vendor: ${visit.vendor || '-'}   |   Person to contact: ${visit.bsidPic || '-'}`;
+                subCell.font = { bold: true, color: { argb: 'FF1A328D' } };
+                subCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8ECF7' } };
+                row += 1;
 
-            excelData.push(['', '', '', '', '', '', '', '', '', '', '', '', '']);
-            excelData.push(['Summary', '', '', '', '', '', '', '', '', '', '', '', '']);
-            excelData.push(['Total Issues', total, '', '', '', '', '', '', '', '', '', '', '']);
-            excelData.push(['Resolved', resolved, '', '', '', '', '', '', '', '', '', '', '']);
-            excelData.push(['Open', open, '', '', '', '', '', '', '', '', '', '', '']);
-            excelData.push(['In Progress', inProgress, '', '', '', '', '', '', '', '', '', '', '']);
+                const headerRow = ws.getRow(row);
+                const headers = ['Sr.No', 'Camera Name', 'Type', 'Working', 'Lens Cleaning', 'Visual on TV', 'Focus Angle', 'Damage', 'Any Abnormality'];
+                headers.forEach((h, i) => { headerRow.getCell(i + 1).value = h; headerRow.getCell(i + 1).font = { bold: true }; headerRow.getCell(i + 1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F3FB' } }; });
+                row += 1;
 
-            try {
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet(excelData);
-                ws['!cols'] = [
-                    { wch: 6 }, { wch: 22 }, { wch: 10 }, { wch: 18 }, { wch: 14 },
-                    { wch: 12 }, { wch: 14 }, { wch: 35 }, { wch: 14 }, { wch: 14 },
-                    { wch: 16 }, { wch: 25 }, { wch: 10 }
-                ];
-                XLSX.utils.book_append_sheet(wb, ws, 'Issues Report');
-                XLSX.writeFile(wb, fileName);
-                showToast(`Issue Excel exported: ${fileName}`);
-            } catch (err) {
-                showToast('Error: ' + err.message, true);
+                const cameras = visit.cameraDetails || [];
+                cameras.forEach((c, idx) => {
+                    const r = ws.getRow(row);
+                    r.getCell(1).value = c.srNo || (idx + 1);
+                    r.getCell(2).value = c.cameraName || '';
+                    r.getCell(3).value = c.cameraType || '';
+                    r.getCell(4).value = c.working || '';
+                    r.getCell(5).value = c.lensCleaning || '';
+                    r.getCell(6).value = c.visualOnTv || '';
+                    r.getCell(7).value = c.focusAngle || '';
+                    r.getCell(8).value = c.damage || '';
+                    r.getCell(9).value = c.abnormality || '';
+                    row += 1;
+                });
+
+                row += 1;
+
+                const checkedRow = ws.getRow(row);
+                checkedRow.getCell(1).value = 'Checked by:';
+                checkedRow.getCell(1).font = { bold: true };
+                checkedRow.getCell(2).value = visit.engineer || '-';
+                checkedRow.getCell(2).font = { bold: true, color: { argb: 'FF1A328D' } };
+                ws.getRow(row).height = 34;
+
+                if (visit.signature) {
+                    try {
+                        const base64 = visit.signature.split(',')[1];
+                        const imgId = wb.addImage({ base64, extension: 'png' });
+                        ws.addImage(imgId, { tl: { col: 3, row: row - 1 }, ext: { width: 100, height: 32 } });
+                    } catch (imgErr) {
+                        checkedRow.getCell(5).value = '(signature unavailable)';
+                    }
+                } else {
+                    checkedRow.getCell(5).value = 'No signature on file';
+                    checkedRow.getCell(5).font = { italic: true, color: { argb: 'FFC0392B' } };
+                }
+
+                row += 3;
             }
-        };
 
-        // ===== VIEW REPORT (with camera table + signature) =====
-        window.viewReport = function(id, type) {
-            const item = type === 'report' ? reports.find(r => r.id === id) : issues.find(r => r.id === id);
-            if (!item) return;
-            const date = new Date(item.date || item.created).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-            let html = '';
+            row += 1;
+            ws.mergeCells(`A${row}:C${row}`); ws.getCell(`A${row}`).value = 'Person to contact';
+            ws.mergeCells(`E${row}:F${row}`); ws.getCell(`E${row}`).value = 'Area Manager';
+            ws.mergeCells(`H${row}:I${row}`); ws.getCell(`H${row}`).value = 'Manager';
+            ws.getRow(row).font = { bold: true };
 
-            if (type === 'report') {
-                const cameras = item.cameraDetails || [];
-                html = `
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
-                        <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold text-[#1A328D]">${item.company}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Department</div><div class="font-semibold text-[#1A328D]">${item.department||'—'}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Date</div><div class="font-semibold text-[#1A328D]">${date}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Engineer</div><div class="font-semibold text-[#1A328D]">${item.engineer||''}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Vendor</div><div class="font-semibold text-[#1A328D]">${item.vendor||'—'}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">BSID PIC</div><div class="font-semibold text-[#1A328D]">${item.bsid_pic||'—'}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Total Cameras</div><div class="font-semibold text-[#1A328D]">${item.total}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Working</div><div class="font-semibold text-accenttext">${item.working}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Faulty</div><div class="font-semibold text-redc">${item.faulty}</div></div>
-                    </div>
-                    ${item.remarks ? `<div class="text-sm text-[#7b85a3] mb-4 italic p-3 bg-[#eef1fa] rounded-lg">${item.remarks}</div>` : ''}
-                    ${item.approved ? `<div class="text-xs text-[#7b85a3] mb-4"><i class="fa-solid fa-check mr-1"></i>Approved by <b>${item.approved_by}</b> on ${item.approved_date}</div>` : ''}
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const fileName = `${company}_${monthYear.replace(/\s+/g, '_')}.xlsx`;
+            a.href = url; a.download = fileName; document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Combined Excel exported: ${fileName}`);
+        } catch (err) {
+            showToast('Error: ' + err.message, true);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
+        }
+    };
 
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="text-sm font-semibold text-[#1A328D]"><i class="fa-solid fa-video mr-1 text-accenttext"></i>Camera Details (${cameras.length} cameras)</div>
-                        ${item.signature
-                            ? `<div class="flex items-center gap-2"><span class="text-xs text-[#7b85a3]">Engineer signature:</span><img src="${item.signature}" class="sig-thumb" style="height:36px;max-width:120px;"></div>`
-                            : `<span class="no-sig-badge">No signature on file</span>`}
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="cam-table">
-                            <thead>
+    // ===== EXPORT ISSUE EXCEL =====
+    window.exportIssueExcel = function(id) {
+        const iss = issues.find(x => x.id === id);
+        if (!iss) return;
+
+        const date = new Date(iss.createdDate);
+        const monthName = date.toLocaleString('en-US', { month: 'long' });
+        const year = date.getFullYear();
+        const fileName = `Issue_${iss.company}_${monthName}_${year}.xlsx`;
+
+        const sameMonthIssues = issues.filter(i => {
+            const d = new Date(i.createdDate);
+            return i.company === iss.company && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
+        });
+
+        const excelData = [
+            ['Issues Report', '', '', '', '', '', '', '', '', '', ''],
+            ['Company', iss.company, '', '', '', '', '', '', '', '', ''],
+            ['Month / Year', `${monthName} ${year}`, '', '', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', '', '', '', ''],
+            ['Sr.No', 'Company', 'Camera', 'Issue Type', 'Priority', 'Status', 'Description', 'Created Date', 'Resolved Date', 'Resolved By', 'Resolution', 'Approved'],
+        ];
+
+        sameMonthIssues.forEach((i, idx) => {
+            excelData.push([
+                idx + 1, i.company || '', i.camera || '', i.issueType || '', i.priority || '',
+                i.status || '', i.description || '', i.createdDate || '', i.resolvedDate || '',
+                i.resolvedBy || '', i.resolutionRemark || '', i.approved ? 'Yes' : 'No'
+            ]);
+        });
+
+        const total = sameMonthIssues.length;
+        const resolved = sameMonthIssues.filter(i => i.status === 'Resolved').length;
+        const open = sameMonthIssues.filter(i => i.status === 'Open').length;
+        const inProgress = sameMonthIssues.filter(i => i.status === 'In Progress').length;
+
+        excelData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
+        excelData.push(['Summary', '', '', '', '', '', '', '', '', '', '', '']);
+        excelData.push(['Total Issues', total, '', '', '', '', '', '', '', '', '', '']);
+        excelData.push(['Resolved', resolved, '', '', '', '', '', '', '', '', '', '']);
+        excelData.push(['Open', open, '', '', '', '', '', '', '', '', '', '']);
+        excelData.push(['In Progress', inProgress, '', '', '', '', '', '', '', '', '', '']);
+
+        try {
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            ws['!cols'] = [
+                { wch: 6 }, { wch: 22 }, { wch: 10 }, { wch: 14 }, { wch: 12 },
+                { wch: 14 }, { wch: 35 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 25 }, { wch: 10 }
+            ];
+            XLSX.utils.book_append_sheet(wb, ws, 'Issues Report');
+            XLSX.writeFile(wb, fileName);
+            showToast(`Issue Excel exported: ${fileName}`);
+        } catch (err) {
+            showToast('Error: ' + err.message, true);
+        }
+    };
+
+    // ===== VIEW REPORT =====
+    window.viewReport = function(id, type) {
+        const item = type === 'report' ? reports.find(r => r.id === id) : issues.find(r => r.id === id);
+        if (!item) return;
+        const date = new Date(item.date || item.createdDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+        let html = '';
+
+        if (type === 'report') {
+            const cameras = item.cameraDetails || [];
+            const photosHtml = (item.imageUrls || []).map(url => `<img src="${url}" style="height:60px;border-radius:6px;border:1px solid #e1e6f3;" class="mr-2 mb-2 inline-block">`).join('');
+            html = `
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                    <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold text-[#1A328D]">${item.company}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Department</div><div class="font-semibold text-[#1A328D]">${item.department||'—'}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Date</div><div class="font-semibold text-[#1A328D]">${date}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Engineer</div><div class="font-semibold text-[#1A328D]">${item.engineer||''}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Vendor</div><div class="font-semibold text-[#1A328D]">${item.vendor||'—'}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Person to contact</div><div class="font-semibold text-[#1A328D]">${item.bsidPic||'—'}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Total Cameras</div><div class="font-semibold text-[#1A328D]">${item.total}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Working</div><div class="font-semibold text-accenttext">${item.working}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Faulty</div><div class="font-semibold text-redc">${item.faulty}</div></div>
+                </div>
+                ${item.remarks ? `<div class="text-sm text-[#7b85a3] mb-4 italic p-3 bg-[#eef1fa] rounded-lg">${item.remarks}</div>` : ''}
+                ${item.approved ? `<div class="text-xs text-[#7b85a3] mb-4"><i class="fa-solid fa-check mr-1"></i>Approved by <b>${item.approvedBy}</b> on ${item.approvedDate}</div>` : ''}
+                ${photosHtml ? `<div class="mb-4"><div class="text-xs text-[#7b85a3] mb-1">Site Photos</div>${photosHtml}</div>` : ''}
+
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-sm font-semibold text-[#1A328D]"><i class="fa-solid fa-video mr-1 text-accenttext"></i>Camera Details (${cameras.length} cameras)</div>
+                    ${item.signature
+                        ? `<div class="flex items-center gap-2"><span class="text-xs text-[#7b85a3]">Engineer signature:</span><img src="${item.signature}" class="sig-thumb" style="height:36px;max-width:120px;"></div>`
+                        : `<span class="no-sig-badge">No signature on file</span>`}
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="cam-table">
+                        <thead><tr><th>Sr</th><th>Camera Name</th><th>Working</th><th>Lens Clean</th><th>Visual TV</th><th>Focus</th><th>Damage</th><th>Abnormality</th></tr></thead>
+                        <tbody>
+                            ${cameras.map(c => `
                                 <tr>
-                                    <th>Sr</th>
-                                    <th>Camera Name</th>
-                                    <th>Working</th>
-                                    <th>Lens Clean</th>
-                                    <th>Visual TV</th>
-                                    <th>Focus</th>
-                                    <th>Damage</th>
-                                    <th>Abnormality</th>
+                                    <td>${c.srNo}</td>
+                                    <td class="font-mono">${c.cameraName}</td>
+                                    <td class="${c.working === 'Yes' ? 'td-working-yes' : 'td-working-no'}">${c.working}</td>
+                                    <td>${c.lensCleaning||''}</td>
+                                    <td>${c.visualOnTv||''}</td>
+                                    <td>${c.focusAngle||''}</td>
+                                    <td>${c.damage||''}</td>
+                                    <td>${c.abnormality||''}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                ${cameras.map(c => `
-                                    <tr>
-                                        <td>${c.sr_no}</td>
-                                        <td class="font-mono">${c.camera_name}</td>
-                                        <td class="${c.working === 'Yes' ? 'td-working-yes' : 'td-working-no'}">${c.working}</td>
-                                        <td>${c.lens_cleaning||''}</td>
-                                        <td>${c.visual_on_tv||''}</td>
-                                        <td>${c.focus_angle||''}</td>
-                                        <td>${c.damage||''}</td>
-                                        <td>${c.abnormality||''}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="flex justify-end mt-5 gap-2">
-                        <button onclick="exportCompanyMonthlyExcel('${item.company.replace(/'/g,"\\'")}','${monthYearOf(item.date)}')" class="btn-export-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Combined Excel</button>
-                        <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
-                    </div>
-                `;
-            } else {
-                const statusCls = item.status==='Resolved' ? 'chip-resolved' : item.status==='Open' ? 'chip-open' : item.status==='In Progress' ? 'chip-progress' : 'chip-closed';
-                html = `
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold">${item.company}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Camera</div><div class="font-mono font-semibold">${item.camera}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Status</div><div><span class="chip ${statusCls}">${item.status}</span></div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Priority</div><div class="font-semibold">${item.priority}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Type</div><div>${item.type}</div></div>
-                        <div><div class="text-xs text-[#7b85a3]">Created</div><div>${date}</div></div>
-                        ${item.resolvedDate ? `<div><div class="text-xs text-[#7b85a3]">Resolved</div><div class="text-accenttext">${new Date(item.resolvedDate).toLocaleDateString('en-IN')}</div></div>` : ''}
-                        ${item.resolvedBy ? `<div><div class="text-xs text-[#7b85a3]">Resolved By</div><div>${item.resolvedBy}</div></div>` : ''}
-                    </div>
-                    <div class="text-sm text-[#1A328D] p-3 bg-[#eef1fa] rounded-lg mb-3">${item.desc}</div>
-                    ${item.resolution ? `<div class="text-sm text-accenttext p-3 bg-[#e3f6ea] rounded-lg mb-3"><i class="fa-solid fa-check mr-1"></i>${item.resolution}</div>` : ''}
-                    <div class="flex justify-end gap-2 mt-4">
-                        <button onclick="exportIssueExcel(${item.id})" class="btn-export-issue-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                        <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
-                    </div>
-                `;
-            }
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end mt-5 gap-2">
+                    <button onclick="exportCompanyMonthlyExcel('${item.company.replace(/'/g,"\\'")}','${monthYearOf(item.date)}')" class="btn-export-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Combined Excel</button>
+                    <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
+                </div>
+            `;
+        } else {
+            const statusCls = item.status==='Resolved' ? 'chip-resolved' : item.status==='Open' ? 'chip-open' : item.status==='In Progress' ? 'chip-progress' : 'chip-closed';
+            html = `
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold">${item.company}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Camera</div><div class="font-mono font-semibold">${item.camera || 'N/A'}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Status</div><div><span class="chip ${statusCls}">${item.status}</span></div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Priority</div><div class="font-semibold">${item.priority}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Type</div><div>${item.issueType}</div></div>
+                    <div><div class="text-xs text-[#7b85a3]">Created</div><div>${date}</div></div>
+                    ${item.resolvedDate ? `<div><div class="text-xs text-[#7b85a3]">Resolved</div><div class="text-accenttext">${new Date(item.resolvedDate).toLocaleDateString('en-IN')}</div></div>` : ''}
+                    ${item.resolvedBy ? `<div><div class="text-xs text-[#7b85a3]">Resolved By</div><div>${item.resolvedBy}</div></div>` : ''}
+                </div>
+                <div class="text-sm text-[#1A328D] p-3 bg-[#eef1fa] rounded-lg mb-3">${item.description}</div>
+                ${item.resolutionRemark ? `<div class="text-sm text-accenttext p-3 bg-[#e3f6ea] rounded-lg mb-3"><i class="fa-solid fa-check mr-1"></i>${item.resolutionRemark}</div>` : ''}
+                <div class="flex justify-end gap-2 mt-4">
+                    <button onclick="exportIssueExcel(${item.id})" class="btn-export-issue-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
+                    <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
+                </div>
+            `;
+        }
 
-            document.getElementById('viewReportContent').innerHTML = html;
-            document.getElementById('viewReportModal').classList.add('open');
-        };
+        document.getElementById('viewReportContent').innerHTML = html;
+        document.getElementById('viewReportModal').classList.add('open');
+    };
 
-        window.toggleApprove = function(id, type) {
-            const items = type === 'report' ? reports : issues;
-            const item = items.find(r => r.id === id);
-            if (!item || item.approved) return;
-            const name = prompt('Enter your name for approval:');
-            if (!name) return;
-            item.approved = true;
-            item.approved_by = name;
-            item.approved_date = new Date().toISOString().split('T')[0];
-            type === 'report' ? saveReports() : saveIssues();
+    window.toggleApprove = async function(id, type) {
+        const items = type === 'report' ? reports : issues;
+        const item = items.find(r => r.id === id);
+        if (!item || item.approved) return;
+        const name = prompt('Enter your name for approval:');
+        if (!name) return;
+        try {
+            const path = type === 'report' ? `/reports/${id}/approve` : `/issues/${id}/approve`;
+            await apiPost(path, { approvedBy: name });
             showToast(`${type === 'report' ? 'Report' : 'Issue'} approved`);
-            renderReports(); renderIssues();
+            if (type === 'report') await loadReports(); else await loadIssues();
+        } catch (err) {
+            showToast('Approval failed: ' + err.message, true);
+        }
+    };
+
+    window.editReport = function(id, type) {
+        const item = type === 'report' ? reports.find(r => r.id === id) : null;
+        if (!item) return;
+        document.getElementById('editReportId').value = id;
+        document.getElementById('editReportType').value = type;
+        document.getElementById('editCompany').value = item.company;
+        document.getElementById('editDepartment').value = item.department || '';
+        document.getElementById('editEngineer').value = item.engineer || '';
+        document.getElementById('editDate').value = item.date;
+        document.getElementById('editTotal').value = item.total;
+        document.getElementById('editWorking').value = item.working;
+        document.getElementById('editFaulty').value = item.faulty;
+        document.getElementById('editRemarks').value = item.remarks || '';
+        // company/department/engineer are read-only display fields since they're
+        // relational on the backend — only date/counts/remarks are actually saved.
+        document.getElementById('editCompany').readOnly = true;
+        document.getElementById('editDepartment').readOnly = true;
+        document.getElementById('editEngineer').readOnly = true;
+        document.getElementById('editReportModal').classList.add('open');
+    };
+
+    window.deleteReport = function(id, type) {
+        deleteId = id; deleteType = type;
+        document.getElementById('deleteBackdrop').classList.add('open');
+    };
+
+    document.getElementById('closeViewReport').onclick = () => document.getElementById('viewReportModal').classList.remove('open');
+    document.getElementById('closeEditReport').onclick = () => document.getElementById('editReportModal').classList.remove('open');
+    document.getElementById('cancelEditReport').onclick = () => document.getElementById('editReportModal').classList.remove('open');
+    document.getElementById('cancelDelete').onclick = () => { deleteId = null; deleteType = null; document.getElementById('deleteBackdrop').classList.remove('open'); };
+
+    document.getElementById('confirmDelete').onclick = async () => {
+        if (deleteId === null) return;
+        try {
+            const path = deleteType === 'report' ? `/reports/${deleteId}` : `/issues/${deleteId}`;
+            await apiDelete(path);
+            const t = deleteType; deleteId = null; deleteType = null;
+            document.getElementById('deleteBackdrop').classList.remove('open');
+            showToast(`${t === 'report' ? 'Report' : 'Issue'} deleted`, true);
+            if (t === 'report') await loadReports(); else await loadIssues();
+        } catch (err) {
+            showToast('Delete failed: ' + err.message, true);
+        }
+    };
+
+    document.getElementById('editReportForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const id = Number(document.getElementById('editReportId').value);
+        const payload = {
+            visitDate: document.getElementById('editDate').value,
+            total: Number(document.getElementById('editTotal').value),
+            working: Number(document.getElementById('editWorking').value),
+            faulty: Number(document.getElementById('editFaulty').value),
+            remarks: document.getElementById('editRemarks').value
         };
-
-        window.editReport = function(id, type) {
-            const item = type === 'report' ? reports.find(r => r.id === id) : null;
-            if (!item) return;
-            document.getElementById('editReportId').value = id;
-            document.getElementById('editReportType').value = type;
-            document.getElementById('editCompany').value = item.company;
-            document.getElementById('editDepartment').value = item.department || '';
-            document.getElementById('editEngineer').value = item.engineer || '';
-            document.getElementById('editDate').value = item.date;
-            document.getElementById('editTotal').value = item.total;
-            document.getElementById('editWorking').value = item.working;
-            document.getElementById('editFaulty').value = item.faulty;
-            document.getElementById('editRemarks').value = item.remarks || '';
-            document.getElementById('editReportModal').classList.add('open');
-        };
-
-        window.deleteReport = function(id, type) {
-            deleteId = id; deleteType = type;
-            document.getElementById('deleteBackdrop').classList.add('open');
-        };
-
-        // Event bindings
-        document.getElementById('closeViewReport').onclick = () => document.getElementById('viewReportModal').classList.remove('open');
-        document.getElementById('closeEditReport').onclick = () => document.getElementById('editReportModal').classList.remove('open');
-        document.getElementById('cancelEditReport').onclick = () => document.getElementById('editReportModal').classList.remove('open');
-        document.getElementById('cancelDelete').onclick = () => { deleteId = null; deleteType = null; document.getElementById('deleteBackdrop').classList.remove('open'); };
-
-        document.getElementById('confirmDelete').onclick = () => {
-            if (deleteId !== null) {
-                if (deleteType === 'report') { reports = reports.filter(r => r.id !== deleteId); saveReports(); }
-                else { issues = issues.filter(r => r.id !== deleteId); saveIssues(); }
-                const t = deleteType; deleteId = null; deleteType = null;
-                document.getElementById('deleteBackdrop').classList.remove('open');
-                showToast(`${t === 'report' ? 'Report' : 'Issue'} deleted`, true);
-                renderReports(); renderIssues();
-            }
-        };
-
-        document.getElementById('editReportForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const id = Number(document.getElementById('editReportId').value);
-            const item = reports.find(r => r.id === id);
-            if (!item) return;
-            item.company = document.getElementById('editCompany').value;
-            item.department = document.getElementById('editDepartment').value;
-            item.engineer = document.getElementById('editEngineer').value;
-            item.date = document.getElementById('editDate').value;
-            item.total = Number(document.getElementById('editTotal').value);
-            item.working = Number(document.getElementById('editWorking').value);
-            item.faulty = Number(document.getElementById('editFaulty').value);
-            item.remarks = document.getElementById('editRemarks').value;
-            saveReports();
+        try {
+            await apiPut(`/reports/${id}`, payload);
             document.getElementById('editReportModal').classList.remove('open');
             showToast('Report updated');
-            renderReports();
+            await loadReports();
+        } catch (err) {
+            showToast('Update failed: ' + err.message, true);
+        }
+    });
+
+    // Filters
+    document.getElementById('searchReport').addEventListener('input', renderReports);
+    document.getElementById('filterApprove').addEventListener('change', renderReports);
+    document.getElementById('filterCompany').addEventListener('change', renderReports);
+    document.getElementById('resetReportFilters').onclick = () => {
+        document.getElementById('searchReport').value = '';
+        document.getElementById('filterApprove').value = '';
+        document.getElementById('filterCompany').value = '';
+        renderReports(); showToast('Filters reset');
+    };
+    document.getElementById('searchIssues').addEventListener('input', renderIssues);
+    document.getElementById('filterIssueStatus').addEventListener('change', renderIssues);
+    document.getElementById('resetIssueFilters').onclick = () => {
+        document.getElementById('searchIssues').value = '';
+        document.getElementById('filterIssueStatus').value = '';
+        renderIssues(); showToast('Filters reset');
+    };
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('tab-' + this.dataset.tab).classList.add('active');
         });
+    });
 
-        // Filters
-        document.getElementById('searchReport').addEventListener('input', renderReports);
-        document.getElementById('filterApprove').addEventListener('change', renderReports);
-        document.getElementById('filterCompany').addEventListener('change', renderReports);
-        document.getElementById('resetReportFilters').onclick = () => {
-            document.getElementById('searchReport').value = '';
-            document.getElementById('filterApprove').value = '';
-            document.getElementById('filterCompany').value = '';
-            renderReports(); showToast('Filters reset');
-        };
-        document.getElementById('searchIssues').addEventListener('input', renderIssues);
-        document.getElementById('filterIssueStatus').addEventListener('change', renderIssues);
-        document.getElementById('resetIssueFilters').onclick = () => {
-            document.getElementById('searchIssues').value = '';
-            document.getElementById('filterIssueStatus').value = '';
-            renderIssues(); showToast('Filters reset');
-        };
+    // Sidebar
+    const sidebar = document.getElementById('sidebar');
+    document.getElementById('sidebarCollapseBtn').onclick = () => {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+    };
+    if (localStorage.getItem('sidebarCollapsed') === 'true') sidebar.classList.add('collapsed');
+    document.getElementById('sidebarToggleBtn').onclick = () => {
+        sidebar.classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('hidden');
+    };
+    document.getElementById('overlay').onclick = () => {
+        sidebar.classList.remove('open');
+        document.getElementById('overlay').classList.add('hidden');
+    };
 
-        // Tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById('tab-' + this.dataset.tab).classList.add('active');
-            });
-        });
+    // Profile dropdown
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
+    document.addEventListener('click', e => { if (!profileBtn.contains(e.target)) profileDropdown.classList.remove('open'); });
 
-        // Sidebar
-        const sidebar = document.getElementById('sidebar');
-        document.getElementById('sidebarCollapseBtn').onclick = () => {
-            sidebar.classList.toggle('collapsed');
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-        };
-        if (localStorage.getItem('sidebarCollapsed') === 'true') sidebar.classList.add('collapsed');
-        document.getElementById('sidebarToggleBtn').onclick = () => {
-            sidebar.classList.toggle('open');
-            document.getElementById('overlay').classList.toggle('hidden');
-        };
-        document.getElementById('overlay').onclick = () => {
-            sidebar.classList.remove('open');
-            document.getElementById('overlay').classList.add('hidden');
-        };
+   
+    Auth.bindLogoutUI();
 
-        // Profile dropdown
-        const profileBtn = document.getElementById('profileBtn');
-        const profileDropdown = document.getElementById('profileDropdown');
-        profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
-        document.addEventListener('click', e => { if (!profileBtn.contains(e.target)) profileDropdown.classList.remove('open'); });
+    // Init
+    loadReports();
+    loadIssues();
 
-        // Logout
-        document.getElementById('logoutBtn').onclick = () => { profileDropdown.classList.remove('open'); document.getElementById('logoutBackdrop').classList.add('open'); };
-        document.getElementById('cancelLogout').onclick = () => document.getElementById('logoutBackdrop').classList.remove('open');
-        document.getElementById('confirmLogout').onclick = () => { sessionStorage.removeItem('amc_session'); setTimeout(() => { document.getElementById('logoutBackdrop').classList.remove('open'); window.location.href = '/page/login.html'; }, 300); };
-
-        // Init
-        renderReports();
-        renderIssues();
-
-    })();
-    </script>
+})();
+</script>
 </body>
 </html>

@@ -75,8 +75,9 @@
             background: linear-gradient(135deg, #1A328D, #234FAA) !important;
             color: white !important;
             width: 90%;
-            margin-left: 10px;
+      
             border-radius: 10px;
+       
         }
 
         .sidebar a.active svg { stroke: white !important; }
@@ -275,10 +276,10 @@
 
 
         <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col sticky top-0">
-            <nav class="flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
+            <nav class="ml-2 flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
                 <a href="/page/dashboard.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#1A328D] text-white transition sidebar-nav-item active">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
-                    <span class="sidebar-nav-text" style="margin-top: 0.5rem;">Dashboard</span>
+                    <span class="sidebar-nav-text">Dashboard</span>
                 </a>
                 <a href="/page/company-management.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
@@ -293,8 +294,7 @@
                     <span class="sidebar-nav-text">Monthly Inspection Reports</span>
                 </a>
                 <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-                    <span class="sidebar-nav-text">Staff Management</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>                    <span class="sidebar-nav-text">Staff Management</span>
                 </a>
             </nav>
         </aside>
@@ -418,9 +418,15 @@
         </div>
     </div>
 
+    <script src="/page/admin-auth.js" ></script>
+ 
     <script>
-        (function () {
+        (async function () {
             'use strict';
+
+               const sessionOk = await Auth.guard();
+                if (!sessionOk) return; // guard() already redirected to admin-login.html
+
 
             // ---------------------------------------------------------------------
             // Shared data (same shape as company-management.html / reports.html)
@@ -597,11 +603,7 @@ if (alerts.length === 0) {
             profileBtn.onclick = e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); };
             document.addEventListener('click', e => { if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) profileDropdown.classList.remove('open'); });
 
-            // Logout
-            const logoutBackdrop = document.getElementById('logoutBackdrop');
-            document.getElementById('logoutBtn').onclick = () => { profileDropdown.classList.remove('open'); logoutBackdrop.classList.add('open'); };
-            document.getElementById('cancelLogout').onclick = () => logoutBackdrop.classList.remove('open');
-            document.getElementById('confirmLogout').onclick = () => { setTimeout(() => { logoutBackdrop.classList.remove('open'); window.location.href = '/page/login.html'; }, 300); };
+            Auth.bindLogoutUI();
 
         })();
     </script>

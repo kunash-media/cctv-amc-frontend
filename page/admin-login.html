@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in — CCTV AMC Manager</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          bg: '#F0F3FB', surface: '#FFFFFF', surface2: '#FFFFFF', surface3: '#eef1fa',
+          borderc: '#cdd5ea', bordersoft: '#e1e6f3', textdim: '#3d4763', textfaint: '#7b85a3',
+          accent: '#1A328D', accentdim: '#e3f6ea', accenttext: '#1A328D',
+          amber: '#b07d1a', amberdim: '#f5e8cc', ambertext: '#b07d1a',
+          redc: '#c0392b', reddim: '#fbe4e1', redtext: '#c0392b',
+        },
+        fontFamily: {
+          display: ['Space Grotesk', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { background: #F0F3FB; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; height: 100%; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #cdd5ea; border-radius: 10px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9aa6c9; }
+  ::selection { background: #1A328D; color: #ffffff; }
+
+  .auth-card {
+    background: #FFFFFF;
+    border: 1px solid #cdd5ea;
+    border-radius: 16px;
+    box-shadow: 0 1px 2px rgba(16,24,60,0.04), 0 12px 32px -16px rgba(26,50,141,0.12);
+  }
+
+  .field-input {
+    width: 100%;
+    border: 1px solid #cdd5ea;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 14px;
+    color: #151929;
+    background: #FFFFFF;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: #1A328D;
+    box-shadow: 0 0 0 3px rgba(26,50,141,0.12);
+  }
+  .field-input::placeholder { color: #9aa6c9; }
+
+  .btn-primary {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; font-weight: 600; font-size: 14px; padding: 11px 20px;
+    border-radius: 10px; background: linear-gradient(135deg, #1A328D, #234FAA);
+    color: #fff; border: none; cursor: pointer;
+    transition: filter .15s, transform .1s, opacity .15s;
+  }
+  .btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+  .btn-primary:active:not(:disabled) { transform: scale(0.99); }
+  .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+    animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-banner {
+    display: none;
+    background: #fbe4e1; color: #c0392b; border: 1px solid #f2c6c0;
+    border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 500;
+  }
+  .error-banner.show { display: flex; align-items: center; gap: 8px; }
+</style>
+</head>
+<body class="text-[#151929]">
+
+  <div class="min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-[400px]">
+
+      <div class="flex flex-col items-center mb-7">
+        <img src="/page/image/logo.png" alt="CCTV AMC Manager" class="w-24 h-auto mb-1">
+        <p class="text-[13px] text-[#7b85a3] font-medium mt-1">Admin Login</p>
+      </div>
+
+      <div class="auth-card p-7 sm:p-8">
+        <h1 class="font-display font-semibold text-[19px] text-[#151929] mb-1">Sign in</h1>
+        <p class="text-[13px] text-[#7b85a3] mb-6">Use your registered mobile number to continue</p>
+
+        <div id="errorBanner" class="error-banner mb-4">
+          <span id="errorText">Invalid mobile or password</span>
+        </div>
+
+        <form id="loginForm" class="flex flex-col gap-4" autocomplete="on">
+          <div>
+            <label for="mobile" class="block text-[12.5px] font-semibold text-[#3d4763] mb-1.5">Mobile Number</label>
+            <input id="mobile" name="mobile" type="tel" inputmode="numeric" maxlength="10"
+                   class="field-input" placeholder="10-digit mobile number" required autofocus>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="password" class="block text-[12.5px] font-semibold text-[#3d4763]">Password</label>
+            </div>
+            <div class="relative">
+              <input id="password" name="password" type="password"
+                     class="field-input pr-10" placeholder="Enter your password" required>
+              <button type="button" id="togglePw"
+                      class="absolute right-3 top-1/2 -translate-y-1/2 text-[#9aa6c9] hover:text-[#1A328D] text-[12px] font-mono">
+                SHOW
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" id="loginBtn" class="btn-primary mt-2">
+            <span id="loginBtnText">Sign in</span>
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-[11.5px] text-[#9aa6c9] mt-6">CCTV AMC Manager · Secure Admin Access</p>
+    </div>
+  </div>
+
+  <script src="/page/admin-auth.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      const form = document.getElementById('loginForm');
+      const mobileInput = document.getElementById('mobile');
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('loginBtn');
+      const loginBtnText = document.getElementById('loginBtnText');
+      const errorBanner = document.getElementById('errorBanner');
+      const errorText = document.getElementById('errorText');
+      const togglePw = document.getElementById('togglePw');
+
+      togglePw.addEventListener('click', () => {
+        const isPw = passwordInput.type === 'password';
+        passwordInput.type = isPw ? 'text' : 'password';
+        togglePw.textContent = isPw ? 'HIDE' : 'SHOW';
+      });
+
+      mobileInput.addEventListener('input', () => {
+        mobileInput.value = mobileInput.value.replace(/\D/g, '').slice(0, 10);
+      });
+
+      function showError(msg) {
+        errorText.textContent = msg;
+        errorBanner.classList.add('show');
+      }
+      function hideError() {
+        errorBanner.classList.remove('show');
+      }
+      function setLoading(loading) {
+        loginBtn.disabled = loading;
+        loginBtnText.innerHTML = loading
+          ? '<span class="spinner"></span> Signing in…'
+          : 'Sign in';
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideError();
+
+        const mobile = mobileInput.value.trim();
+        const password = passwordInput.value;
+
+        if (mobile.length !== 10) {
+          showError('Please enter a valid 10-digit mobile number');
+          return;
+        }
+        if (!password) {
+          showError('Please enter your password');
+          return;
+        }
+
+        setLoading(true);
+        try {
+          await Auth.login(mobile, password);
+          window.location.href = '/page/dashboard.html';
+        } catch (err) {
+          showError(err.message || 'Invalid mobile or password');
+          setLoading(false);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
