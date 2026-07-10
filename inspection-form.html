@@ -143,8 +143,8 @@
     </div>
     <div class="relative">
       <button id="userMenuBtn" class="flex items-center gap-2 p-1.5 rounded-full hover:bg-surface3 transition">
-        <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=1A328D&color=fff&size=32" alt="User" class="w-8 h-8 rounded-full border border-borderc">
-        <span class="hidden sm:inline text-sm font-medium text-textdim">Vikram</span>
+        <img id="userAvatarImg" src="" alt="User" class="w-8 h-8 rounded-full border border-borderc">
+        <span id="userNameLabel" class="hidden sm:inline text-sm font-medium text-textdim"></span>
         <i class="fa-solid fa-chevron-down text-xs text-textfaint"></i>
       </button>
       <div id="userDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-bordersoft rounded-xl shadow-lg py-1.5 z-40">
@@ -287,13 +287,12 @@
         <button id="closeProfileModal" class="p-2 hover:bg-surface3 rounded-full transition"><i class="fa-solid fa-xmark text-xl"></i></button>
       </div>
       <div class="flex items-center gap-4 mb-4 pb-4 border-b border-bordersoft">
-        <img src="https://ui-avatars.com/api/?name=Vikram+Joshi&background=1A328D&color=fff&size=64" alt="Profile" class="w-16 h-16 rounded-full border-2 border-primary">
-        <div><div class="font-display font-bold text-lg">Vikram Joshi</div><div class="text-sm text-textfaint">ENG-021 · Senior Engineer</div></div>
-      </div>
-      <div class="profile-field"><span class="label">First Name</span><span class="value">Vikram</span></div>
-      <div class="profile-field"><span class="label">Last Name</span><span class="value">Joshi</span></div>
-      <div class="profile-field"><span class="label">Designation</span><span class="value">Senior CCTV Engineer</span></div>
-      <div class="profile-field"><span class="label">Joining Date</span><span class="value">1 April 2020</span></div>
+       <img id="profileAvatarImg" src="" alt="Profile" class="w-16 h-16 rounded-full border-2 border-primary">
+<div><div id="profileFullName" class="font-display font-bold text-lg"></div><div id="profileMeta" class="text-sm text-textfaint"></div></div>
+</div>
+<div class="profile-field"><span class="label">First Name</span><span id="profileFirstName" class="value"></span></div>
+<div class="profile-field"><span class="label">Last Name</span><span id="profileLastName" class="value"></span></div>
+<div class="profile-field"><span class="label">Role</span><span id="profileRole" class="value"></span></div>
       <div class="mt-4 pt-4 border-t border-bordersoft"><button id="closeProfileModalBtn" class="btn-primary"><i class="fa-regular fa-circle-check mr-2"></i>Close</button></div>
     </div>
   </div>
@@ -336,19 +335,38 @@
     </div>
   </div>
 
+  <!-- LOGOUT CONFIRM MODAL -->
+  <div id="logoutBackdrop" class="modal-backdrop">
+    <div class="modal-card text-center">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-[#fbe4e1] text-[#c0392b]">
+        <i class="fa-regular fa-circle-question"></i>
+      </div>
+      <h3 class="font-display text-lg mb-1">Confirm Logout</h3>
+      <p class="text-textdim text-sm my-2">Are you sure you want to logout?</p>
+      <div class="flex gap-3 mt-4">
+        <button id="cancelLogout" class="btn-secondary">No</button>
+        <button id="confirmLogout" class="btn-primary">Yes, Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/user-auth.js"></script>
   <script>
-  (function () {
+  (async function () {
     'use strict';
 
-    const API_BASE = 'http://localhost:5000/api/inspection'; // same-origin relative path
+    const sessionOk = await UserAuth.guard();
+    if (!sessionOk) return; // guard() already redirected to the login page
 
-    // TODO(auth): replace with real logged-in engineer's employeePrimeId once auth.js is wired in.
-    const CURRENT_ENGINEER_ID = 1;
-
+    const API_BASE = 'http://localhost:5000/api/inspection';
     const PAGE_SIZE = 10;
 
-    let session = { employee_id: 'ENG-021', name: 'Vikram Joshi' };
-    try { const s = JSON.parse(sessionStorage.getItem('amc_session')); if (s) session = s; } catch (e) {}
+    // Real profile comes from UserAuth (set at login time by user-auth.js).
+    // No more dummy defaults — if this is null, guard() below will have already
+    // redirected to the login page before we get here.
+    const profile = UserAuth.getProfile() || {};
+    const CURRENT_ENGINEER_ID = profile.employeePrimeId || null;
+    const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.empId || 'Engineer';
 
     let companies = [];          // from /companies
     let currentClient = null;    // selected company object (from companies[])
@@ -1109,13 +1127,26 @@
     userMenuBtn.addEventListener('click', e => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
     document.addEventListener('click', e => { if (!e.target.closest('#userMenuBtn')) userDropdown.classList.add('hidden'); });
     $('profileMenuItem').addEventListener('click', e => { e.preventDefault(); userDropdown.classList.add('hidden'); profileModal.classList.add('open'); });
-    $('logoutMenuItem').addEventListener('click', e => { e.preventDefault(); sessionStorage.removeItem('amc_session'); window.location.href = '/page/login.html'; });
+    
+    UserAuth.bindLogoutUI({ triggerId: 'logoutMenuItem', dropdownId: 'userDropdown' });
+    
     $('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('open'));
     $('closeProfileModalBtn').addEventListener('click', () => profileModal.classList.remove('open'));
     profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('open'); });
 
     // Init
-    $('checkedByField').value = session.name;
+   // Init — populate header + profile modal from the real logged-in profile
+    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1A328D&color=fff&size=64`;
+    $('userAvatarImg').src = avatarUrl.replace('size=64', 'size=32');
+    $('userNameLabel').textContent = profile.firstName || profile.empId || 'Engineer';
+    $('profileAvatarImg').src = avatarUrl;
+    $('profileFullName').textContent = displayName;
+    $('profileMeta').textContent = [profile.empId, profile.role].filter(Boolean).join(' · ');
+    $('profileFirstName').textContent = profile.firstName || '—';
+    $('profileLastName').textContent = profile.lastName || '—';
+    $('profileRole').textContent = profile.role || '—';
+
+    // $('checkedByField').value = displayName;
     $('visitDateField').value = new Date().toISOString().split('T')[0];
     resizeSignaturePad();
   })();
