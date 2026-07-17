@@ -62,6 +62,7 @@
     }
     .cam-detail-fields select:focus, .cam-detail-fields input:focus, .cam-detail-fields textarea:focus { outline: none; border-color: #1AA1E1; box-shadow: 0 0 0 3px rgba(26,161,225,0.15); }
     .cam-detail-fields label { font-size: 11px; font-weight: 600; color: #7b85a3; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+    .field-label { font-size: 11px; font-weight: 600; color: #7b85a3; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
 
     .filter-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: white; padding: 10px 14px; border-radius: 16px; border: 1px solid #e1e6f3; }
     .filter-bar input { background: #f9fafd; border: 1px solid #d8deef; border-radius: 30px; padding: 9px 16px; font-size: 13px; }
@@ -131,6 +132,7 @@
       .profile-field { flex-direction: column; gap: 4px; }
       .profile-field .label { width: 100%; }
     }
+    .field-invalid { border-color: #c0392b !important; background: #fbe4e1 !important; box-shadow: 0 0 0 2px rgba(192,57,43,0.15) !important; }
   </style>
 </head>
 
@@ -162,7 +164,7 @@
       <select id="inspectionType" class="w-full bg-surface2 border border-borderc rounded-xl px-4 py-3 text-[15px] focus:outline-none focus:border-primary focus:ring-2 focus:ring-primarylight/20">
         <option value="monthly">Monthly Inspection</option>
         <option value="complaint">Complaint Issue</option>
-        <option value="other">Other Issue</option>
+        <!-- <option value="other">Other Issue</option> -->
       </select>
     </div>
 
@@ -220,8 +222,15 @@
             <option value="working">Mark Working</option>
             <option value="faulty">Mark Faulty</option>
           </select>
-          <button id="applyBulkAction" class="btn-grad px-4 py-1.5 rounded-full text-sm font-semibold">
+          <!-- <button id="applyBulkAction" class="btn-grad px-4 py-1.5 rounded-full text-sm font-semibold">
             <i class="fa-solid fa-check mr-1"></i> Apply
+          </button> -->
+
+           <button id="applyBulkAction" class="btn-grad px-4 py-1.5 rounded-full text-sm font-semibold">
+            <i class="fa-solid fa-check mr-1"></i> Apply
+          </button>
+          <button id="clearSelectionBtn" class="pg-btn text-xs px-3" title="Clear selection">
+            <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
@@ -231,7 +240,8 @@
       <div id="paginationBar" class="hidden mt-4 flex items-center justify-center gap-1.5 flex-wrap"></div>
 
       <!-- IMAGE UPLOAD -->
-      <div class="mt-4 bg-white border border-bordersoft rounded-2xl p-4 shadow-sm">
+      <!-- ── SHARED UPLOAD ZONE — visible for both Monthly & Complaint once a department is picked ── -->
+      <div id="sharedUploadSection" class="hidden bg-white border border-bordersoft rounded-2xl p-4 mb-4 shadow-sm">
         <label class="text-sm font-medium text-textdim block mb-2"><i class="fa-regular fa-image mr-1"></i> Upload Site Photos</label>
         <div id="uploadZone" class="upload-zone">
           <i class="fa-solid fa-cloud-arrow-up text-2xl text-primary mb-1"></i>
@@ -255,7 +265,23 @@
       </h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div><label class="text-xs font-medium text-textdim">Issue Type</label><select id="issueType" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option>Hardware</option><option>Software</option><option>Network</option><option>Other</option></select></div>
-        <div><label class="text-xs font-medium text-textdim">Camera</label><select id="issueCamera" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option value="">— Select —</option></select></div>
+        <!-- <div><label class="text-xs font-medium text-textdim">Camera</label><select id="issueCamera" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option value="">— Select —</option></select></div> -->
+       
+          <div class="relative">
+          <label class="text-xs font-medium text-textdim">Camera</label>
+          <button type="button" id="issueCameraTrigger" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm text-left flex items-center justify-between">
+            <span id="issueCameraLabel" class="text-textfaint">— Select —</span>
+            <i class="fa-solid fa-chevron-down text-xs text-textfaint"></i>
+          </button>
+          <input type="hidden" id="issueCamera" value="">
+          <div id="issueCameraPanel" class="hidden absolute z-20 mt-1 w-full bg-white border border-borderc rounded-xl shadow-lg overflow-hidden">
+            <div class="p-2 border-b border-bordersoft">
+              <input type="text" id="issueCameraSearch" placeholder="Search camera name, type, angle..." class="w-full bg-surface2 border border-borderc rounded-lg px-3 py-2 text-sm">
+            </div>
+            <div id="issueCameraOptions" class="overflow-y-auto" style="max-height: 220px;"></div>
+          </div>
+        </div>
+       
         <div><label class="text-xs font-medium text-textdim">Department</label><input type="text" id="issueDept" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
         <div><label class="text-xs font-medium text-textdim">Camera Type</label><input type="text" id="issueLoc" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" readonly></div>
         <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Description</label><textarea id="issueDesc" rows="2" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm resize-y"></textarea></div>
@@ -263,8 +289,11 @@
         <div><label class="text-xs font-medium text-textdim">Status</label><select id="issueStatus" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm"><option>Open</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select></div>
         <div class="sm:col-span-2"><label class="text-xs font-medium text-textdim">Resolution Remark</label><input type="text" id="issueResolution" class="w-full bg-surface2 border border-borderc rounded-xl px-3 py-2.5 text-sm" placeholder="If resolved..."></div>
       </div>
-      <button id="submitIssueBtn" class="btn-primary mt-4"><i class="fa-regular fa-paper-plane"></i> Submit Issue</button>
-      <div id="issueList" class="mt-5 space-y-2"></div>
+
+      <!-- ── ADD: container for the issue list, was referenced by renderIssueList() but never existed in markup ── -->
+      <div id="issueList" class="mt-4"></div>
+             <button id="submitIssueBtn" class="btn-primary mt-4"><i class="fa-regular fa-paper-plane"></i> Submit Issue</button>
+
     </section>
 
     <div id="submitBtnContainer" class="mt-6 mb-4" style="display:none;">
@@ -322,6 +351,31 @@
     </div>
   </div>
 
+  <!-- ISSUE SUBMIT CONFIRM MODAL -->
+  <div id="issueConfirmModal" class="modal-backdrop">
+    <div class="modal-card text-center">
+      <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl bg-surface3 text-primary"><i class="fa-regular fa-circle-check"></i></div>
+      <h3 class="font-display text-lg mb-1">Submit this Issue?</h3>
+      <p id="issueConfirmSummary" class="text-textdim text-sm my-2"></p>
+
+      <div class="text-left mt-3">
+        <label class="text-xs font-semibold text-textdim block mb-1"><i class="fa-solid fa-signature mr-1 text-primary"></i>Engineer Signature</label>
+        <div class="sig-pad-wrap">
+          <canvas id="issueSignaturePad" width="360" height="140"></canvas>
+        </div>
+        <div class="flex justify-between items-center mt-1.5">
+          <span id="issueSigStatusText" class="text-[11px] text-redc font-medium"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Signature required</span>
+          <button type="button" id="clearIssueSignatureBtn" class="text-[11px] text-primary font-semibold underline">Clear</button>
+        </div>
+      </div>
+
+      <div class="flex gap-3 mt-4">
+        <button id="cancelIssueSubmit" class="btn-secondary">No</button>
+        <button id="confirmIssueSubmitBtn" class="btn-primary">Yes, Submit</button>
+      </div>
+    </div>
+  </div>
+
   <!-- BULK MARK ALL CONFIRM MODAL -->
   <div id="bulkConfirmModal" class="modal-backdrop">
     <div class="modal-card text-center">
@@ -365,15 +419,15 @@
     // No more dummy defaults — if this is null, guard() below will have already
     // redirected to the login page before we get here.
     const profile = UserAuth.getProfile() || {};
-    const CURRENT_ENGINEER_ID = profile.employeePrimeId || null;
-    const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.empId || 'Engineer';
+const CURRENT_ENGINEER_ID = profile.employeePrimeId ? Number(profile.employeePrimeId) : null;
+const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.empId || 'Engineer';
 
     let companies = [];          // from /companies
     let currentClient = null;    // selected company object (from companies[])
     let currentDept = null;      // selected department object (from currentClient.clientDepartments[])
     let cameras = [];            // from /departments/{id}/cameras, extended with inspection fields
     let selectedCameras = new Set();
-    let issues = [];             // from /issues?departmentId=
+    // let issues = [];             // from /issues?departmentId=
     let openDetailId = null;
     let currentPage = 1;
     let uploadedImages = [];     // { id, file, url, name }
@@ -511,6 +565,16 @@
     }
     loadCompanies();
 
+    // function resetCameraState() {
+    //   cameras = [];
+    //   selectedCameras.clear();
+    //   openDetailId = null;
+    //   currentPage = 1;
+    //   searchCamera.value = '';
+    //   cameraSection.classList.add('hidden');
+    //   submitBtnContainer.style.display = 'none';
+    // }
+
     function resetCameraState() {
       cameras = [];
       selectedCameras.clear();
@@ -519,41 +583,46 @@
       searchCamera.value = '';
       cameraSection.classList.add('hidden');
       submitBtnContainer.style.display = 'none';
+      $('sharedUploadSection').classList.add('hidden');
     }
 
     companySelect.addEventListener('change', function () {
-      const id = Number(this.value);
-      if (!id) {
-        currentClient = null; currentDept = null;
-        resetCameraState();
-        headerFields.classList.add('hidden');
-        companyMeta.classList.add('hidden');
-        departmentField.innerHTML = '<option value="">— Select Company First —</option>';
-        $('bsidField').value = '';
-        $('lastVisitInfo').classList.add('hidden');
-        return;
-      }
-      currentClient = companies.find(c => c.clientId === id);
-      currentDept = null;
-      resetCameraState();
+  const id = Number(this.value);
+  if (!id) {
+    currentClient = null; currentDept = null;
+    resetCameraState();
+    headerFields.classList.add('hidden');
+    companyMeta.classList.add('hidden');
+    departmentField.innerHTML = '<option value="">— Select Company First —</option>';
+    $('bsidField').value = '';
+    $('lastVisitInfo').classList.add('hidden');
+    return;
+  }
+  currentClient = companies.find(c => c.clientId === id);
+  currentDept = null;
+  resetCameraState();
 
-      $('vendorField').value = 'Akansha Enterprises';
-      $('bsidField').value = '';
-      $('visitDateField').value = new Date().toISOString().split('T')[0];
-      $('checkedByField').value = session.name;
+  $('vendorField').value = 'Akansha Enterprises';
+  $('bsidField').value = '';
+  $('visitDateField').value = new Date().toISOString().split('T')[0];
+  
+  // FIX: Use profile data instead of session.name
+  const profile = UserAuth.getProfile() || {};
+  const displayName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || profile.empId || 'Engineer';
+  $('checkedByField').value = displayName;
 
-      departmentField.innerHTML = '<option value="">— Select Department —</option>';
-      (currentClient.clientDepartments || []).forEach(d => {
-        const o = document.createElement('option');
-        o.value = d.depId;
-        o.textContent = `${d.depName} (${d.totalCamera} cams)`;
-        departmentField.appendChild(o);
-      });
+  departmentField.innerHTML = '<option value="">— Select Department —</option>';
+  (currentClient.clientDepartments || []).forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.depId;
+    o.textContent = `${d.depName} (${d.totalCamera} cams)`;
+    departmentField.appendChild(o);
+  });
 
-      companyMetaText.textContent = `${(currentClient.clientDepartments || []).length} departments available`;
-      companyMeta.classList.remove('hidden');
-      headerFields.classList.remove('hidden');
-    });
+  companyMetaText.textContent = `${(currentClient.clientDepartments || []).length} departments available`;
+  companyMeta.classList.remove('hidden');
+  headerFields.classList.remove('hidden');
+});
 
     departmentField.addEventListener('change', async function () {
       const depId = Number(this.value);
@@ -573,6 +642,7 @@
       ]);
 
       if (inspectionType.value === 'monthly') submitBtnContainer.style.display = 'block';
+      $('sharedUploadSection').classList.remove('hidden');
     });
 
     async function loadCameras(depId) {
@@ -593,16 +663,21 @@
 
         cameraSection.classList.remove('hidden');
 
-        const sel = $('issueCamera');
-        sel.innerHTML = '<option value="">— Select —</option>';
-        cameras.forEach(c => {
-          const o = document.createElement('option');
-          o.value = c.camId;
-          o.textContent = c.cameraName;
-          sel.appendChild(o);
-        });
+        // const sel = $('issueCamera');
+        // sel.innerHTML = '<option value="">— Select —</option>';
+        // cameras.forEach(c => {
+        //   const o = document.createElement('option');
+        //   o.value = c.camId;
+        //   o.textContent = c.cameraName;
+        //   sel.appendChild(o);
+        // });
 
+        // renderCameraCards();
+
+
+          resetIssueCameraDropdown();
         renderCameraCards();
+
       } catch (err) {
         showToast('Failed to load cameras: ' + err.message, true);
       }
@@ -698,6 +773,7 @@
               if (c.working === val) { c.working = null; }
               else {
                 c.working = val;
+                selectedCameras.add(c.camId); // auto-select checkbox so bulk actions & submit stay in sync
                 if (val === true) {
                   c.lens_cleaning = c.lens_cleaning || 'Done';
                   c.visual_on_tv = c.visual_on_tv || 'Yes';
@@ -728,9 +804,13 @@
           if (isOpen) {
             const c = cam;
             expandHTML = `
+             <div class="mb-2">
+                <label class="field-label">Department</label>
+                <input type="text" class="w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#eef1fa] text-textfaint" value="${currentDept ? currentDept.depName : ''}" readonly>
+              </div>
               <div class="grid grid-cols-2 gap-2 mb-2">
                 <div>
-                  <label class="cam-detail-fields label">Lens Cleaning</label>
+                  <label class="field-label">Lens Cleaning</label>
                   <select class="field-lens w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
                     <option value="">— Select —</option>
                     <option value="Done" ${c.lens_cleaning==='Done'?'selected':''}>Done</option>
@@ -739,7 +819,7 @@
                   </select>
                 </div>
                 <div>
-                  <label class="cam-detail-fields label">Visual on TV</label>
+                  <label class="field-label">Visual on TV</label>
                   <select class="field-visual w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
                     <option value="">— Select —</option>
                     <option value="Yes" ${c.visual_on_tv==='Yes'?'selected':''}>Yes</option>
@@ -747,7 +827,7 @@
                   </select>
                 </div>
                 <div class="col-span-2">
-                  <label class="cam-detail-fields label">Focus Angle</label>
+                  <label class="field-label">Focus Angle</label>
                   <select class="field-focus w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}">
                     <option value="">— Select —</option>
                     <option value="Correct" ${c.focus_angle==='Correct'?'selected':''}>Correct</option>
@@ -756,13 +836,15 @@
                 </div>
               </div>
               <div class="mb-2">
-                <label class="cam-detail-fields label">Damage (if any)</label>
+                <label class="field-label">Damage (if any)</label>
                 <input type="text" class="field-damage w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.damage||''}" placeholder="Describe damage...">
               </div>
               <div class="mb-3">
-                <label class="cam-detail-fields label">Any Abnormality</label>
+                <label class="field-label">Any Abnormality</label>
                 <input type="text" class="field-abnormal w-full border border-[#d8deef] rounded-lg px-2 py-1.5 text-[12px] bg-[#f9fafd]" data-id="${c.camId}" value="${c.abnormality||''}" placeholder="Any other issue...">
               </div>
+
+
               <div class="flex justify-between items-center">
                 <span class="text-[11px] text-textfaint font-mono">${c.cameraName}</span>
                 <button class="save-close-detail btn-grad px-4 py-1.5 rounded-lg text-xs font-semibold" data-id="${c.camId}">
@@ -839,6 +921,13 @@
       currentPage = 1;
       renderCameraCards();
     });
+    
+
+     $('clearSelectionBtn').addEventListener('click', function () {
+      selectedCameras.clear();
+      renderCameraCards();
+      showToast('Selection cleared');
+    });
 
     $('applyBulkAction').addEventListener('click', function () {
       const action = $('bulkActionSelect').value;
@@ -856,10 +945,17 @@
           }
         }
       });
+      
+     // showToast(`✅ ${selectedCameras.size} cameras marked`);
+      // selectedCameras.clear();renderCameraCards();
+      // $('bulkActionSelect').value = '';
+      const count = selectedCameras.size;
       renderCameraCards();
-      showToast(`✅ ${selectedCameras.size} cameras marked`);
-      selectedCameras.clear();
+      showToast(`✅ ${count} cameras marked`);
       $('bulkActionSelect').value = '';
+      // Selection is intentionally kept — lets you apply another action
+      // (e.g. faulty, then working) to the same set without reselecting.
+    // });
     });
 
     const bulkConfirmModal = $('bulkConfirmModal');
@@ -942,24 +1038,182 @@
         cameraSection.classList.add('hidden');
         issueSection.classList.remove('hidden');
         submitBtnContainer.style.display = 'none';
-        $('issueSectionTitle').innerHTML = val === 'complaint' ?
-          '<i class="fa-regular fa-circle-exclamation mr-2"></i>Complaint Issue' :
-          '<i class="fa-regular fa-pen-to-square mr-2"></i>Other Issue';
-        if (currentDept) loadIssues(currentDept.depId);
+       $('issueSectionTitle').innerHTML = '<i class="fa-regular fa-circle-exclamation mr-2"></i>Complaint Issue';
       }
     });
 
-    $('issueCamera').addEventListener('change', function () {
-      const cam = cameras.find(c => c.camId === Number(this.value));
-      $('issueDept').value = currentDept ? currentDept.depName : '';
-      $('issueLoc').value = cam ? cam.cameraType : '';
+    // $('issueCamera').addEventListener('change', function () {
+    //   const cam = cameras.find(c => c.camId === Number(this.value));
+    //   $('issueDept').value = currentDept ? currentDept.depName : '';
+    //   $('issueLoc').value = cam ? cam.cameraType : '';
+    // });
+
+
+      // ===== Searchable, lazy-loaded camera dropdown =====
+    const CAM_CHUNK = 40; // render this many at a time, load more on scroll
+    let issueCamFiltered = [];
+    let issueCamRendered = 0;
+    let issueCamDebounce = null;
+
+    const issueCameraTrigger = $('issueCameraTrigger');
+    const issueCameraPanel = $('issueCameraPanel');
+    const issueCameraSearch = $('issueCameraSearch');
+    const issueCameraOptions = $('issueCameraOptions');
+    const issueCameraLabel = $('issueCameraLabel');
+    const issueCameraHidden = $('issueCamera');
+
+    function openIssueCameraPanel() {
+      issueCameraPanel.classList.remove('hidden');
+      issueCameraSearch.value = '';
+      issueCameraSearch.focus();
+      filterIssueCameras('');
+    }
+    function closeIssueCameraPanel() {
+      issueCameraPanel.classList.add('hidden');
+    }
+    issueCameraTrigger.addEventListener('click', e => {
+      e.stopPropagation();
+      issueCameraPanel.classList.contains('hidden') ? openIssueCameraPanel() : closeIssueCameraPanel();
+    });
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#issueCameraPanel') && !e.target.closest('#issueCameraTrigger')) closeIssueCameraPanel();
     });
 
-    // Issue submit
-    $('submitIssueBtn').addEventListener('click', async () => {
-      if (!currentClient || !currentDept) { showToast('Select company & department first', true); return; }
-      const camId = $('issueCamera').value;
+    function filterIssueCameras(term) {
+      const t = term.toLowerCase().trim();
+      issueCamFiltered = !t ? cameras : cameras.filter(c =>
+        (c.cameraName || '').toLowerCase().includes(t) ||
+        (c.cameraType || '').toLowerCase().includes(t) ||
+        (c.cameraAngle || '').toLowerCase().includes(t)
+      );
+      issueCamRendered = 0;
+      issueCameraOptions.innerHTML = '';
+      renderIssueCameraChunk();
+    }
 
+    function renderIssueCameraChunk() {
+      const next = issueCamFiltered.slice(issueCamRendered, issueCamRendered + CAM_CHUNK);
+      if (issueCamRendered === 0 && next.length === 0) {
+        issueCameraOptions.innerHTML = '<div class="px-3 py-4 text-sm text-textfaint text-center">No cameras match</div>';
+        return;
+      }
+      next.forEach(c => {
+        const row = document.createElement('div');
+        row.className = 'px-3 py-2 text-sm hover:bg-surface3 cursor-pointer flex justify-between items-center';
+        row.innerHTML = `<span>${c.cameraName}</span><span class="text-xs text-textfaint">${c.cameraType || ''}</span>`;
+        row.addEventListener('click', () => {
+          issueCameraHidden.value = c.camId;
+          issueCameraLabel.textContent = c.cameraName;
+          issueCameraLabel.classList.remove('text-textfaint');
+          $('issueDept').value = currentDept ? currentDept.depName : '';
+          $('issueLoc').value = c.cameraType || '';
+          closeIssueCameraPanel();
+        });
+        issueCameraOptions.appendChild(row);
+      });
+      issueCamRendered += next.length;
+    }
+
+    // Lazy-load more as user scrolls near the bottom of the fixed-height panel
+    issueCameraOptions.addEventListener('scroll', () => {
+      const { scrollTop, scrollHeight, clientHeight } = issueCameraOptions;
+      if (scrollTop + clientHeight >= scrollHeight - 40 && issueCamRendered < issueCamFiltered.length) {
+        renderIssueCameraChunk();
+      }
+    });
+
+    // Debounced search — avoids re-filtering on every keystroke for large lists
+    issueCameraSearch.addEventListener('input', () => {
+      clearTimeout(issueCamDebounce);
+      issueCamDebounce = setTimeout(() => filterIssueCameras(issueCameraSearch.value), 250);
+    });
+
+    function resetIssueCameraDropdown() {
+      issueCameraHidden.value = '';
+      issueCameraLabel.textContent = '— Select —';
+      issueCameraLabel.classList.add('text-textfaint');
+    }
+
+
+    // Issue submit
+
+     // ===== Issue signature pad (separate canvas from inspection pad) =====
+    const issueSigCanvas = $('issueSignaturePad');
+    const issueSigCtx = issueSigCanvas.getContext('2d');
+    const issueSigStatusText = $('issueSigStatusText');
+    let issueSigDrawing = false, issueHasSignature = false;
+
+    function resizeIssueSignaturePad() {
+      const rect = issueSigCanvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      issueSigCanvas.width = rect.width * ratio;
+      issueSigCanvas.height = rect.height * ratio;
+      issueSigCtx.scale(ratio, ratio);
+      issueSigCtx.lineCap = 'round';
+      issueSigCtx.lineJoin = 'round';
+      issueSigCtx.strokeStyle = '#151929';
+      issueSigCtx.lineWidth = 2.2;
+    }
+    function issueSigPos(e) {
+      const rect = issueSigCanvas.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+      return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+    }
+    function issueSigStart(e) { issueSigDrawing = true; const p = issueSigPos(e); issueSigCtx.beginPath(); issueSigCtx.moveTo(p.x, p.y); e.preventDefault(); }
+    function issueSigMove(e) {
+      if (!issueSigDrawing) return;
+      const p = issueSigPos(e);
+      issueSigCtx.lineTo(p.x, p.y);
+      issueSigCtx.stroke();
+      if (!issueHasSignature) { issueHasSignature = true; updateIssueSigStatus(); }
+      e.preventDefault();
+    }
+    function issueSigEnd() { issueSigDrawing = false; }
+    function updateIssueSigStatus() {
+      if (issueHasSignature) {
+        issueSigStatusText.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i>Signature captured';
+        issueSigStatusText.className = 'text-[11px] text-accenttext font-medium';
+      } else {
+        issueSigStatusText.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i>Signature required';
+        issueSigStatusText.className = 'text-[11px] text-redc font-medium';
+      }
+    }
+    function clearIssueSignaturePad() {
+      issueSigCtx.clearRect(0, 0, issueSigCanvas.width, issueSigCanvas.height);
+      issueHasSignature = false;
+      updateIssueSigStatus();
+    }
+    issueSigCanvas.addEventListener('mousedown', issueSigStart);
+    issueSigCanvas.addEventListener('mousemove', issueSigMove);
+    window.addEventListener('mouseup', issueSigEnd);
+    issueSigCanvas.addEventListener('touchstart', issueSigStart, { passive: false });
+    issueSigCanvas.addEventListener('touchmove', issueSigMove, { passive: false });
+    issueSigCanvas.addEventListener('touchend', issueSigEnd);
+    $('clearIssueSignatureBtn').addEventListener('click', clearIssueSignaturePad);
+
+    // Issue submit — opens signed confirm modal instead of posting immediately
+    const issueConfirmModal = $('issueConfirmModal');
+  
+    $('submitIssueBtn').addEventListener('click', () => {
+      if (!currentClient || !currentDept) { showToast('Select company & department first', true); return; }
+      const camLabel = issueCameraLabel.textContent;
+      $('issueConfirmSummary').textContent = `${$('issueType').value} · ${$('issuePriority').value} priority · ${camLabel !== '— Select —' ? camLabel : 'General (no camera)'}`;
+      clearIssueSignaturePad();
+      setTimeout(resizeIssueSignaturePad, 50);
+      issueConfirmModal.classList.add('open');
+    });
+
+    $('cancelIssueSubmit').addEventListener('click', () => issueConfirmModal.classList.remove('open'));
+    issueConfirmModal.addEventListener('click', e => { if (e.target === issueConfirmModal) issueConfirmModal.classList.remove('open'); });
+
+    $('confirmIssueSubmitBtn').addEventListener('click', async () => {
+      if (!issueHasSignature) { showToast('Please sign before submitting', true); return; }
+
+      const confirmBtn = $('confirmIssueSubmitBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Submitting...';
+
+      const camId = $('issueCamera').value;
       const payload = {
         companyId: currentClient.clientId,
         departmentId: currentDept.depId,
@@ -970,78 +1224,109 @@
         priority: $('issuePriority').value,
         status: $('issueStatus').value,
         resolutionRemark: $('issueResolution').value
+        // signature sent as its own multipart part below, not in JSON
       };
 
       try {
-        await apiPostJson('/issues', payload);
-        showToast('Issue submitted & saved ✓');
+        const signatureBlob = await new Promise(resolve => issueSigCanvas.toBlob(resolve, 'image/png'));
+
+        const formData = new FormData();
+        formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+        formData.append('signature', signatureBlob, 'signature.png');
+        uploadedImages.forEach(img => formData.append('images', img.file, img.name));
+
+        const res = await fetch(API_BASE + '/issues', {
+          method: 'POST',
+          body: formData,
+          credentials: 'include'
+        });
+
+        let responseData;
+        try { responseData = await res.json(); } catch (e) { responseData = null; }
+
+        if (!res.ok) {
+          const errorMsg = responseData?.message || responseData?.error || `Submit failed (${res.status})`;
+          throw new Error(errorMsg);
+        }
+
+       issueConfirmModal.classList.remove('open');
+        showToast('✅ Issue submitted & saved to database');
         $('issueDesc').value = '';
         $('issueResolution').value = '';
         $('issueStatus').value = 'Open';
-        $('issueCamera').value = '';
+        resetIssueCameraDropdown();
         $('issueDept').value = '';
         $('issueLoc').value = '';
-        loadIssues(currentDept.depId);
+        clearIssueSignaturePad();
+        uploadedImages = [];
+      uploadedImages = [];
+        renderImagePreviews();
       } catch (err) {
+    
         showToast('Failed to submit issue: ' + err.message, true);
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Yes, Submit';
       }
     });
 
-    async function loadIssues(departmentId) {
-      try {
-        issues = await apiGet(`/issues?departmentId=${departmentId}`);
-        renderIssueList();
-      } catch (err) {
-        showToast('Failed to load issues: ' + err.message, true);
-      }
+
+
+     function clearFieldError(el) { el.classList.remove('field-invalid'); }
+
+    function markFieldError(el) {
+      el.classList.add('field-invalid');
+      el.addEventListener('input', () => clearFieldError(el), { once: true });
+      el.addEventListener('change', () => clearFieldError(el), { once: true });
     }
 
-    function renderIssueList() {
-      const container = $('issueList');
-      container.innerHTML = '';
-      if (issues.length === 0) {
-        container.innerHTML = '<div class="text-center text-textfaint text-sm py-4">No issues reported yet</div>';
-        return;
-      }
-      issues.forEach(iss => {
-        const priorityClass = iss.priority === 'High' ? 'priority-high' : iss.priority === 'Critical' ? 'priority-critical' : '';
-        const statusClass = iss.status === 'Resolved' ? 'badge-resolved' : iss.status === 'Open' ? 'badge-open' : iss.status === 'In Progress' ? 'badge-progress' : 'bg-gray-100';
-        const createdDate = iss.createdDate ? new Date(iss.createdDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
-        const div = document.createElement('div');
-        div.className = `issue-card ${priorityClass}`;
-        div.innerHTML = `
-          <div class="flex flex-wrap justify-between items-start gap-1">
-            <div><span class="font-mono text-sm font-semibold">${iss.camera || 'N/A'}</span><span class="text-xs text-textfaint ml-2">${iss.issueType || ''}</span></div>
-            <span class="badge-status ${statusClass}">${iss.status}</span>
-          </div>
-          <div class="text-sm mt-1">${iss.description || ''}</div>
-          <div class="flex flex-wrap gap-2 text-xs text-textfaint mt-1">
-            <span><i class="fa-regular fa-flag mr-1"></i>${iss.priority}</span>
-            <span><i class="fa-regular fa-calendar mr-1"></i>${createdDate}</span>
-          </div>
-          <div class="issue-actions">
-            <button class="delete-btn" data-id="${iss.id}"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
-          </div>
-        `;
-        div.querySelector('.delete-btn').addEventListener('click', async () => {
-          if (!confirm('Delete this issue?')) return;
-          try {
-            await apiDelete(`/issues/${iss.id}`);
-            showToast('Issue deleted');
-            loadIssues(currentDept.depId);
-          } catch (err) {
-            showToast('Failed to delete issue: ' + err.message, true);
-          }
-        });
-        container.appendChild(div);
-      });
-    }
+
+   
 
     // ===== SUBMIT INSPECTION =====
+
+  function clearFieldError(el) { el.classList.remove('field-invalid'); }
+
+    function markFieldError(el) {
+      el.classList.add('field-invalid');
+      el.addEventListener('input', () => clearFieldError(el), { once: true });
+      el.addEventListener('change', () => clearFieldError(el), { once: true });
+    }
+
+    function validateInspectionForm() {
+      let firstInvalid = null;
+      const check = (el, isValid) => {
+        if (!isValid) {
+          markFieldError(el);
+          if (!firstInvalid) firstInvalid = el;
+        } else {
+          clearFieldError(el);
+        }
+      };
+
+      check(companySelect, !!currentClient);
+      check(departmentField, !!currentDept);
+      check($('visitDateField'), !!$('visitDateField').value);
+      check($('bsidField'), !!$('bsidField').value.trim());
+
+      return firstInvalid;
+    }
+
+      
     simpleSubmitBtn.addEventListener('click', () => {
       if (!currentClient || !currentDept) { showToast('Select company & department', true); return; }
+
+      const firstInvalid = validateInspectionForm();
+      if (firstInvalid) {
+        showToast('Please fill all mandatory fields (highlighted in red)', true);
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        firstInvalid.focus();
+        return;
+      }
+
       const unchecked = cameras.filter(c => c.working === null).length;
       if (unchecked > 0) { showToast(`${unchecked} cameras not checked yet`, true); return; }
+
       const total = cameras.length;
       const working = cameras.filter(c => c.working === true).length;
       const faulty = total - working;
@@ -1054,71 +1339,102 @@
     $('cancelSubmit').addEventListener('click', () => $('submitConfirmModal').classList.remove('open'));
 
     $('confirmSubmitBtn').addEventListener('click', async () => {
-      if (!hasSignature) { showToast('Please sign before submitting', true); return; }
+  if (!hasSignature) { showToast('Please sign before submitting', true); return; }
 
-      const confirmBtn = $('confirmSubmitBtn');
-      confirmBtn.disabled = true;
-      confirmBtn.textContent = 'Submitting...';
+  // Validate contact person field
+  const bsid = $('bsidField').value.trim();
+  if (!bsid) {
+    showToast('Please enter the Person to Contact name', true);
+    return;
+  }
 
-      try {
-        const visitDate = $('visitDateField').value;
-        const vendor = $('vendorField').value;
-        const bsid = $('bsidField').value;
-        const remarks = $('generalRemarks').value;
-        const signatureData = sigCanvas.toDataURL('image/png');
+  const confirmBtn = $('confirmSubmitBtn');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Submitting...';
 
-        const cameraDetails = cameras.map(cam => ({
-          camId: cam.camId,
-          working: cam.working === true,
-          lensCleaning: cam.lens_cleaning || (cam.working ? 'Done' : 'Pending'),
-          visualOnTv: cam.visual_on_tv || (cam.working ? 'Yes' : 'No'),
-          focusAngle: cam.focus_angle || (cam.working ? 'Correct' : 'Adjustment Required'),
-          damage: cam.damage || '',
-          abnormality: cam.abnormality || ''
-        }));
+  try {
+    const visitDate = $('visitDateField').value;
+    const vendor = $('vendorField').value;
+    const bsid = $('bsidField').value;
+    const remarks = $('generalRemarks').value;
+    const signatureData = sigCanvas.toDataURL('image/png');
 
-        const payload = {
-          companyId: currentClient.clientId,
-          departmentId: currentDept.depId,
-          engineerEmpPrimeId: CURRENT_ENGINEER_ID,
-          inspectionType: inspectionType.value,
-          vendorName: vendor,
-          contactPerson: bsid,
-          visitDate: visitDate,
-          remarks: remarks,
-          signature: signatureData,
-          cameraDetails: cameraDetails
-        };
+    // Log for debugging
+    console.log('CURRENT_ENGINEER_ID:', CURRENT_ENGINEER_ID);
+    console.log('Profile:', profile);
 
-        const formData = new FormData();
-        formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
-        uploadedImages.forEach(img => formData.append('images', img.file, img.name));
+    const cameraDetails = cameras.map(cam => ({
+      camId: cam.camId,
+      working: cam.working === true,
+      lensCleaning: cam.lens_cleaning || (cam.working ? 'Done' : 'Pending'),
+      visualOnTv: cam.visual_on_tv || (cam.working ? 'Yes' : 'No'),
+      focusAngle: cam.focus_angle || (cam.working ? 'Correct' : 'Adjustment Required'),
+      damage: cam.damage || '',
+      abnormality: cam.abnormality || ''
+    }));
 
-        const res = await fetch(API_BASE + '/submit', { method: 'POST', body: formData });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ message: res.statusText }));
-          throw new Error(err.message || err.error || `Submit failed (${res.status})`);
-        }
-        const result = await res.json();
+    const payload = {
+      companyId: currentClient.clientId,
+      departmentId: currentDept.depId,
+      engineerEmpPrimeId: CURRENT_ENGINEER_ID,
+      inspectionType: inspectionType.value,
+      vendorName: vendor,
+      contactPerson: bsid,
+      visitDate: visitDate,
+      remarks: remarks,
+      signature: signatureData,
+      photoPaths: [],  // Empty list since images are sent as multipart
+      cameraDetails: cameraDetails
+    };
 
-        $('submitConfirmModal').classList.remove('open');
-        showToast(`✅ Inspection submitted! (${result.workingCount} working, ${result.faultyCount} faulty)`);
+    console.log('Payload being sent:', JSON.stringify(payload, null, 2));
 
-        setTimeout(() => {
-          uploadedImages = [];
-          renderImagePreviews();
-          clearSignaturePad();
-          companySelect.value = '';
-          companySelect.dispatchEvent(new Event('change'));
-          $('generalRemarks').value = '';
-        }, 500);
-      } catch (err) {
-        showToast('Submit failed: ' + err.message, true);
-      } finally {
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Yes, Submit';
-      }
+    const formData = new FormData();
+    formData.append('data', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    uploadedImages.forEach(img => formData.append('images', img.file, img.name));
+
+    const res = await fetch(API_BASE + '/submit', { 
+      method: 'POST', 
+      body: formData,
+      credentials: 'include'
     });
+    
+    // Try to get error details from response
+    let responseData;
+    try {
+      responseData = await res.json();
+    } catch (e) {
+      responseData = null;
+    }
+    
+    if (!res.ok) {
+      console.error('Server error response:', responseData);
+      const errorMsg = responseData?.message || responseData?.error || `Submit failed (${res.status})`;
+      throw new Error(errorMsg);
+    }
+    
+    $('submitConfirmModal').classList.remove('open');
+    showToast(`✅ Inspection submitted successfully!`);
+
+    // Reset form
+    setTimeout(() => {
+      uploadedImages = [];
+      renderImagePreviews();
+      clearSignaturePad();
+      companySelect.value = '';
+      companySelect.dispatchEvent(new Event('change'));
+      $('generalRemarks').value = '';
+      $('bsidField').value = '';
+    }, 500);
+    
+  } catch (err) {
+    console.error('Submit error:', err);
+    showToast('Submit failed: ' + err.message, true);
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Yes, Submit';
+  }
+});
 
     // User dropdown
     const userMenuBtn = $('userMenuBtn');
@@ -1136,6 +1452,7 @@
 
     // Init
    // Init — populate header + profile modal from the real logged-in profile
+   // Init — populate header + profile modal from the real logged-in profile
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1A328D&color=fff&size=64`;
     $('userAvatarImg').src = avatarUrl.replace('size=64', 'size=32');
     $('userNameLabel').textContent = profile.firstName || profile.empId || 'Engineer';
@@ -1146,9 +1463,9 @@
     $('profileLastName').textContent = profile.lastName || '—';
     $('profileRole').textContent = profile.role || '—';
 
-    // $('checkedByField').value = displayName;
+    $('checkedByField').value = displayName;
     $('visitDateField').value = new Date().toISOString().split('T')[0];
-    resizeSignaturePad();
+  resizeSignaturePad();
   })();
 </script>
 </body>

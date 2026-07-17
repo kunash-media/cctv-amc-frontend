@@ -43,7 +43,7 @@
         .sidebar.collapsed .sidebar-nav-text { display: none; }
         .sidebar.collapsed .sidebar-nav-item { justify-content: center; padding: 0.625rem; }
         .sidebar a:hover { background: rgba(0,0,0,0.06); color: #1a1a1a; }
-        .sidebar a.active { padding: 10px; background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; border-radius: 10px; }
+        .sidebar a.active { padding: 10px; background: linear-gradient(135deg, #1A328D, #234FAA) !important; color: white !important; width: 90%; border-radius: 10px;  margin: 6px;}
         .sidebar a.active svg { stroke: white !important; }
         .sidebar { border-right-color: #e1e6f3; }
 
@@ -59,10 +59,36 @@
         .btn-export-excel:disabled { opacity: .6; cursor: progress; }
         .btn-export-issue-excel { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 13px; padding: 8px 16px; border-radius: 8px; background: #b07d1a; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 40px; }
         .btn-export-issue-excel:hover { background: #8a5f12; }
-        .btn-approve { display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; font-size: 12px; padding: 6px 14px; border-radius: 6px; background: #1A328D; color: white; border: none; transition: background 0.15s; cursor: pointer; min-height: 34px; }
-        .btn-approve:hover { background: #234FAA; }
-        .btn-approve.approved { background: #7b85a3; cursor: default; }
-        .btn-approve.approved:hover { background: #7b85a3; }
+        .btn-approve { 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 6px; 
+    font-weight: 600; 
+    font-size: 12px; 
+    padding: 6px 14px; 
+    border-radius: 6px; 
+    background: #1A328D; 
+    color: white; 
+    border: none; 
+    transition: background 0.15s; 
+    cursor: pointer; 
+    min-height: 34px; 
+}
+.btn-approve:hover:not(:disabled) { 
+    background: #234FAA; 
+}
+.btn-approve.approved { 
+    background: #7b85a3; 
+    cursor: default; 
+}
+.btn-approve.approved:hover { 
+    background: #7b85a3; 
+}
+.btn-approve:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
 
         .chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; font-family: 'JetBrains Mono', monospace; letter-spacing: .02em; }
         .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
@@ -147,6 +173,21 @@
             .cam-table { font-size: 11px; }
             .cam-table th, .cam-table td { padding: 4px 6px; }
         }
+        /* ==== Sidebar click feedback — consistent across all pages ==== */
+.sidebar-nav-item {
+    transition: background-color .15s ease, color .15s ease, transform .08s ease;
+    will-change: background-color, color;
+}
+
+.sidebar-nav-item:active {
+    transform: scale(0.97);
+    transition-duration: .05s;   /* instant press feedback, no lag feel */
+}
+
+.sidebar-nav-item:not(.active):hover {
+    background: rgba(26, 50, 141, 0.08);
+    color: #1A328D;
+}
     </style>
 </head>
 <body class="text-[#151929]">
@@ -165,17 +206,17 @@
             </div>
             <div class="relative">
                 <button id="profileBtn" class="flex items-center gap-2.5 p-1.5 transition">
-                    <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold text-white" style="background: linear-gradient(135deg, #1A328D, #234FAA);">VJ</div>
+                    <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold text-white" style="background: linear-gradient(135deg, #1A328D, #234FAA);">SA</div>
                     <div class="hidden sm:block text-left">
-                        <div class="text-[13px] font-semibold text-[#1A328D]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#7b85a3]">Senior Engineer</div>
+                        <div class="text-[13px] font-semibold text-[#1A328D]">Super Admin</div>
+                        <div class="text-[11px] text-[#7b85a3]"></div>
                     </div>
                     <svg class="w-4 h-4 text-[#1A328D]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#cdd5ea] rounded-lg shadow-lg overflow-hidden z-50">
                     <div class="px-4 py-3 border-b border-[#e1e6f3]">
-                        <div class="text-[13px] font-semibold text-[#1A328D]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#7b85a3]">vikram@cctvmanager.com</div>
+                        <div class="text-[13px] font-semibold text-[#1A328D]">Super Admin</div>
+                        <div class="text-[11px] text-[#7b85a3]">superadmin@cctv.com</div>
                     </div>
                     <div class="border-t border-[#e1e6f3] py-1">
                         <button id="logoutBtn" class="flex items-center gap-3 w-full px-4 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -187,30 +228,31 @@
 
     <div class="flex min-h-screen" style="background-color: #F0F3FB;">
 
-        <!-- SIDEBAR -->
-        <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col h-screen sticky top-0 overflow-y-auto">
-            <nav class="ml-2 flex flex-col gap-0.5 flex-1 overflow-y-auto mt-2">
-                <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
-                    <span class="sidebar-nav-text">Dashboard</span>
-                </a>
-                <a href="/page/company-management.html" class="flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
-                    <span class="sidebar-nav-text">Company Management</span>
-                </a>
-                <!-- <a href="/inspection-form.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    <span class="sidebar-nav-text">Monthly Visits</span>
-                </a> -->
-                <a href="/page/reports.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#1A328D] text-white transition sidebar-nav-item active">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-                    <span class="sidebar-nav-text">Monthly Inspection Reports</span>
-                </a>
-                <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>                    <span class="sidebar-nav-text">Staff Management</span>
-                </a>
-            </nav>
-        </aside>
+       <!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col" style="height: calc(100vh - 72px); position: sticky; top: 72px; overflow: hidden;">
+    <nav class="flex flex-col gap-0.5 flex-1 py-3" id="sidebarNav" style="overflow: visible; height: 100%;">
+        <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item" data-nav="dashboard">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+            <span class="sidebar-nav-text">Dashboard</span>
+        </a>
+        <a href="/page/company-management.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+            <span class="sidebar-nav-text">Company Management</span>
+        </a>
+        <a href="/page/reports.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium bg-[#1A328D] text-white transition sidebar-nav-item active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
+            <span class="sidebar-nav-text">Monthly Inspection Reports</span>
+        </a>
+        <a href="/page/staff-management.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition sidebar-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>
+            <span class="sidebar-nav-text">Staff Management</span>
+        </a>
+    </nav>
+     <hr />
+    <div class="text-sm text-gray-500 m-4">
+        © 2026 Kunash Media Solutions
+    </div>
+</aside>
 
         <div id="overlay" class="hidden fixed inset-0 bg-black/50 z-[35]"></div>
 
@@ -318,7 +360,7 @@
             <p class="text-[#7b85a3] text-sm mb-1">This action cannot be undone.</p>
             <div class="flex flex-col sm:flex-row justify-center gap-3 mt-6">
                 <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
-                <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
+                <button id="confirmDelete" class="rounded-lg px-6 py-2 bg-red-600 hover:bg-red-700 text-white">Delete</button>
             </div>
         </div>
     </div>
@@ -336,7 +378,31 @@
         </div>
     </div>
 
-    <script src="/page/admin-auth.js"></script>
+    <!-- APPROVE MODAL -->
+<div id="approveBackdrop" class="modal-backdrop fixed inset-0 bg-black/70 z-50 items-center justify-center p-5">
+    <div class="modal bg-white border border-[#cdd5ea] rounded-2xl w-full max-w-[440px] shadow-2xl p-6 text-center">
+        <div class="w-16 h-16 rounded-full bg-[#e3f6ea] text-[#1f8a4c] text-3xl flex items-center justify-center mx-auto mb-4">
+            <i class="fa-regular fa-thumbs-up"></i>
+        </div>
+        <h3 class="font-display text-xl font-bold text-[#1A328D] mb-2">Approve <span id="approveTypeLabel">Report</span></h3>
+        <p class="text-[#7b85a3] text-sm mb-1">You are about to approve this <span id="approveTypeLabel2">report</span>.</p>
+        <p class="text-[#7b85a3] text-xs">Please confirm your approval below.</p>
+        
+        <div class="text-left mt-4">
+            <label class="text-xs font-medium text-[#3d4763] block mb-1">Your Name (Approver) *</label>
+            <input type="text" id="approverNameInput" class="w-full bg-white border border-[#cdd5ea] rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#1A328D]" placeholder="Enter your full name" value="Super Admin">
+        </div>
+        
+        <div class="flex flex-col sm:flex-row justify-center gap-3 mt-6">
+            <button id="cancelApprove" class="btn-secondary px-6 py-2">Cancel</button>
+            <button id="confirmApprove" class="btn-primary px-6 py-2 bg-[#1f8a4c] hover:bg-[#166538]">
+                Approve
+            </button>
+        </div>
+    </div>
+</div>
+
+    <script src="/page/admin-auth.js?v=1.0.1"></script>
 
     <script>
 (async function() {
@@ -347,6 +413,7 @@
 
 
     const API_BASE = 'http://localhost:5000/api/inspection';
+    const IMG_BASE_URL = 'http://localhost:5000';
 
     let reports = [];
     let issues = [];
@@ -550,7 +617,11 @@
                 ${sig}
             </div>
             <div class="flex flex-wrap gap-2 mt-2.5 actions">
-                <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
+            
+<button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'report')" ${r.approved ? 'disabled' : ''}>
+    <i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>
+    ${r.approved ? 'Approved' : 'Approve'}
+</button>
                 <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'report')"><i class="fa-regular fa-eye mr-1"></i>View</button>
                 <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="editReport(${r.id},'report')"><i class="fa-regular fa-pen-to-square mr-1"></i>Edit</button>
                 <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'report')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
@@ -605,7 +676,11 @@
                         ${r.approved ? `<div class="text-xs text-[#7b85a3] mt-1"><i class="fa-regular fa-id-badge mr-1"></i>Approved by: ${r.approvedBy} on ${r.approvedDate}</div>` : ''}
                         <div class="flex flex-wrap gap-2 mt-3 pt-3 border-t border-bordersoft actions">
                             <button class="btn-export-issue-excel text-xs py-1.5 px-3" onclick="exportIssueExcel(${r.id})"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                            <button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'issue')" ${r.approved ? 'disabled' : ''}><i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>${r.approved ? 'Approved' : 'Approve'}</button>
+                        
+<button class="btn-approve ${r.approved ? 'approved' : ''}" onclick="toggleApprove(${r.id},'issue')" ${r.approved ? 'disabled' : ''}>
+    <i class="fa-regular ${r.approved ? 'fa-circle-check' : 'fa-thumbs-up'}"></i>
+    ${r.approved ? 'Approved' : 'Approve'}
+</button>
                             <button class="text-[#1A328D] text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-[#eef1fa] transition" onclick="viewReport(${r.id},'issue')"><i class="fa-regular fa-eye mr-1"></i>View</button>
                             <button class="text-redc text-sm px-3 py-1 border border-[#cdd5ea] rounded-md hover:bg-red-50 transition" onclick="deleteReport(${r.id},'issue')"><i class="fa-regular fa-trash-can mr-1"></i>Delete</button>
                         </div>
@@ -702,9 +777,9 @@
             }
 
             row += 1;
-            ws.mergeCells(`A${row}:C${row}`); ws.getCell(`A${row}`).value = 'Person to contact';
-            ws.mergeCells(`E${row}:F${row}`); ws.getCell(`E${row}`).value = 'Area Manager';
-            ws.mergeCells(`H${row}:I${row}`); ws.getCell(`H${row}`).value = 'Manager';
+            // ws.mergeCells(`A${row}:C${row}`); ws.getCell(`A${row}`).value = 'Person to contact';
+            ws.mergeCells(`E${row}:F${row}`); ws.getCell(`A${row}`).value = 'Area Manager';
+            ws.mergeCells(`H${row}:I${row}`); ws.getCell(`E${row}`).value = 'Manager';
             ws.getRow(row).font = { bold: true };
 
             const buffer = await wb.xlsx.writeBuffer();
@@ -724,74 +799,144 @@
     };
 
     // ===== EXPORT ISSUE EXCEL =====
-    window.exportIssueExcel = function(id) {
+   // ===== EXPORT ISSUE EXCEL (ExcelJS — embeds signature + site photos like inspection export) =====
+    window.exportIssueExcel = async function(id) {
         const iss = issues.find(x => x.id === id);
-        if (!iss) return;
+        if (!iss) { showToast('Issue not found', true); return; }
 
-        const date = new Date(iss.createdDate);
-        const monthName = date.toLocaleString('en-US', { month: 'long' });
-        const year = date.getFullYear();
-        const fileName = `Issue_${iss.company}_${monthName}_${year}.xlsx`;
-
-        const sameMonthIssues = issues.filter(i => {
-            const d = new Date(i.createdDate);
-            return i.company === iss.company && d.getMonth() === date.getMonth() && d.getFullYear() === date.getFullYear();
-        });
-
-        const excelData = [
-            ['Issues Report', '', '', '', '', '', '', '', '', '', ''],
-            ['Company', iss.company, '', '', '', '', '', '', '', '', ''],
-            ['Month / Year', `${monthName} ${year}`, '', '', '', '', '', '', '', '', ''],
-            ['', '', '', '', '', '', '', '', '', '', ''],
-            ['Sr.No', 'Company', 'Camera', 'Issue Type', 'Priority', 'Status', 'Description', 'Created Date', 'Resolved Date', 'Resolved By', 'Resolution', 'Approved'],
-        ];
-
-        sameMonthIssues.forEach((i, idx) => {
-            excelData.push([
-                idx + 1, i.company || '', i.camera || '', i.issueType || '', i.priority || '',
-                i.status || '', i.description || '', i.createdDate || '', i.resolvedDate || '',
-                i.resolvedBy || '', i.resolutionRemark || '', i.approved ? 'Yes' : 'No'
-            ]);
-        });
-
-        const total = sameMonthIssues.length;
-        const resolved = sameMonthIssues.filter(i => i.status === 'Resolved').length;
-        const open = sameMonthIssues.filter(i => i.status === 'Open').length;
-        const inProgress = sameMonthIssues.filter(i => i.status === 'In Progress').length;
-
-        excelData.push(['', '', '', '', '', '', '', '', '', '', '', '']);
-        excelData.push(['Summary', '', '', '', '', '', '', '', '', '', '', '']);
-        excelData.push(['Total Issues', total, '', '', '', '', '', '', '', '', '', '']);
-        excelData.push(['Resolved', resolved, '', '', '', '', '', '', '', '', '', '']);
-        excelData.push(['Open', open, '', '', '', '', '', '', '', '', '', '']);
-        excelData.push(['In Progress', inProgress, '', '', '', '', '', '', '', '', '', '']);
+        const btn = event ? event.currentTarget : null;
+        const originalLabel = btn ? btn.innerHTML : null;
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i>Exporting...'; }
 
         try {
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(excelData);
-            ws['!cols'] = [
-                { wch: 6 }, { wch: 22 }, { wch: 10 }, { wch: 14 }, { wch: 12 },
-                { wch: 14 }, { wch: 35 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 25 }, { wch: 10 }
+            // Fetch full detail (ensures signature/imageUrls are current)
+            const item = await apiGet(`/issue/${id}`);
+
+            const date = new Date(item.createdDate);
+            const monthName = date.toLocaleString('en-US', { month: 'long' });
+            const year = date.getFullYear();
+            const fileName = `Issue_${item.company}_${monthName}_${year}.xlsx`;
+
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet('Issue Report');
+            ws.columns = [
+                { width: 7 }, { width: 18 }, { width: 20 }, { width: 16 },
+                { width: 12 }, { width: 14 }, { width: 35 }, { width: 16 }, { width: 22 }
             ];
-            XLSX.utils.book_append_sheet(wb, ws, 'Issues Report');
-            XLSX.writeFile(wb, fileName);
+
+            let row = 1;
+            ws.mergeCells(`A${row}:I${row}`);
+            const titleCell = ws.getCell(`A${row}`);
+            titleCell.value = `Issue Report — ${item.company} — ${monthName} ${year}`;
+            titleCell.font = { bold: true, size: 14, color: { argb: 'FF1A328D' } };
+            row += 2;
+
+            const fields = [
+                ['Company', item.company], ['Department', item.department || '-'],
+                ['Camera', item.camera || 'N/A'], ['Issue Type', item.issueType || '-'],
+                ['Priority', item.priority || '-'], ['Status', item.status || '-'],
+                ['Description', item.description || '-'],
+                ['Created Date', item.createdDate || '-'],
+                ['Resolved Date', item.resolvedDate || '-'],
+                ['Resolved By', item.resolvedBy || '-'],
+                ['Resolution Remark', item.resolutionRemark || '-'],
+                ['Approved', item.approved ? `Yes (by ${item.approvedBy} on ${item.approvedDate})` : 'No']
+            ];
+            fields.forEach(([label, value]) => {
+                const r = ws.getRow(row);
+                r.getCell(1).value = label;
+                r.getCell(1).font = { bold: true, color: { argb: 'FF1A328D' } };
+                ws.mergeCells(`B${row}:I${row}`);
+                r.getCell(2).value = value;
+                row += 1;
+            });
+
+            row += 1;
+
+            // ── Signature ──
+            const sigRow = ws.getRow(row);
+            sigRow.getCell(1).value = 'Signature:';
+            sigRow.getCell(1).font = { bold: true };
+            ws.getRow(row).height = 40;
+            if (item.signature) {
+                try {
+                    const sigResp = await fetch(IMG_BASE_URL + item.signature);
+                    const sigBlob = await sigResp.blob();
+                    const sigBase64 = await blobToBase64(sigBlob);
+                    const sigImgId = wb.addImage({ base64: sigBase64, extension: 'png' });
+                    ws.addImage(sigImgId, { tl: { col: 1, row: row - 1 }, ext: { width: 110, height: 36 } });
+                } catch (imgErr) {
+                    sigRow.getCell(2).value = '(signature unavailable)';
+                }
+            } else {
+                sigRow.getCell(2).value = 'No signature on file';
+                sigRow.getCell(2).font = { italic: true, color: { argb: 'FFC0392B' } };
+            }
+            row += 3;
+
+            // ── Site Photos ──
+            if (item.imageUrls && item.imageUrls.length) {
+                const photoLabelRow = ws.getRow(row);
+                photoLabelRow.getCell(1).value = 'Site Photos:';
+                photoLabelRow.getCell(1).font = { bold: true, color: { argb: 'FF1A328D' } };
+                row += 1;
+
+                let col = 1;
+                const photoRowStart = row;
+                for (const url of item.imageUrls) {
+                    try {
+                        const imgResp = await fetch(IMG_BASE_URL + url);
+                        const imgBlob = await imgResp.blob();
+                        const imgBase64 = await blobToBase64(imgBlob);
+                        const ext = imgBlob.type.includes('png') ? 'png' : 'jpeg';
+                        const imgId = wb.addImage({ base64: imgBase64, extension: ext });
+                        ws.addImage(imgId, { tl: { col: col - 1, row: photoRowStart - 1 }, ext: { width: 90, height: 70 } });
+                        col += 2;
+                    } catch (imgErr) {
+                        // skip unreadable image, continue with others
+                    }
+                }
+                ws.getRow(photoRowStart).height = 55;
+                row = photoRowStart + 5;
+            } else {
+                ws.getRow(row).getCell(1).value = 'No site photos attached';
+                ws.getRow(row).getCell(1).font = { italic: true, color: { argb: 'FF7B85A3' } };
+                row += 2;
+            }
+
+            const buffer = await wb.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = fileName; document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
             showToast(`Issue Excel exported: ${fileName}`);
         } catch (err) {
             showToast('Error: ' + err.message, true);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = originalLabel; }
         }
     };
 
+    // Helper: Blob → base64 string (no data: prefix), needed for ExcelJS addImage
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
     // ===== VIEW REPORT =====
-    window.viewReport = function(id, type) {
-        const item = type === 'report' ? reports.find(r => r.id === id) : issues.find(r => r.id === id);
-        if (!item) return;
-        const date = new Date(item.date || item.createdDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
-        let html = '';
-
+    window.viewReport = async function(id, type) {
         if (type === 'report') {
+            const item = reports.find(r => r.id === id);
+            if (!item) return;
+            const date = new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
             const cameras = item.cameraDetails || [];
-            const photosHtml = (item.imageUrls || []).map(url => `<img src="${url}" style="height:60px;border-radius:6px;border:1px solid #e1e6f3;" class="mr-2 mb-2 inline-block">`).join('');
-            html = `
+            const photosHtml = (item.imageUrls || []).map(url => `<img src="${IMG_BASE_URL+url}" style="height:60px;border-radius:6px;border:1px solid #e1e6f3;" class="mr-2 mb-2 inline-block">`).join('');
+            const html = `
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
                     <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold text-[#1A328D]">${item.company}</div></div>
                     <div><div class="text-xs text-[#7b85a3]">Department</div><div class="font-semibold text-[#1A328D]">${item.department||'—'}</div></div>
@@ -837,47 +982,125 @@
                     <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
                 </div>
             `;
-        } else {
-            const statusCls = item.status==='Resolved' ? 'chip-resolved' : item.status==='Open' ? 'chip-open' : item.status==='In Progress' ? 'chip-progress' : 'chip-closed';
-            html = `
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold">${item.company}</div></div>
-                    <div><div class="text-xs text-[#7b85a3]">Camera</div><div class="font-mono font-semibold">${item.camera || 'N/A'}</div></div>
-                    <div><div class="text-xs text-[#7b85a3]">Status</div><div><span class="chip ${statusCls}">${item.status}</span></div></div>
-                    <div><div class="text-xs text-[#7b85a3]">Priority</div><div class="font-semibold">${item.priority}</div></div>
-                    <div><div class="text-xs text-[#7b85a3]">Type</div><div>${item.issueType}</div></div>
-                    <div><div class="text-xs text-[#7b85a3]">Created</div><div>${date}</div></div>
-                    ${item.resolvedDate ? `<div><div class="text-xs text-[#7b85a3]">Resolved</div><div class="text-accenttext">${new Date(item.resolvedDate).toLocaleDateString('en-IN')}</div></div>` : ''}
-                    ${item.resolvedBy ? `<div><div class="text-xs text-[#7b85a3]">Resolved By</div><div>${item.resolvedBy}</div></div>` : ''}
-                </div>
-                <div class="text-sm text-[#1A328D] p-3 bg-[#eef1fa] rounded-lg mb-3">${item.description}</div>
-                ${item.resolutionRemark ? `<div class="text-sm text-accenttext p-3 bg-[#e3f6ea] rounded-lg mb-3"><i class="fa-solid fa-check mr-1"></i>${item.resolutionRemark}</div>` : ''}
-                <div class="flex justify-end gap-2 mt-4">
-                    <button onclick="exportIssueExcel(${item.id})" class="btn-export-issue-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
-                    <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
-                </div>
-            `;
+            document.getElementById('viewReportContent').innerHTML = html;
+            document.getElementById('viewReportModal').classList.add('open');
+            return;
         }
 
-        document.getElementById('viewReportContent').innerHTML = html;
+        // ── ISSUE: fetch full single-issue detail (includes imageUrls + signature URL) ──
+        document.getElementById('viewReportContent').innerHTML = '<div class="text-center py-10 text-[#7b85a3]"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Loading issue details...</div>';
         document.getElementById('viewReportModal').classList.add('open');
-    };
 
-    window.toggleApprove = async function(id, type) {
-        const items = type === 'report' ? reports : issues;
-        const item = items.find(r => r.id === id);
-        if (!item || item.approved) return;
-        const name = prompt('Enter your name for approval:');
-        if (!name) return;
+        let item;
         try {
-            const path = type === 'report' ? `/reports/${id}/approve` : `/issues/${id}/approve`;
-            await apiPost(path, { approvedBy: name });
-            showToast(`${type === 'report' ? 'Report' : 'Issue'} approved`);
-            if (type === 'report') await loadReports(); else await loadIssues();
+            item = await apiGet(`/issue/${id}`);
         } catch (err) {
-            showToast('Approval failed: ' + err.message, true);
+            document.getElementById('viewReportContent').innerHTML = `<div class="text-center py-10 text-redc">Failed to load issue: ${err.message}</div>`;
+            return;
         }
+
+        const date = new Date(item.createdDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+        const statusCls = item.status==='Resolved' ? 'chip-resolved' : item.status==='Open' ? 'chip-open' : item.status==='In Progress' ? 'chip-progress' : 'chip-closed';
+        const photosHtml = (item.imageUrls || []).map(url => `<img src="${IMG_BASE_URL+url}" style="height:60px;border-radius:6px;border:1px solid #e1e6f3;" class="mr-2 mb-2 inline-block">`).join('');
+
+        const html = `
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div><div class="text-xs text-[#7b85a3]">Company</div><div class="font-semibold">${item.company}</div></div>
+                <div><div class="text-xs text-[#7b85a3]">Department</div><div class="font-semibold">${item.department || '—'}</div></div>
+                <div><div class="text-xs text-[#7b85a3]">Camera</div><div class="font-mono font-semibold">${item.camera || 'N/A'}</div></div>
+                <div><div class="text-xs text-[#7b85a3]">Status</div><div><span class="chip ${statusCls}">${item.status}</span></div></div>
+                <div><div class="text-xs text-[#7b85a3]">Priority</div><div class="font-semibold">${item.priority}</div></div>
+                <div><div class="text-xs text-[#7b85a3]">Type</div><div>${item.issueType}</div></div>
+                <div><div class="text-xs text-[#7b85a3]">Created</div><div>${date}</div></div>
+                ${item.resolvedDate ? `<div><div class="text-xs text-[#7b85a3]">Resolved</div><div class="text-accenttext">${new Date(item.resolvedDate).toLocaleDateString('en-IN')}</div></div>` : ''}
+                ${item.resolvedBy ? `<div><div class="text-xs text-[#7b85a3]">Resolved By</div><div>${item.resolvedBy}</div></div>` : ''}
+            </div>
+            <div class="text-sm text-[#1A328D] p-3 bg-[#eef1fa] rounded-lg mb-3">${item.description || ''}</div>
+            ${item.resolutionRemark ? `<div class="text-sm text-accenttext p-3 bg-[#e3f6ea] rounded-lg mb-3"><i class="fa-solid fa-check mr-1"></i>${item.resolutionRemark}</div>` : ''}
+            ${item.approved ? `<div class="text-xs text-[#7b85a3] mb-3"><i class="fa-solid fa-check mr-1"></i>Approved by <b>${item.approvedBy}</b> on ${item.approvedDate}</div>` : ''}
+
+            <div class="flex items-center justify-between mb-3">
+                <div class="text-sm font-semibold text-[#1A328D]"><i class="fa-solid fa-signature mr-1 text-accenttext"></i>Engineer Signature</div>
+                ${item.signature
+                    ? `<img src="${IMG_BASE_URL+item.signature}" class="sig-thumb" style="height:36px;max-width:120px;">`
+                    : `<span class="no-sig-badge">No signature on file</span>`}
+            </div>
+
+            ${photosHtml ? `<div class="mb-4"><div class="text-xs text-[#7b85a3] mb-1">Site Photos</div>${photosHtml}</div>` : '<div class="text-xs text-[#7b85a3] mb-4 italic">No site photos attached</div>'}
+
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="exportIssueExcel(${item.id})" class="btn-export-issue-excel px-4 py-2 text-sm"><i class="fa-regular fa-file-excel mr-1"></i>Export Excel</button>
+                <button onclick="document.getElementById('viewReportModal').classList.remove('open')" class="btn-primary px-6 py-2">Close</button>
+            </div>
+        `;
+        document.getElementById('viewReportContent').innerHTML = html;
     };
+    let approveId = null;
+let approveType = null;
+
+window.toggleApprove = function(id, type) {
+    const items = type === 'report' ? reports : issues;
+    const item = items.find(r => r.id === id);
+    if (!item || item.approved) return;
+    
+    approveId = id;
+    approveType = type;
+    
+    // Update modal labels
+    const label = type === 'report' ? 'Report' : 'Issue';
+    document.getElementById('approveTypeLabel').textContent = label;
+    document.getElementById('approveTypeLabel2').textContent = label.toLowerCase();
+    
+    // Pre-fill approver name
+    const profile = JSON.parse(localStorage.getItem('userData') || '{}');
+    const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || 'Super Admin';
+    document.getElementById('approverNameInput').value = fullName;
+    
+    document.getElementById('approveBackdrop').classList.add('open');
+};
+
+document.getElementById('cancelApprove').onclick = () => {
+    approveId = null;
+    approveType = null;
+    document.getElementById('approveBackdrop').classList.remove('open');
+};
+
+document.getElementById('confirmApprove').onclick = async () => {
+    const name = document.getElementById('approverNameInput').value.trim();
+    if (!name) {
+        showToast('Please enter your name', true);
+        return;
+    }
+    
+    if (approveId === null) return;
+    
+    try {
+        const path = approveType === 'report' ? `/reports/${approveId}/approve` : `/issues/${approveId}/approve`;
+        await apiPost(path, { approvedBy: name });
+        
+        const label = approveType === 'report' ? 'Report' : 'Issue';
+        showToast(`${label} approved successfully ✓`);
+        
+        document.getElementById('approveBackdrop').classList.remove('open');
+        approveId = null;
+        approveType = null;
+        
+        if (approveType === 'report') await loadReports(); 
+        else await loadIssues();
+        
+    } catch (err) {
+        showToast('Approval failed: ' + err.message, true);
+    }
+};
+
+// Also close modal when clicking outside
+document.getElementById('approveBackdrop').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('open');
+        approveId = null;
+        approveType = null;
+    }
+});
 
     window.editReport = function(id, type) {
         const item = type === 'report' ? reports.find(r => r.id === id) : null;

@@ -63,7 +63,7 @@
             background: linear-gradient(135deg, #1A328D, #234FAA) !important;
             color: white !important;
             width: 90%;
-        
+            margin: 6px;
             border-radius: 10px;
         }
         .sidebar a.active svg { stroke: white !important; }
@@ -139,7 +139,7 @@
         .staff-avatar {
             width: 48px; height: 48px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 18px; color: white;
+            font-weight: 700; font-size: 18px; color: rgb(120, 103, 103);
             flex-shrink: 0;
         }
 
@@ -190,6 +190,21 @@
             .profile-field { flex-direction: column; gap: 4px; }
             .profile-field .label { width: 100%; }
         }
+        /* ==== Sidebar click feedback — consistent across all pages ==== */
+.sidebar-nav-item {
+    transition: background-color .15s ease, color .15s ease, transform .08s ease;
+    will-change: background-color, color;
+}
+
+.sidebar-nav-item:active {
+    transform: scale(0.97);
+    transition-duration: .05s;   /* instant press feedback, no lag feel */
+}
+
+.sidebar-nav-item:not(.active):hover {
+    background: rgba(26, 50, 141, 0.08);
+    color: #1A328D;
+}
     </style>
 </head>
 <body class="text-[#151929]">
@@ -212,10 +227,10 @@
 
             <div class="relative">
                 <button id="userMenuBtn" class="flex items-center gap-2.5 p-1.5 transition group">
-                    <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold text-white" style="background: linear-gradient(135deg, #1A328D, #234FAA);">VJ</div>
+                    <div class="w-[34px] h-[34px] rounded-full flex items-center justify-center font-mono text-[12px] font-semibold text-white" style="background: linear-gradient(135deg, #1A328D, #234FAA);">SA</div>
                     <div class="hidden sm:block text-left">
-                        <div class="text-[13px] font-semibold text-[#1A328D]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#7b85a3]">Senior Engineer</div>
+                        <div class="text-[13px] font-semibold text-[#1A328D]">Super Admin</div>
+                        <div class="text-[11px] text-[#7b85a3]"></div>
                     </div>
                     <svg class="w-4 h-4 text-[#1A328D] transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <polyline points="6 9 12 15 18 9" />
@@ -224,8 +239,8 @@
 
                 <div id="userDropdown" class="dropdown-menu absolute right-0 mt-2 w-56 bg-white border border-[#cdd5ea] rounded-lg shadow-lg overflow-hidden z-50 hidden">
                     <div class="px-4 py-3 border-b border-[#e1e6f3]">
-                        <div class="text-[13px] font-semibold text-[#1A328D]">Vikram Joshi</div>
-                        <div class="text-[11px] text-[#7b85a3]">vikram@cctvmanager.com</div>
+                        <div class="text-[13px] font-semibold text-[#1A328D]">Super Admin</div>
+                        <div class="text-[11px] text-[#7b85a3]">superadmin@cctv.com</div>
                     </div>
 
                     <div class="border-t border-[#e1e6f3] py-1">
@@ -242,31 +257,31 @@
 
     <div class="flex min-h-screen" style="background-color: #F0F3FB;">
 
-        <!-- ===== SIDEBAR ===== -->
-        <aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col h-screen sticky top-0 overflow-y-auto">
-            <nav class="ml-2 flex flex-col gap-0.5 flex-1 overflow-y-auto" id="sidebarNav">
-                <a href="/page/dashboard.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
-                    <span class="sidebar-nav-text">Dashboard</span>
-                </a>
-                <a href="/page/company-management.html" class="mt-2 flex items-center gap-4 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
-                    <span class="sidebar-nav-text">Company Management</span>
-                </a>
-                <a href="/page/monthly-inspection.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-                    <span class="sidebar-nav-text">Monthly Visits</span>
-                </a>
-                <a href="/page/reports.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
-                    <span class="sidebar-nav-text">Monthly Inspection Reports</span>
-                </a>
-                <a href="/page/staff-management.html" class="mt-2 flex items-center gap-3 px-3 py-2.5 rounded-md text-[13.5px] font-medium bg-[#1A328D] text-white transition sidebar-nav-item active">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>
-                    <span class="sidebar-nav-text">Staff Management</span>
-                </a>
-            </nav>
-        </aside>
+       <!-- ===== SIDEBAR ===== -->
+<aside id="sidebar" class="sidebar border-r border-[#e1e6f3] flex flex-col" style="height: calc(100vh - 72px); position: sticky; top: 72px; overflow: hidden;">
+    <nav class="flex flex-col gap-0.5 flex-1 py-3" id="sidebarNav" style="overflow: visible; height: 100%;">
+        <a href="/page/dashboard.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
+            <span class="sidebar-nav-text">Dashboard</span>
+        </a>
+        <a href="/page/company-management.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /></svg>
+            <span class="sidebar-nav-text">Company Management</span>
+        </a>
+        <a href="/page/reports.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium text-[#1A328D] hover:bg-[#1A328D] hover:text-white transition group sidebar-nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></svg>
+            <span class="sidebar-nav-text">Monthly Inspection Reports</span>
+        </a>
+        <a href="/page/staff-management.html" class="flex items-center gap-4 px-3 py-2 rounded-md text-[13.5px] font-medium bg-[#1A328D] text-white transition sidebar-nav-item active">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="flex-shrink-0"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M20 21v-2a6 6 0 0 0-6-6h-4a6 6 0 0 0-6 6v2"/></svg>
+            <span class="sidebar-nav-text">Staff Management</span>
+        </a>
+    </nav>
+     <hr />
+    <div class="text-sm text-gray-500 m-4">
+        © 2026 Kunash Media Solutions
+    </div>
+</aside>
 
         <div id="overlay" class="overlay hidden fixed inset-0 bg-black/50 z-[35]"></div>
 
@@ -427,7 +442,7 @@
             <p class="text-[#7b85a3] text-sm mb-1">This action cannot be undone.</p>
             <div class="flex justify-center gap-3 mt-6">
                 <button id="cancelDelete" class="btn-secondary px-6 py-2">Cancel</button>
-                <button id="confirmDelete" class="btn-primary px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
+                <button id="confirmDelete" class="rounded-lg text-white px-6 py-2 bg-red-600 hover:bg-red-700">Delete</button>
             </div>
         </div>
     </div>
@@ -469,14 +484,13 @@
         </div>
     </div>
 
-    <script src="/page/admin-auth.js"></script>
+    <script src="/page/admin-auth.js?v=1.0.1"></script>
  <script>
     (async function() {
         'use strict';
 
-           const sessionOk = await Auth.guard();
-            if (!sessionOk) return; // guard() already redirected to admin-login.html
-
+        const sessionOk = await Auth.guard();
+        if (!sessionOk) return; // guard() already redirected to admin-login.html
 
         var API_BASE = 'http://localhost:5000/api/staff';
         var staffData = [];
@@ -561,13 +575,10 @@
             var html = '';
             staffData.forEach(function(s) {
                 var statusCls = s.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
-                var initials = (s.firstName.charAt(0) + (s.lastName ? s.lastName.charAt(0) : '')).toUpperCase();
-                var color = avatarColors[s.employeePrimeId % avatarColors.length];
                 var fullName = s.firstName + (s.middleName ? ' ' + s.middleName : '') + ' ' + s.lastName;
 
-                html += '<div class="staff-card" onclick="viewStaff(' + s.employeePrimeId + ')">';
+                html += '<div class="staff-card" data-id="' + s.id + '" data-action="view">';
                 html += '<div class="flex items-start gap-3">';
-                html += '<div class="staff-avatar" style="background:' + color + '">' + initials + '</div>';
                 html += '<div class="flex-1 min-w-0">';
                 html += '<div class="font-semibold text-[#1A328D]">' + fullName + '</div>';
                 html += '<div class="text-xs text-[#7b85a3]"><i class="fa-regular fa-envelope mr-1"></i>' + s.email + '</div>';
@@ -577,22 +588,33 @@
                 html += '<span class="chip ' + statusCls + ' text-[10px]">' + s.status + '</span>';
                 html += '</div></div>';
                 html += '<div class="flex gap-1">';
-                html += '<button onclick="event.stopPropagation();editStaff(' + s.employeePrimeId + ')" class="text-[#1A328D] hover:text-[#234FAA] p-1"><i class="fa-regular fa-pen-to-square text-sm"></i></button>';
-                html += '<button onclick="event.stopPropagation();deleteStaff(' + s.employeePrimeId + ')" class="text-[#c0392b] hover:text-red-700 p-1"><i class="fa-regular fa-trash-can text-sm"></i></button>';
+                html += '<button type="button" data-id="' + s.id + '" data-action="edit" class="text-[#1A328D] hover:text-[#234FAA] p-1"><i class="fa-regular fa-pen-to-square text-sm"></i></button>';
+                html += '<button type="button" data-id="' + s.id + '" data-action="delete" class="text-[#c0392b] hover:text-red-700 p-1"><i class="fa-regular fa-trash-can text-sm"></i></button>';
                 html += '</div></div></div>';
             });
             staffContainer.innerHTML = html;
         }
 
+        staffContainer.addEventListener('click', function(e) {
+            var btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            var id = Number(btn.getAttribute('data-id'));
+            var action = btn.getAttribute('data-action');
+            if (action === 'edit' || action === 'delete') e.stopPropagation();
+            if (action === 'view') window.viewStaff(id);
+            else if (action === 'edit') window.editStaff(id);
+            else if (action === 'delete') window.deleteStaff(id);
+        });
+
         window.viewStaff = function(id) {
-            var staff = staffData.find(function(s) { return s.employeePrimeId === id; });
+            var staff = staffData.find(function(s) { return s.id === id; });
             if (!staff) return;
 
             var fullName = staff.firstName + (staff.middleName ? ' ' + staff.middleName : '') + ' ' + staff.lastName;
             var dob = staff.dob ? new Date(staff.dob).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
             var joining = staff.joiningDate ? new Date(staff.joiningDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
             var statusCls = staff.status === 'Active' ? 'chip-active-user' : 'chip-inactive';
-            var color = avatarColors[staff.employeePrimeId % avatarColors.length];
+            var color = avatarColors[staff.id % avatarColors.length];
 
             document.getElementById('viewStaffContent').innerHTML =
                 '<div class="flex items-center gap-4 mb-4 pb-4 border-b border-[#e1e6f3]">' +
@@ -625,15 +647,18 @@
             document.getElementById('empId').value = 'Auto-generated';
             document.getElementById('password').required = true;
             document.getElementById('passwordHint').textContent = 'Required when adding a new staff member';
+            
+             // Show password field in ADD mode   
+            document.getElementById('passwordField').style.display = 'block';
             document.getElementById('staffModal').classList.add('open');
         }
 
         window.editStaff = function(id) {
-            var staff = staffData.find(function(s) { return s.employeePrimeId === id; });
+            var staff = staffData.find(function(s) { return s.id === id; });
             if (!staff) return;
 
             document.getElementById('modalTitle').innerHTML = '<i class="fa-regular fa-pen-to-square mr-2"></i>Edit Staff';
-            document.getElementById('staffId').value = staff.employeePrimeId;
+            document.getElementById('staffId').value = staff.id;
             document.getElementById('empId').value = staff.empId;
             document.getElementById('firstName').value = staff.firstName;
             document.getElementById('middleName').value = staff.middleName || '';
@@ -650,6 +675,8 @@
             document.getElementById('password').value = '';
             document.getElementById('password').required = false;
             document.getElementById('passwordHint').textContent = 'Leave blank to keep current password';
+            
+            document.getElementById('passwordField').style.display = 'none';
             document.getElementById('staffModal').classList.add('open');
         };
 
